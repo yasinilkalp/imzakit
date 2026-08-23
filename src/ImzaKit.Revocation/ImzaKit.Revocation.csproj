@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Offline OCSP and CRL evidence evaluation for ImzaKit.</Description>
+    <PackageId>ImzaKit.Revocation</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <ProjectReference Include="..\ImzaKit.Certificate\ImzaKit.Certificate.csproj" />
+  </ItemGroup>
+</Project>
