@@ -97,6 +97,19 @@ public static class PadesValidator
         }
     }
 
+    public static PadesValidationReport Validate(ReadOnlySpan<byte> pdf, ValidationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        PadesValidationService service = new(
+            new ImzaKit.Certificate.Building.CertificateChainBuilder(),
+            new ImzaKit.Certificate.Validation.CertificateChainValidator(),
+            new ImzaKit.Trust.Evaluation.TrustPolicyEvaluator(),
+            new ImzaKit.Revocation.Evaluation.OfflineRevocationEvaluator(
+                new ImzaKit.Revocation.Parsing.BouncyCastleRevocationEvidenceParser()),
+            new ValidationDecisionEngine());
+        return service.Validate(pdf, context);
+    }
+
     private static bool TryReadByteRange(string text, int start, out long[] values)
     {
         values = new long[4];
