@@ -16,11 +16,19 @@ $html = Get-Content -LiteralPath $resolvedSitePath -Raw
 $required = [ordered]@{
     'HTML5 doctype' = '<!doctype html>'
     'Default Turkish language' = 'lang="tr"'
-    'Turkish hero' = 'İmzalama altyapınızı birlikte geliştirelim.'
-    'English hero' = 'Let''s build signing infrastructure together.'
+    'Turkish hero' = 'Yerel e-imza standartları, tek NuGet kurulumu.'
+    'English hero' = 'Local e-signature standards, one NuGet install.'
     'Primary CTA' = 'NuGet ile Başla'
     'Secondary CTA' = 'GitHub''da İncele'
-    'Package command' = 'dotnet add package ImzaKit --version 1.0.0-alpha.3'
+    'Package command' = 'dotnet add package ImzaKit --version 1.0.0-alpha.4'
+    'Twelve-module inventory' = '12'
+    'Certificate module' = 'ImzaKit.Certificate'
+    'Trust module' = 'ImzaKit.Trust'
+    'Revocation module' = 'ImzaKit.Revocation'
+    'Validation context' = 'ValidationContext'
+    'General X509 profile' = 'GeneralX509'
+    'Turkiye NES profile' = 'TurkiyeNes'
+    'Unavailable revocation reason' = 'RevocationDataUnavailable'
     'Core registration' = 'AddImzaKitCore'
     'PKCS11 registration' = 'AddImzaKitPkcs11'
     'Language control' = 'id="language-toggle"'
@@ -30,11 +38,11 @@ $required = [ordered]@{
     'Reduced motion' = 'prefers-reduced-motion'
     'No-script fallback' = '<noscript>'
     'GitHub repository' = 'https://github.com/yasinilkalp/imzakit'
-    'NuGet package' = 'https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.3'
+    'NuGet package' = 'https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.4'
     'Technical guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html'
     'Security policy' = 'https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md'
     'Contribution guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md'
-    'Skip link' = 'class="skip-link"'
+    'Skip link' = 'class="skip"'
     'Main landmark' = '<main'
     'Navigation landmark' = '<nav'
     'Footer landmark' = '<footer'
@@ -65,8 +73,8 @@ foreach ($entry in $forbiddenPatterns.GetEnumerator()) {
 }
 
 $moduleCount = [regex]::Matches($html, '<article\s+[^>]*data-module\s*=', 'IgnoreCase').Count
-if ($moduleCount -ne 9) {
-    throw "Landing page must contain exactly 9 module cards; found $moduleCount."
+if ($moduleCount -ne 12) {
+    throw "Landing page must contain exactly 12 module cards; found $moduleCount."
 }
 
 $h1Count = [regex]::Matches($html, '<h1(?:\s|>)', 'IgnoreCase').Count

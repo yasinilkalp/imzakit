@@ -27,6 +27,19 @@ foreach ($file in $sourceFiles) {
 }
 
 $matrixPath = Join-Path $frdRoot 'ekler\gereksinim-izlenebilirlik-matrisi.md'
+$matrixText = Get-Content -LiteralPath $matrixPath -Raw
+foreach ($needle in @(
+    'ImzaKit.Certificate.Tests',
+    'ImzaKit.Trust.Tests',
+    'ImzaKit.Revocation.Tests',
+    'verify-nuget-package.ps1',
+    '1.0.0-alpha.4',
+    '12 DLL'
+)) {
+    if ($matrixText.IndexOf($needle, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        Add-Failure "Traceability matrix is missing Alpha.4 evidence: $needle"
+    }
+}
 $matrixIds = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($line in Get-Content -LiteralPath $matrixPath) {
     if ($line -match '^\|\s*((?:FR|NFR|SEC|VAL|API)-\d{3})\s*\|') {

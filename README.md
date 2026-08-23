@@ -6,12 +6,13 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 
 ## Öne çıkan özellikler
 
-- Tek `ImzaKit` paketi içinde dokuz modül
+- Tek `ImzaKit` paketi içinde 12 modül
 - Haricî imzalama akışları için prepare/complete modeli
 - CMS detached imza verisi hazırlama ve tamamlama
 - PDF bütünlüğünü koruyan artımlı PAdES imzalama altyapısı
 - PKCS#11 sağlayıcı sözleşmeleri ve kart imzalama orkestrasyonu
 - PAdES `ByteRange` ve CMS kriptografik imza doğrulaması
+- Sistem deposuna veya ağa başvurmayan X.509 zincir, güven politikası ve OCSP/CRL değerlendirmesi
 - DI kayıtları ve süreç içi örnek orkestrasyon
 - Agent bileti, tekrar oynatma koruması, API durum makinesi ve idempotency bileşenleri
 
@@ -42,6 +43,9 @@ Ya da proje dosyanıza doğrudan ekleyin:
 | `ImzaKit.Cms` | CMS signed-attributes hazırlama ve SignedData tamamlama |
 | `ImzaKit.PAdES` | PDF/PAdES ön kontrol, hazırlama, tamamlama ve değişiklik politikaları |
 | `ImzaKit.Pkcs11` | PKCS#11 sağlayıcı sözleşmeleri ve imzalama orkestrasyonu |
+| `ImzaKit.Certificate` | Çevrimdışı X.509 zinciri oluşturma ve kriptografik sertifika doğrulaması |
+| `ImzaKit.Trust` | Sürümlü güven deposu, profil ve sertifika politikası değerlendirmesi |
+| `ImzaKit.Revocation` | Gömülü veya yerel OCSP/CRL kanıtlarının çevrimdışı değerlendirilmesi |
 | `ImzaKit.Verify` | CMS/PAdES doğrulama raporları |
 | `ImzaKit.Agent` | Loopback Agent yapılandırması, imzalı bilet ve replay koruması |
 | `ImzaKit.Api` | İdempotent imza işlemleri, durum makinesi ve problem eşlemeleri |
@@ -94,7 +98,54 @@ foreach (ValidationFinding finding in report.Findings)
 }
 ```
 
-`PadesValidator`, PDF yapısını ve CMS imzasını denetler; sertifika güven zinciri ile iptal durumunu kendiliğinden doğrulamaz. Bu nedenle kriptografik imza geçerli olsa bile `TrustStatus` değeri `Indeterminate` olabilir.
+Tek parametreli `PadesValidator.Validate` çağrısı geriye dönük uyumluluk için yalnız PDF/CMS bütünlüğünü denetler; bu nedenle `TrustStatus` değeri `Indeterminate` olabilir.
+
+### Çevrimdışı güven doğrulaması
+
+```csharp
+using ImzaKit.Certificate.Models;
+using ImzaKit.Trust.Models;
+using ImzaKit.Verify.Validation;
+
+var trustStore = new TrustStoreSnapshot(
+    "kurum-trust-2026.08",
+    [new TrustAnchor(rootCertificate, [ValidationProfile.GeneralX509, ValidationProfile.TurkiyeNes], "kurumsal-kökler")]);
+
+var policies = new CertificatePolicyCatalog(
+    "kurum-policy-2026.08",
+    [new CertificatePolicyEntry(
+        ValidationProfile.TurkiyeNes,
+        "2.16.792.1.2.1.1.5.7.1.1",
+        new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+        null,
+        TimeSpan.FromHours(24))]);
+
+var context = new ValidationContext(
+    ValidationProfile.TurkiyeNes,
+    DateTimeOffset.UtcNow,
+    ValidationTimeSource.CurrentSystemTime,
+    trustStore,
+    policies,
+    embeddedIntermediates,
+    localIntermediates,
+    revocationEvidence);
+
+PadesValidationReport report = PadesValidator.Validate(signedPdf, context);
+switch (report.Status)
+{
+    case ValidationStatus.Passed: Console.WriteLine("İmza ve güven kararı geçti."); break;
+    case ValidationStatus.Failed: Console.WriteLine("İmza veya güven kararı başarısız."); break;
+    default: Console.WriteLine("Karar için ek kanıt gerekiyor."); break;
+}
+```
+
+`RevocationDataUnavailable`, seçilen zaman ve tazelik politikası için uygun OCSP/CRL kanıtı bulunmadığını bildirir; ağdan otomatik kanıt indirilmez.
+
+### Sınırlamalar
+
+- Sistem sertifika deposu, AIA, OCSP URL’si veya CRL URL’si otomatik kullanılmaz.
+- Güven deposu ve politika kataloğunun doğrulanmış, bütünlüğü korunmuş dağıtımı çağıran uygulamanın sorumluluğundadır.
+- Alpha.4 yalnız çağıranın sağladığı gömülü/yerel kanıtlarla deterministik çevrimdışı karar üretir; çevrimiçi toplama ve uzun dönem doğrulama kapsam dışıdır.
 
 ## Güvenlik notları
 
@@ -119,7 +170,7 @@ foreach (ValidationFinding finding in report.Findings)
 
 ## English summary
 
-ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature toolkit for .NET 10. A single NuGet package contains nine modules covering CMS and PAdES preparation/completion, PKCS#11 abstractions, signature validation, local-agent security primitives, API operation semantics, and dependency-injection integration.
+ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature toolkit for .NET 10. A single NuGet package contains 12 modules covering signing, offline certificate/trust/revocation validation, local-agent security, API semantics, and dependency injection.
 
 ### Install
 
@@ -129,11 +180,19 @@ dotnet add package ImzaKit --version 1.0.0-alpha.4
 
 ### Included modules
 
-`ImzaKit.Core`, `ImzaKit.Cryptography`, `ImzaKit.Cms`, `ImzaKit.PAdES`, `ImzaKit.Pkcs11`, `ImzaKit.Verify`, `ImzaKit.Agent`, `ImzaKit.Api`, and `ImzaKit.DependencyInjection` are distributed together through the `ImzaKit` package.
+`ImzaKit.Core`, `ImzaKit.Cryptography`, `ImzaKit.Cms`, `ImzaKit.PAdES`, `ImzaKit.Pkcs11`, `ImzaKit.Certificate`, `ImzaKit.Trust`, `ImzaKit.Revocation`, `ImzaKit.Verify`, `ImzaKit.Agent`, `ImzaKit.Api`, and `ImzaKit.DependencyInjection` are distributed together.
+
+### Offline trust validation
+
+Create a versioned `TrustStoreSnapshot` and `CertificatePolicyCatalog`, then pass them through `ValidationContext` to `PadesValidator.Validate(pdf, context)`. Choose `GeneralX509` for general PKI rules or `TurkiyeNes` for the configured Turkish qualified-certificate policy. A `RevocationDataUnavailable` finding means suitable caller-supplied OCSP/CRL evidence was unavailable.
+
+### Limitations
+
+ImzaKit never consults the system trust store or network endpoints automatically. The caller owns authenticated distribution of trust snapshots, policy catalogs, intermediates, and revocation evidence. Online evidence collection and long-term validation are outside Alpha.4.
 
 ### Prerelease and security notice
 
-This is a prerelease and its APIs may change before `1.0.0`. ImzaKit validates PDF structure and CMS signatures but does not automatically establish certificate trust or revocation status. Integrators must supply deployment-specific PKCS#11 adapters, trust policy, hardware validation, native user approval, secure transport, and operational controls before production use.
+This is a prerelease and its APIs may change before `1.0.0`. Integrators must supply deployment-specific PKCS#11 adapters, trusted validation inputs, hardware validation, native user approval, secure transport, and operational controls before production use.
 
 ### Project and community
 

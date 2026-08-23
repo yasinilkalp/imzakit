@@ -116,7 +116,15 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 
 ## Karar kapsamı
 
+## Alpha.4 çevrimdışı güven doğrulama kanıtı
+
+- Sertifika zinciri ve kriptografik kurallar: `tests/ImzaKit.Certificate.Tests` (`ImzaKit.Certificate.Tests`).
+- Sürümlü güven deposu, `GeneralX509` ve `TurkiyeNes` politika kararları: `tests/ImzaKit.Trust.Tests` (`ImzaKit.Trust.Tests`).
+- Gömülü/yerel OCSP ve CRL önceliği, tazelik ve `RevocationDataUnavailable`: `tests/ImzaKit.Revocation.Tests` (`ImzaKit.Revocation.Tests`).
+- PAdES orkestrasyonu ve geriye uyumluluk: `tests/ImzaKit.Verify.Tests`.
+- Tek paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.4.nupkg`, tam **12 DLL** ve sıfır iç `ImzaKit.*` paket bağımlılığı.
+- Tasarım ve uygulama bağı: `docs/superpowers/specs/2026-08-23-alpha4-offline-trust-validation-design.md` ve `docs/superpowers/plans/2026-08-23-alpha4-offline-trust-validation.md`.
+
 - `MVP = Evet` olan satırlar MVP kabulünü engeller.
 - Çevrimiçi OCSP/CRL ve uzun dönem PAdES Faz 2; bağımsız CAdES/workflow Faz 3; XAdES/ASiC Faz 4’tedir.
 - Aynı test birden çok gereksinimi kapsayabilir; test ve kabul kanıtı boş bırakılamaz.
-
