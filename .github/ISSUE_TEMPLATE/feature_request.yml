@@ -1,0 +1,37 @@
+name: Özellik önerisi
+description: Somut bir kullanım ihtiyacı için özellik önerin.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case / kullanım ihtiyacı
+      description: Çözmeye çalıştığınız gerçek entegrasyon problemini açıklayın.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Önerilen çözüm
+      description: Beklediğiniz davranışı ve mümkünse API şeklini açıklayın.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / kapsam
+      description: Etkilenecek modülleri, donanımı ve uyumluluk beklentisini belirtin.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatifler
+      description: Denediğiniz geçici çözümleri veya mevcut yaklaşımları yazın.
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Katkı
+      options:
+        - label: Uygulama veya test katkısı hazırlamaya istekliyim.

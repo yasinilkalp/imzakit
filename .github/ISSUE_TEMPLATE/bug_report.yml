@@ -1,0 +1,48 @@
+name: Hata bildirimi
+description: Yeniden üretilebilir bir ImzaKit hatasını bildirin.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Güvenlik açıklarını public issue yerine private Security advisory ile bildirin.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Yeniden üretim
+      description: En küçük kodu, girdiyi ve adımları paylaşın.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Beklenen davranış
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Gerçek davranış
+    validations:
+      required: true
+  - type: input
+    id: package-version
+    attributes:
+      label: Paket sürümü
+      placeholder: 1.0.0-alpha.3
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / ortam
+      description: İşletim sistemi, .NET sürümü ve ilgili kart/HSM sağlayıcısı.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Ön kontrol
+      options:
+        - label: Mevcut issue'ları aradım ve gizli bilgi eklemedim.
+          required: true
