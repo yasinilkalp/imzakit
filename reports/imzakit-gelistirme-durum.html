@@ -36,7 +36,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
 <main id="content">
 <header class="hero" id="ozet">
  <div><p class="kicker">Uygulama ilerleme kaydı</p><h1>Tek NuGet ön sürümü yayına hazır.</h1><p class="lede">İmzalama, doğrulama, PKCS#11 sözleşmesi, Agent güvenliği, API durum/idempotency ve süreç içi akış; dokuz modülü taşıyan tek bir doğrulanmış NuGet paketine dönüştürüldü.</p></div>
- <div class="verdict"><strong>Mevcut aşama</strong><span>GitHub NuGet secret'ı bekleniyor</span><p><code>ImzaKit 1.0.0-alpha.1</code>, sembol paketi ve doğrulamalı GitHub Actions yayın akışı hazır. Yayından sonra fiziksel AKİS, native Windows onayı, mTLS, trust/revocation ve dağıtım kabul kanıtları devam eder.</p></div>
+ <div class="verdict"><strong>Mevcut aşama</strong><span>NuGet Trusted Publishing politikası bekleniyor</span><p><code>ImzaKit 1.0.0-alpha.1</code>, sembol paketi ve anahtarsız OIDC yayın akışı hazır. Yayından sonra fiziksel AKİS, native Windows onayı, mTLS, trust/revocation ve dağıtım kabul kanıtları devam eder.</p></div>
 </header>
 <div class="metrics" aria-label="Geliştirme metrikleri">
  <div class="metric"><b>18</b><span>solution projesi</span></div><div class="metric"><b>90</b><span>başarılı test çalışması</span></div><div class="metric"><b>1+1</b><span>NuGet + sembol paketi</span></div><div class="metric"><b>0</b><span>build hatası</span></div><div class="metric"><b>0</b><span>build uyarısı</span></div><div class="metric"><b>109/109</b><span>FRD izlenebilirliği</span></div>
@@ -101,8 +101,8 @@ const items=[
  {status:"done",component:"Foundation",title:"Merkezi build ve paket yönetimi",detail:"Nullable, warnings-as-errors, deterministic build ve central package versions.",evidence:"0 hata / 0 uyarı"},
  {status:"done",component:"Foundation",title:"NuGet kaynak izolasyonu",detail:"Depo yalnız nuget.org kaynağını kullanıyor.",evidence:"restore passed"},
  {status:"done",component:"Release",title:"Tek NuGet ön sürüm paketi",detail:"Dokuz modül ImzaKit 1.0.0-alpha.1 içinde Apache-2.0 metadata, README ve sembollerle paketlendi.",evidence:"1 nupkg + 1 snupkg"},
- {status:"done",component:"Release",title:"GitHub Actions yayın akışı",detail:"Sürüm etiketi veya manuel tetikleme; build, 90 test, paket sözleşmesi ve sembol yayını kapılarıyla tanımlandı.",evidence:".github/workflows/publish.yml"},
- {status:"next",component:"Release",title:"NuGet.org yayını",detail:"Doğrulanmış paket GitHub NUGET_API_KEY secret'ıyla yayımlanacak ve herkese açık görünürlüğü kontrol edilecek.",evidence:"NUGET_API_KEY bekleniyor"},
+ {status:"done",component:"Release",title:"Trusted Publishing yayın akışı",detail:"GitHub OIDC ve NuGet/login@v1 ile kısa ömürlü yayın kimliği; build, 90 test, paket sözleşmesi ve sembol yayını kapılarıyla tanımlandı.",evidence:"secret gerektirmez"},
+ {status:"next",component:"Release",title:"NuGet.org yayını",detail:"Kodekibi hesabında yasinilkalp/imzakit ve publish.yml için Trusted Publishing politikası tanımlanacak; ardından paket yayımlanıp görünürlüğü kontrol edilecek.",evidence:"NuGet politikası bekleniyor"},
  {status:"done",component:"Core",title:"SignaturePreparation",detail:"Operation, digest, algoritma, sertifika ve prepare version bağlamı.",evidence:"4 Core testi"},
  {status:"done",component:"Core",title:"SignatureCompletion",detail:"SignatureValue kopyalama ve prepare bağlamı.",evidence:"4 Core testi"},
  {status:"done",component:"Cryptography",title:"Algoritma modeli ayrımı",detail:"Hash ve key algoritmaları ayrı domain modelleri.",evidence:"3 Crypto testi"},
