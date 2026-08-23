@@ -89,7 +89,7 @@ Landing page şu sınırları açıkça belirtir:
 
 ### Footer
 
-GitHub, NuGet, teknik kullanım rehberi, canlı durum raporu, LICENSE, NOTICE, SECURITY ve katkı rehberi bağlantıları bulunur.
+GitHub, NuGet, teknik kullanım rehberi, canlı durum raporu, LICENSE, NOTICE, SECURITY ve katkı rehberi bağlantıları bulunur. `site/` dışındaki belgeler Pages artefaktına kopyalanmadığı için bu bağlantılar `https://github.com/yasinilkalp/imzakit/blob/main/...` biçimindeki mutlak GitHub adreslerini kullanır.
 
 ## Dil modeli
 

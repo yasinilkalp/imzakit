@@ -196,13 +196,15 @@ $required = [ordered]@{
     'No-script fallback' = '<noscript>'
     'GitHub repository' = 'https://github.com/yasinilkalp/imzakit'
     'NuGet package' = 'https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.3'
-    'Technical guide' = '../docs/imzakit-teknik-kullanim-rehberi.html'
-    'Security policy' = '../SECURITY.md'
-    'Contribution guide' = '../CONTRIBUTING.md'
+    'Technical guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html'
+    'Security policy' = 'https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md'
+    'Contribution guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md'
 }
 ```
 
 Reject `<script src=`, `<link rel="stylesheet"`, `@import`, `http` URLs in CSS `url(...)`, analytics identifiers, and `<img src="http`. Count exactly nine distinct `data-module` cards. Require one `h1`, a skip link, `main`, `nav`, and `footer`.
+
+All links to repository files outside `site/` must use absolute `https://github.com/yasinilkalp/imzakit/blob/main/...` URLs because the Pages artifact contains only `site/`.
 
 - [ ] **Step 2: Run the verifier and confirm the red state**
 
