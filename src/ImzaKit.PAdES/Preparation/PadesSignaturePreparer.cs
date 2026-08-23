@@ -1,5 +1,6 @@
 using ImzaKit.Cms.Preparation;
 using ImzaKit.Core.Signing;
+using ImzaKit.PAdES.Appearance;
 using ImzaKit.PAdES.Incremental;
 
 namespace ImzaKit.PAdES.Preparation;
@@ -21,10 +22,11 @@ public sealed class PadesSignaturePreparer
         int cmsCapacity,
         ReadOnlySpan<byte> signingCertificateDer,
         string certificateFingerprintSha256,
-        int prepareVersion)
+        int prepareVersion,
+        PadesSignatureAppearance? appearance = null)
     {
         PdfSignaturePlaceholder placeholder =
-            PdfIncrementalSignatureWriter.Prepare(originalPdf, cmsCapacity);
+            PdfIncrementalSignatureWriter.Prepare(originalPdf, cmsCapacity, appearance);
         SignaturePreparation signaturePreparation = cmsSignaturePreparer.PrepareDetached(
             operationId,
             documentSha256,

@@ -22,6 +22,7 @@ public sealed class Pkcs11SigningServiceTests
 
     [Theory]
     [InlineData(Pkcs11ErrorCode.PinIncorrect, Pkcs11SigningStatus.PinIncorrect)]
+    [InlineData(Pkcs11ErrorCode.PinLocked, Pkcs11SigningStatus.PinLocked)]
     [InlineData(Pkcs11ErrorCode.TokenRemoved, Pkcs11SigningStatus.TokenRemoved)]
     [InlineData(Pkcs11ErrorCode.MechanismUnsupported, Pkcs11SigningStatus.MechanismUnsupported)]
     public void ProviderFailuresHaveDedicatedResults(Pkcs11ErrorCode error, Pkcs11SigningStatus expected)
@@ -61,7 +62,11 @@ public sealed class Pkcs11SigningServiceTests
         public void Initialize() => Calls.Add("Initialize");
         public IReadOnlyList<Pkcs11Token> DiscoverTokens() { Calls.Add("Discover"); return [Token]; }
         public ulong OpenSession(ulong slotId) { Calls.Add("Open"); return 11; }
-        public void Login(ulong session, ReadOnlySpan<char> pin) { Calls.Add("Login"); Fail(Pkcs11ErrorCode.PinIncorrect); }
+        public void Login(ulong session, ReadOnlySpan<char> pin)
+        {
+            Calls.Add("Login");
+            Fail(Failure is Pkcs11ErrorCode.PinIncorrect or Pkcs11ErrorCode.PinLocked ? Failure.Value : Pkcs11ErrorCode.PinIncorrect);
+        }
         public IReadOnlyList<Pkcs11Certificate> FindCertificates(ulong session) { Calls.Add("Certificates"); return [Certificate]; }
         public ulong? FindPrivateKey(ulong session, ReadOnlySpan<byte> ckaId) { Calls.Add($"Key:{Convert.ToHexString(ckaId)}"); return KeyMatches ? 21UL : null; }
         public byte[] SignRsaPkcs1Sha256(ulong session, ulong keyHandle, ReadOnlySpan<byte> digestInfo) { Calls.Add("Sign"); Fail(Failure is Pkcs11ErrorCode.TokenRemoved or Pkcs11ErrorCode.MechanismUnsupported ? Failure.Value : null); return [9, 8, 7]; }
