@@ -4,7 +4,9 @@ ImzaKit is an Apache-2.0 licensed .NET toolkit for provider-independent electron
 
 > **Prerelease:** The API may change before the stable `1.0.0` release. Validate legal, regulatory, hardware, certificate-policy, and interoperability requirements before production use.
 
-## Packages
+## Modules in the package
+
+NuGet distributes every production module below through the single `ImzaKit` package.
 
 | Package | Purpose |
 | --- | --- |
@@ -18,13 +20,13 @@ ImzaKit is an Apache-2.0 licensed .NET toolkit for provider-independent electron
 | `ImzaKit.Api` | Idempotent signature-operation domain services and API problem mapping |
 | `ImzaKit.DependencyInjection` | DI registration and in-process orchestration |
 
-Install only the modules your application needs:
+Install the toolkit with one package reference:
 
 ```shell
-dotnet add package ImzaKit.DependencyInjection --version 1.0.0-alpha.1
+dotnet add package ImzaKit --version 1.0.0-alpha.1
 ```
 
-The packages target `.NET 10`. Source, requirements, technical evidence, and implementation status are maintained in this repository.
+The package targets `.NET 10`. Source, requirements, technical evidence, and implementation status are maintained in this repository.
 
 ## Security
 

@@ -1,5 +1,7 @@
 # NuGet Prerelease Implementation Plan
 
+> **Superseded:** This nine-package plan is retained for historical context. The approved single-package implementation is defined in `2026-08-23-single-nuget-package.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Publish the nine production ImzaKit libraries as verified `1.0.0-alpha.1` packages on NuGet.org.
