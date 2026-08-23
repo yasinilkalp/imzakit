@@ -5,6 +5,7 @@
     <Project Path="src/ImzaKit.Core/ImzaKit.Core.csproj" />
     <Project Path="src/ImzaKit.Cryptography/ImzaKit.Cryptography.csproj" />
     <Project Path="src/ImzaKit.Cms/ImzaKit.Cms.csproj" />
+    <Project Path="src/ImzaKit.Certificate/ImzaKit.Certificate.csproj" />
     <Project Path="src/ImzaKit.PAdES/ImzaKit.PAdES.csproj" />
     <Project Path="src/ImzaKit.Pkcs11/ImzaKit.Pkcs11.csproj" />
     <Project Path="src/ImzaKit.DependencyInjection/ImzaKit.DependencyInjection.csproj" />
@@ -19,8 +20,10 @@
     <Project Path="tests/ImzaKit.Core.Tests/ImzaKit.Core.Tests.csproj" />
     <Project Path="tests/ImzaKit.Cryptography.Tests/ImzaKit.Cryptography.Tests.csproj" />
     <Project Path="tests/ImzaKit.Cms.Tests/ImzaKit.Cms.Tests.csproj" />
+    <Project Path="tests/ImzaKit.Certificate.Tests/ImzaKit.Certificate.Tests.csproj" />
     <Project Path="tests/ImzaKit.PAdES.Tests/ImzaKit.PAdES.Tests.csproj" />
     <Project Path="tests/ImzaKit.Pkcs11.Tests/ImzaKit.Pkcs11.Tests.csproj" />
     <Project Path="tests/ImzaKit.Verify.Tests/ImzaKit.Verify.Tests.csproj" />
+    <Project Path="tests/ImzaKit.Testing/ImzaKit.Testing.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Offline X.509 certificate chain building and validation for ImzaKit.</Description>
+    <PackageId>ImzaKit.Certificate</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+  </ItemGroup>
+</Project>
