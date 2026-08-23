@@ -1,5 +1,12 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.X509;
 
 namespace ImzaKit.Testing.Certificates;
 
@@ -35,17 +42,35 @@ public sealed class TestCertificateAuthority : IDisposable
 
     public X509Certificate2 Leaf { get; }
 
-    public static TestCertificateAuthority Create(string leafPolicyOid = "2.16.792.1.2.1.1.7.1")
+    public static TestCertificateAuthority Create(
+        string leafPolicyOid = "2.16.792.1.2.1.1.7.1",
+        bool intermediateIsCa = true,
+        bool intermediateHasKeyCertSign = true,
+        bool leafHasDigitalSignature = true,
+        bool useSha1Signatures = false)
     {
         DateTimeOffset now = new(2026, 8, 23, 12, 0, 0, TimeSpan.Zero);
+        if (useSha1Signatures)
+        {
+            return CreateLegacySha1(now);
+        }
+
         RSA rootKey = RSA.Create(2048);
         RSA intermediateKey = RSA.Create(2048);
         RSA leafKey = RSA.Create(2048);
 
-        CertificateRequest rootRequest = CreateCaRequest("CN=ImzaKit Test Root", rootKey, pathLength: 1);
+        HashAlgorithmName signatureHash = useSha1Signatures ? HashAlgorithmName.SHA1 : HashAlgorithmName.SHA256;
+        CertificateRequest rootRequest = CreateCaRequest(
+            "CN=ImzaKit Test Root", rootKey, pathLength: 1, isCa: true, hasKeyCertSign: true, signatureHash);
         X509Certificate2 root = rootRequest.CreateSelfSigned(now.AddDays(-30), now.AddYears(10));
 
-        CertificateRequest intermediateRequest = CreateCaRequest("CN=ImzaKit Test Intermediate", intermediateKey, pathLength: 0);
+        CertificateRequest intermediateRequest = CreateCaRequest(
+            "CN=ImzaKit Test Intermediate",
+            intermediateKey,
+            pathLength: 0,
+            intermediateIsCa,
+            intermediateHasKeyCertSign,
+            signatureHash);
         using X509Certificate2 intermediatePublic = intermediateRequest.Create(
             root, now.AddDays(-20), now.AddYears(5), RandomNumberGenerator.GetBytes(16));
         X509Certificate2 intermediate = intermediatePublic.CopyWithPrivateKey(intermediateKey);
@@ -53,14 +78,23 @@ public sealed class TestCertificateAuthority : IDisposable
         CertificateRequest leafRequest = new(
             "CN=ImzaKit Test Signer",
             leafKey,
-            HashAlgorithmName.SHA256,
+            signatureHash,
             RSASignaturePadding.Pkcs1);
         leafRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
-        leafRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, true));
+        leafRequest.CertificateExtensions.Add(new X509KeyUsageExtension(
+            leafHasDigitalSignature ? X509KeyUsageFlags.DigitalSignature : X509KeyUsageFlags.KeyEncipherment,
+            true));
         leafRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(leafRequest.PublicKey, false));
         leafRequest.CertificateExtensions.Add(CreateCertificatePoliciesExtension(leafPolicyOid));
+        X509SignatureGenerator intermediateSigner = X509SignatureGenerator.CreateForRSA(
+            intermediateKey,
+            RSASignaturePadding.Pkcs1);
         using X509Certificate2 leafPublic = leafRequest.Create(
-            intermediate, now.AddDays(-10), now.AddYears(1), RandomNumberGenerator.GetBytes(16));
+            intermediate.SubjectName,
+            intermediateSigner,
+            now.AddDays(-10),
+            now.AddYears(1),
+            RandomNumberGenerator.GetBytes(16));
         X509Certificate2 leaf = leafPublic.CopyWithPrivateKey(leafKey);
 
         return new(now, rootKey, intermediateKey, leafKey, root, intermediate, leaf);
@@ -76,23 +110,29 @@ public sealed class TestCertificateAuthority : IDisposable
         _rootKey.Dispose();
     }
 
-    private static CertificateRequest CreateCaRequest(string subject, RSA key, int pathLength)
+    private static CertificateRequest CreateCaRequest(
+        string subject,
+        RSA key,
+        int pathLength,
+        bool isCa,
+        bool hasKeyCertSign,
+        HashAlgorithmName signatureHash)
     {
-        CertificateRequest request = new(subject, key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, true, pathLength, true));
+        CertificateRequest request = new(subject, key, signatureHash, RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(isCa, isCa, pathLength, true));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(
-            X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+            hasKeyCertSign ? X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign : X509KeyUsageFlags.DigitalSignature,
             true));
         request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
         return request;
     }
 
-    private static X509Extension CreateCertificatePoliciesExtension(string policyOid)
+    private static System.Security.Cryptography.X509Certificates.X509Extension CreateCertificatePoliciesExtension(string policyOid)
     {
         byte[] oid = new Oid(policyOid).Value is not null
             ? EncodeCertificatePolicies(policyOid)
             : throw new ArgumentException("Policy OID is invalid.", nameof(policyOid));
-        return new X509Extension("2.5.29.32", oid, critical: false);
+        return new System.Security.Cryptography.X509Certificates.X509Extension("2.5.29.32", oid, critical: false);
     }
 
     private static byte[] EncodeCertificatePolicies(string policyOid)
@@ -104,5 +144,64 @@ public sealed class TestCertificateAuthority : IDisposable
         writer.PopSequence();
         writer.PopSequence();
         return writer.Encode();
+    }
+
+    private static TestCertificateAuthority CreateLegacySha1(DateTimeOffset now)
+    {
+        SecureRandom random = new();
+        AsymmetricCipherKeyPair rootPair = GenerateKeyPair(random);
+        AsymmetricCipherKeyPair intermediatePair = GenerateKeyPair(random);
+        AsymmetricCipherKeyPair leafPair = GenerateKeyPair(random);
+        X509Name rootName = new("CN=ImzaKit SHA1 Test Root");
+        X509Name intermediateName = new("CN=ImzaKit SHA1 Test Intermediate");
+        X509Name leafName = new("CN=ImzaKit SHA1 Test Signer");
+
+        Org.BouncyCastle.X509.X509Certificate root = GenerateLegacyCertificate(
+            rootName, rootName, rootPair.Public, rootPair.Private, 1001, now.AddDays(-30), now.AddYears(10), isCa: true);
+        Org.BouncyCastle.X509.X509Certificate intermediate = GenerateLegacyCertificate(
+            intermediateName, rootName, intermediatePair.Public, rootPair.Private, 1002, now.AddDays(-20), now.AddYears(5), isCa: true);
+        Org.BouncyCastle.X509.X509Certificate leaf = GenerateLegacyCertificate(
+            leafName, intermediateName, leafPair.Public, intermediatePair.Private, 1003, now.AddDays(-10), now.AddYears(1), isCa: false);
+
+        return new(
+            now,
+            RSA.Create(),
+            RSA.Create(),
+            RSA.Create(),
+            X509CertificateLoader.LoadCertificate(root.GetEncoded()),
+            X509CertificateLoader.LoadCertificate(intermediate.GetEncoded()),
+            X509CertificateLoader.LoadCertificate(leaf.GetEncoded()));
+    }
+
+    private static AsymmetricCipherKeyPair GenerateKeyPair(SecureRandom random)
+    {
+        RsaKeyPairGenerator generator = new();
+        generator.Init(new KeyGenerationParameters(random, 2048));
+        return generator.GenerateKeyPair();
+    }
+
+    private static Org.BouncyCastle.X509.X509Certificate GenerateLegacyCertificate(
+        X509Name subject,
+        X509Name issuer,
+        AsymmetricKeyParameter publicKey,
+        AsymmetricKeyParameter issuerPrivateKey,
+        long serial,
+        DateTimeOffset notBefore,
+        DateTimeOffset notAfter,
+        bool isCa)
+    {
+        X509V3CertificateGenerator generator = new();
+        generator.SetSerialNumber(BigInteger.ValueOf(serial));
+        generator.SetIssuerDN(issuer);
+        generator.SetSubjectDN(subject);
+        generator.SetNotBefore(notBefore.UtcDateTime);
+        generator.SetNotAfter(notAfter.UtcDateTime);
+        generator.SetPublicKey(publicKey);
+        generator.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(isCa));
+        generator.AddExtension(
+            X509Extensions.KeyUsage,
+            true,
+            new KeyUsage(isCa ? KeyUsage.KeyCertSign | KeyUsage.CrlSign : KeyUsage.DigitalSignature));
+        return generator.Generate(new Asn1SignatureFactory("SHA1WITHRSA", issuerPrivateKey));
     }
 }
