@@ -12,6 +12,7 @@ C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\ImzaKi
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\ImzaKit.PAdES.AssemblyInfoInputs.cache
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\ImzaKit.PAdES.AssemblyInfo.cs
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\ImzaKit.PAdES.csproj.CoreCompileInputs.cache
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\ImzaKit.PAdES.sourcelink.json
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\ImzaKit..C69B620D.Up2Date
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\ImzaKit.PAdES.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.PAdES\obj\Release\net10.0\refint\ImzaKit.PAdES.dll

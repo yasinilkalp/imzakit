@@ -9,3 +9,4 @@ C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Debug\net10.0\ImzaKit.C
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Debug\net10.0\refint\ImzaKit.Core.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Debug\net10.0\ImzaKit.Core.pdb
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Debug\net10.0\ref\ImzaKit.Core.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Debug\net10.0\ImzaKit.Core.sourcelink.json

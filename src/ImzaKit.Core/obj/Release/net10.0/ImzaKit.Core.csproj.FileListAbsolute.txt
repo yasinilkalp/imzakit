@@ -5,6 +5,7 @@ C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\ImzaKit
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\ImzaKit.Core.AssemblyInfoInputs.cache
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\ImzaKit.Core.AssemblyInfo.cs
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\ImzaKit.Core.csproj.CoreCompileInputs.cache
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\ImzaKit.Core.sourcelink.json
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\ImzaKit.Core.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\refint\ImzaKit.Core.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Core\obj\Release\net10.0\ImzaKit.Core.pdb

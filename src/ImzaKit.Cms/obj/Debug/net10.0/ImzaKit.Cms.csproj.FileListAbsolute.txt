@@ -15,3 +15,4 @@ C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cms\obj\Debug\net10.0\ImzaKit.Cm
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cms\obj\Debug\net10.0\refint\ImzaKit.Cms.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cms\obj\Debug\net10.0\ImzaKit.Cms.pdb
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cms\obj\Debug\net10.0\ref\ImzaKit.Cms.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cms\obj\Debug\net10.0\ImzaKit.Cms.sourcelink.json

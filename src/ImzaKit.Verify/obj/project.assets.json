@@ -2,6 +2,19 @@
   "version": 4,
   "targets": {
     "net10.0": {
+      "BouncyCastle.Cryptography/2.7.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "System.Security.Cryptography.Pkcs/10.0.11": {
         "type": "package",
         "compile": {
@@ -23,10 +36,80 @@
             "rid": "win"
           }
         }
+      },
+      "ImzaKit.Certificate/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "ImzaKit.Core": "1.0.0-alpha.4"
+        },
+        "compile": {
+          "bin/placeholder/ImzaKit.Certificate.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Certificate.dll": {}
+        }
+      },
+      "ImzaKit.Core/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/ImzaKit.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Core.dll": {}
+        }
+      },
+      "ImzaKit.Revocation/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.7.0",
+          "ImzaKit.Certificate": "1.0.0-alpha.4"
+        },
+        "compile": {
+          "bin/placeholder/ImzaKit.Revocation.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Revocation.dll": {}
+        }
+      },
+      "ImzaKit.Trust/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "ImzaKit.Certificate": "1.0.0-alpha.4"
+        },
+        "compile": {
+          "bin/placeholder/ImzaKit.Trust.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Trust.dll": {}
+        }
       }
     }
   },
   "libraries": {
+    "BouncyCastle.Cryptography/2.7.0": {
+      "sha512": "U+12df8UEWHgBi04YVf/Lgi2dy3SItlIYvHjjEVa/BngCQIzDCDRBk50DDByCfDvSbe5pRNFr3b7UrVK2kMcLw==",
+      "type": "package",
+      "path": "bouncycastle.cryptography/2.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "README.md",
+        "bouncycastle.cryptography.2.7.0.nupkg.sha512",
+        "bouncycastle.cryptography.nuspec",
+        "lib/net461/BouncyCastle.Cryptography.dll",
+        "lib/net461/BouncyCastle.Cryptography.xml",
+        "lib/net6.0/BouncyCastle.Cryptography.dll",
+        "lib/net6.0/BouncyCastle.Cryptography.xml",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.dll",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.xml",
+        "packageIcon.png"
+      ]
+    },
     "System.Security.Cryptography.Pkcs/10.0.11": {
       "sha512": "8IV+rI3xN/Mkq9MsSX7VZTv9T9Wt+tyhHLwBX9VNZBk8m8kknEs1JeTSjI2x9M2L/fSja+c2WSE5n5Yy0GXdoQ==",
       "type": "package",
@@ -62,24 +145,47 @@
         "system.security.cryptography.pkcs.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "ImzaKit.Certificate/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../ImzaKit.Certificate/ImzaKit.Certificate.csproj",
+      "msbuildProject": "../ImzaKit.Certificate/ImzaKit.Certificate.csproj"
+    },
+    "ImzaKit.Core/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../ImzaKit.Core/ImzaKit.Core.csproj",
+      "msbuildProject": "../ImzaKit.Core/ImzaKit.Core.csproj"
+    },
+    "ImzaKit.Revocation/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../ImzaKit.Revocation/ImzaKit.Revocation.csproj",
+      "msbuildProject": "../ImzaKit.Revocation/ImzaKit.Revocation.csproj"
+    },
+    "ImzaKit.Trust/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../ImzaKit.Trust/ImzaKit.Trust.csproj",
+      "msbuildProject": "../ImzaKit.Trust/ImzaKit.Trust.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "ImzaKit.Certificate >= 1.0.0-alpha.4",
+      "ImzaKit.Revocation >= 1.0.0-alpha.4",
+      "ImzaKit.Trust >= 1.0.0-alpha.4",
       "System.Security.Cryptography.Pkcs >= 10.0.11"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\": {},
+    "C:\\Users\\yasin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0",
+    "version": "1.0.0-alpha.4",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Verify\\ImzaKit.Verify.csproj",
       "projectName": "ImzaKit.Verify",
       "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Verify\\ImzaKit.Verify.csproj",
-      "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Verify\\obj\\",
       "projectStyle": "PackageReference",
       "centralPackageVersionsManagementEnabled": true,
@@ -102,7 +208,17 @@
         "net10.0": {
           "framework": "net10.0",
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Certificate\\ImzaKit.Certificate.csproj": {
+              "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Certificate\\ImzaKit.Certificate.csproj"
+            },
+            "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Revocation\\ImzaKit.Revocation.csproj": {
+              "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Revocation\\ImzaKit.Revocation.csproj"
+            },
+            "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Trust\\ImzaKit.Trust.csproj": {
+              "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Trust\\ImzaKit.Trust.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

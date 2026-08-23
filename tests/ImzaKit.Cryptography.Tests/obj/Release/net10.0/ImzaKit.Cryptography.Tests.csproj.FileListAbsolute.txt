@@ -93,6 +93,7 @@ C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release\net10.0\ImzaKit.Cryptography.Tests.AssemblyInfoInputs.cache
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release\net10.0\ImzaKit.Cryptography.Tests.AssemblyInfo.cs
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release\net10.0\ImzaKit.Cryptography.Tests.csproj.CoreCompileInputs.cache
+C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release\net10.0\ImzaKit.Cryptography.Tests.sourcelink.json
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release\net10.0\ImzaKit..B16006C9.Up2Date
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release\net10.0\ImzaKit.Cryptography.Tests.dll
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cryptography.Tests\obj\Release\net10.0\refint\ImzaKit.Cryptography.Tests.dll

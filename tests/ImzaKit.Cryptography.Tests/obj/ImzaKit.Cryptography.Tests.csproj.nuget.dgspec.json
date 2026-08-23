@@ -5,12 +5,12 @@
   },
   "projects": {
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\ImzaKit.Core.csproj": {
-      "version": "1.0.0",
+      "version": "1.0.0-alpha.4",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\ImzaKit.Core.csproj",
         "projectName": "ImzaKit.Core",
         "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\ImzaKit.Core.csproj",
-        "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\obj\\",
         "projectStyle": "PackageReference",
         "centralPackageVersionsManagementEnabled": true,
@@ -360,12 +360,12 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj": {
-      "version": "1.0.0",
+      "version": "1.0.0-alpha.4",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj",
         "projectName": "ImzaKit.Cryptography",
         "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj",
-        "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\obj\\",
         "projectStyle": "PackageReference",
         "centralPackageVersionsManagementEnabled": true,
@@ -719,12 +719,12 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Cryptography.Tests\\ImzaKit.Cryptography.Tests.csproj": {
-      "version": "1.0.0",
+      "version": "1.0.0-alpha.4",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Cryptography.Tests\\ImzaKit.Cryptography.Tests.csproj",
         "projectName": "ImzaKit.Cryptography.Tests",
         "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Cryptography.Tests\\ImzaKit.Cryptography.Tests.csproj",
-        "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Cryptography.Tests\\obj\\",
         "projectStyle": "PackageReference",
         "centralPackageVersionsManagementEnabled": true,

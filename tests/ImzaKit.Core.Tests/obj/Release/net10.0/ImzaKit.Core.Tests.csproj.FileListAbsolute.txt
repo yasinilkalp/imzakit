@@ -92,6 +92,7 @@ C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0\ImzaKit.Core.Tests.AssemblyInfoInputs.cache
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0\ImzaKit.Core.Tests.AssemblyInfo.cs
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0\ImzaKit.Core.Tests.csproj.CoreCompileInputs.cache
+C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0\ImzaKit.Core.Tests.sourcelink.json
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0\ImzaKit..1F7B0F89.Up2Date
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0\ImzaKit.Core.Tests.dll
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Release\net10.0\refint\ImzaKit.Core.Tests.dll

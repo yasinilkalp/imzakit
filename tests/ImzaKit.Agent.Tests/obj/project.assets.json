@@ -401,7 +401,7 @@
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
       },
-      "ImzaKit.Agent/1.0.0": {
+      "ImzaKit.Agent/1.0.0-alpha.4": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
@@ -874,7 +874,7 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
-    "ImzaKit.Agent/1.0.0": {
+    "ImzaKit.Agent/1.0.0-alpha.4": {
       "type": "project",
       "path": "../../src/ImzaKit.Agent/ImzaKit.Agent.csproj",
       "msbuildProject": "../../src/ImzaKit.Agent/ImzaKit.Agent.csproj"
@@ -883,23 +883,23 @@
   "projectFileDependencyGroups": {
     "net10.0": [
       "BouncyCastle.Cryptography >= 2.7.0",
-      "ImzaKit.Agent >= 1.0.0",
+      "ImzaKit.Agent >= 1.0.0-alpha.4",
       "Microsoft.NET.Test.Sdk >= 17.14.1",
       "xunit >= 2.9.3",
       "xunit.runner.visualstudio >= 3.1.4"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\": {},
+    "C:\\Users\\yasin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0",
+    "version": "1.0.0-alpha.4",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Agent.Tests\\ImzaKit.Agent.Tests.csproj",
       "projectName": "ImzaKit.Agent.Tests",
       "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Agent.Tests\\ImzaKit.Agent.Tests.csproj",
-      "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Agent.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "centralPackageVersionsManagementEnabled": true,

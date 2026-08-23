@@ -1,11 +1,12 @@
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\bin\Release\net10.0\ImzaKit.Agent.deps.json
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\bin\Release\net10.0\ImzaKit.Agent.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\bin\Release\net10.0\ImzaKit.Agent.pdb
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.csproj.AssemblyReference.cache
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.AssemblyInfoInputs.cache
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.AssemblyInfo.cs
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.csproj.CoreCompileInputs.cache
-C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\bin\Release\net10.0\ImzaKit.Agent.deps.json
-C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\bin\Release\net10.0\ImzaKit.Agent.dll
-C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\bin\Release\net10.0\ImzaKit.Agent.pdb
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.sourcelink.json
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\refint\ImzaKit.Agent.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Agent\obj\Release\net10.0\ImzaKit.Agent.pdb

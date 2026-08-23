@@ -8,6 +8,7 @@ C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0\ImzaKit.Cryptography.AssemblyInfoInputs.cache
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0\ImzaKit.Cryptography.AssemblyInfo.cs
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0\ImzaKit.Cryptography.csproj.CoreCompileInputs.cache
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0\ImzaKit.Cryptography.sourcelink.json
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0\ImzaKit..D27DB6F1.Up2Date
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0\ImzaKit.Cryptography.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Release\net10.0\refint\ImzaKit.Cryptography.dll

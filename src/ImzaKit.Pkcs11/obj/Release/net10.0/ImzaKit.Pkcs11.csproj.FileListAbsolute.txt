@@ -1,10 +1,11 @@
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\bin\Release\net10.0\ImzaKit.Pkcs11.deps.json
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\bin\Release\net10.0\ImzaKit.Pkcs11.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\bin\Release\net10.0\ImzaKit.Pkcs11.pdb
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\ImzaKit.Pkcs11.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\ImzaKit.Pkcs11.AssemblyInfoInputs.cache
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\ImzaKit.Pkcs11.AssemblyInfo.cs
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\ImzaKit.Pkcs11.csproj.CoreCompileInputs.cache
-C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\bin\Release\net10.0\ImzaKit.Pkcs11.deps.json
-C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\bin\Release\net10.0\ImzaKit.Pkcs11.dll
-C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\bin\Release\net10.0\ImzaKit.Pkcs11.pdb
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\ImzaKit.Pkcs11.sourcelink.json
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\ImzaKit.Pkcs11.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\refint\ImzaKit.Pkcs11.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Pkcs11\obj\Release\net10.0\ImzaKit.Pkcs11.pdb

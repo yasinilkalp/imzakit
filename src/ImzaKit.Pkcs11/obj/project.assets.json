@@ -8,16 +8,16 @@
     "net10.0": []
   },
   "packageFolders": {
-    "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\": {},
+    "C:\\Users\\yasin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0",
+    "version": "1.0.0-alpha.4",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Pkcs11\\ImzaKit.Pkcs11.csproj",
       "projectName": "ImzaKit.Pkcs11",
       "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Pkcs11\\ImzaKit.Pkcs11.csproj",
-      "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Pkcs11\\obj\\",
       "projectStyle": "PackageReference",
       "centralPackageVersionsManagementEnabled": true,

@@ -2,7 +2,7 @@
   "version": 4,
   "targets": {
     "net10.0": {
-      "ImzaKit.Core/1.0.0": {
+      "ImzaKit.Core/1.0.0-alpha.4": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "compile": {
@@ -15,7 +15,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Core/1.0.0": {
+    "ImzaKit.Core/1.0.0-alpha.4": {
       "type": "project",
       "path": "../ImzaKit.Core/ImzaKit.Core.csproj",
       "msbuildProject": "../ImzaKit.Core/ImzaKit.Core.csproj"
@@ -23,20 +23,20 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "ImzaKit.Core >= 1.0.0"
+      "ImzaKit.Core >= 1.0.0-alpha.4"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\": {},
+    "C:\\Users\\yasin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0",
+    "version": "1.0.0-alpha.4",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj",
       "projectName": "ImzaKit.Cryptography",
       "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj",
-      "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\obj\\",
       "projectStyle": "PackageReference",
       "centralPackageVersionsManagementEnabled": true,

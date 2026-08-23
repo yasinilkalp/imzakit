@@ -2,6 +2,19 @@
   "version": 4,
   "targets": {
     "net10.0": {
+      "BouncyCastle.Cryptography/2.7.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.CodeCoverage/17.14.1": {
         "type": "package",
         "compile": {
@@ -410,12 +423,25 @@
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
       },
-      "ImzaKit.Cms/1.0.0": {
+      "ImzaKit.Certificate/1.0.0-alpha.4": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Core": "1.0.0",
-          "ImzaKit.Cryptography": "1.0.0"
+          "ImzaKit.Core": "1.0.0-alpha.4"
+        },
+        "compile": {
+          "bin/placeholder/ImzaKit.Certificate.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Certificate.dll": {}
+        }
+      },
+      "ImzaKit.Cms/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "ImzaKit.Core": "1.0.0-alpha.4",
+          "ImzaKit.Cryptography": "1.0.0-alpha.4"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Cms.dll": {}
@@ -424,7 +450,7 @@
           "bin/placeholder/ImzaKit.Cms.dll": {}
         }
       },
-      "ImzaKit.Core/1.0.0": {
+      "ImzaKit.Core/1.0.0-alpha.4": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "compile": {
@@ -434,11 +460,11 @@
           "bin/placeholder/ImzaKit.Core.dll": {}
         }
       },
-      "ImzaKit.Cryptography/1.0.0": {
+      "ImzaKit.Cryptography/1.0.0-alpha.4": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Core": "1.0.0"
+          "ImzaKit.Core": "1.0.0-alpha.4"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Cryptography.dll": {}
@@ -447,12 +473,12 @@
           "bin/placeholder/ImzaKit.Cryptography.dll": {}
         }
       },
-      "ImzaKit.PAdES/1.0.0": {
+      "ImzaKit.PAdES/1.0.0-alpha.4": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Cms": "1.0.0",
-          "ImzaKit.Core": "1.0.0"
+          "ImzaKit.Cms": "1.0.0-alpha.4",
+          "ImzaKit.Core": "1.0.0-alpha.4"
         },
         "compile": {
           "bin/placeholder/ImzaKit.PAdES.dll": {}
@@ -461,10 +487,53 @@
           "bin/placeholder/ImzaKit.PAdES.dll": {}
         }
       },
-      "ImzaKit.Verify/1.0.0": {
+      "ImzaKit.Revocation/1.0.0-alpha.4": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
+          "BouncyCastle.Cryptography": "2.7.0",
+          "ImzaKit.Certificate": "1.0.0-alpha.4"
+        },
+        "compile": {
+          "bin/placeholder/ImzaKit.Revocation.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Revocation.dll": {}
+        }
+      },
+      "ImzaKit.Testing/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.7.0"
+        },
+        "compile": {
+          "bin/placeholder/ImzaKit.Testing.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Testing.dll": {}
+        }
+      },
+      "ImzaKit.Trust/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "ImzaKit.Certificate": "1.0.0-alpha.4"
+        },
+        "compile": {
+          "bin/placeholder/ImzaKit.Trust.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ImzaKit.Trust.dll": {}
+        }
+      },
+      "ImzaKit.Verify/1.0.0-alpha.4": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "ImzaKit.Certificate": "1.0.0-alpha.4",
+          "ImzaKit.Revocation": "1.0.0-alpha.4",
+          "ImzaKit.Trust": "1.0.0-alpha.4",
           "System.Security.Cryptography.Pkcs": "10.0.11"
         },
         "compile": {
@@ -477,6 +546,26 @@
     }
   },
   "libraries": {
+    "BouncyCastle.Cryptography/2.7.0": {
+      "sha512": "U+12df8UEWHgBi04YVf/Lgi2dy3SItlIYvHjjEVa/BngCQIzDCDRBk50DDByCfDvSbe5pRNFr3b7UrVK2kMcLw==",
+      "type": "package",
+      "path": "bouncycastle.cryptography/2.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "README.md",
+        "bouncycastle.cryptography.2.7.0.nupkg.sha512",
+        "bouncycastle.cryptography.nuspec",
+        "lib/net461/BouncyCastle.Cryptography.dll",
+        "lib/net461/BouncyCastle.Cryptography.xml",
+        "lib/net6.0/BouncyCastle.Cryptography.dll",
+        "lib/net6.0/BouncyCastle.Cryptography.xml",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.dll",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.xml",
+        "packageIcon.png"
+      ]
+    },
     "Microsoft.CodeCoverage/17.14.1": {
       "sha512": "pmTrhfFIoplzFVbhVwUquT+77CbGH+h4/3mBpdmIlYtBi9nAB+kKI6dN3A/nV4DFi3wLLx/BlHIPK+MkbQ6Tpg==",
       "type": "package",
@@ -950,27 +1039,47 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
-    "ImzaKit.Cms/1.0.0": {
+    "ImzaKit.Certificate/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../../src/ImzaKit.Certificate/ImzaKit.Certificate.csproj",
+      "msbuildProject": "../../src/ImzaKit.Certificate/ImzaKit.Certificate.csproj"
+    },
+    "ImzaKit.Cms/1.0.0-alpha.4": {
       "type": "project",
       "path": "../../src/ImzaKit.Cms/ImzaKit.Cms.csproj",
       "msbuildProject": "../../src/ImzaKit.Cms/ImzaKit.Cms.csproj"
     },
-    "ImzaKit.Core/1.0.0": {
+    "ImzaKit.Core/1.0.0-alpha.4": {
       "type": "project",
       "path": "../../src/ImzaKit.Core/ImzaKit.Core.csproj",
       "msbuildProject": "../../src/ImzaKit.Core/ImzaKit.Core.csproj"
     },
-    "ImzaKit.Cryptography/1.0.0": {
+    "ImzaKit.Cryptography/1.0.0-alpha.4": {
       "type": "project",
       "path": "../../src/ImzaKit.Cryptography/ImzaKit.Cryptography.csproj",
       "msbuildProject": "../../src/ImzaKit.Cryptography/ImzaKit.Cryptography.csproj"
     },
-    "ImzaKit.PAdES/1.0.0": {
+    "ImzaKit.PAdES/1.0.0-alpha.4": {
       "type": "project",
       "path": "../../src/ImzaKit.PAdES/ImzaKit.PAdES.csproj",
       "msbuildProject": "../../src/ImzaKit.PAdES/ImzaKit.PAdES.csproj"
     },
-    "ImzaKit.Verify/1.0.0": {
+    "ImzaKit.Revocation/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../../src/ImzaKit.Revocation/ImzaKit.Revocation.csproj",
+      "msbuildProject": "../../src/ImzaKit.Revocation/ImzaKit.Revocation.csproj"
+    },
+    "ImzaKit.Testing/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../ImzaKit.Testing/ImzaKit.Testing.csproj",
+      "msbuildProject": "../ImzaKit.Testing/ImzaKit.Testing.csproj"
+    },
+    "ImzaKit.Trust/1.0.0-alpha.4": {
+      "type": "project",
+      "path": "../../src/ImzaKit.Trust/ImzaKit.Trust.csproj",
+      "msbuildProject": "../../src/ImzaKit.Trust/ImzaKit.Trust.csproj"
+    },
+    "ImzaKit.Verify/1.0.0-alpha.4": {
       "type": "project",
       "path": "../../src/ImzaKit.Verify/ImzaKit.Verify.csproj",
       "msbuildProject": "../../src/ImzaKit.Verify/ImzaKit.Verify.csproj"
@@ -978,10 +1087,11 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "ImzaKit.Cms >= 1.0.0",
-      "ImzaKit.Cryptography >= 1.0.0",
-      "ImzaKit.PAdES >= 1.0.0",
-      "ImzaKit.Verify >= 1.0.0",
+      "ImzaKit.Cms >= 1.0.0-alpha.4",
+      "ImzaKit.Cryptography >= 1.0.0-alpha.4",
+      "ImzaKit.PAdES >= 1.0.0-alpha.4",
+      "ImzaKit.Testing >= 1.0.0-alpha.4",
+      "ImzaKit.Verify >= 1.0.0-alpha.4",
       "Microsoft.NET.Test.Sdk >= 17.14.1",
       "System.Security.Cryptography.Pkcs >= 10.0.11",
       "xunit >= 2.9.3",
@@ -989,16 +1099,16 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\": {},
+    "C:\\Users\\yasin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0",
+    "version": "1.0.0-alpha.4",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Verify.Tests\\ImzaKit.Verify.Tests.csproj",
       "projectName": "ImzaKit.Verify.Tests",
       "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Verify.Tests\\ImzaKit.Verify.Tests.csproj",
-      "packagesPath": "C:\\Users\\yasin\\AppData\\Local\\Temp\\imzakit-dotnet-cli\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\yasin\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Verify.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "centralPackageVersionsManagementEnabled": true,
@@ -1033,6 +1143,9 @@
             },
             "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Verify\\ImzaKit.Verify.csproj": {
               "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Verify\\ImzaKit.Verify.csproj"
+            },
+            "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Testing\\ImzaKit.Testing.csproj": {
+              "projectPath": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Testing\\ImzaKit.Testing.csproj"
             }
           }
         }

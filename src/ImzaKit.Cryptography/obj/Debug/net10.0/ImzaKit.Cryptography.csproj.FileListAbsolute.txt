@@ -13,3 +13,4 @@ C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Debug\net10.0\I
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Debug\net10.0\refint\ImzaKit.Cryptography.dll
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Debug\net10.0\ImzaKit.Cryptography.pdb
 C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Debug\net10.0\ref\ImzaKit.Cryptography.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Cryptography\obj\Debug\net10.0\ImzaKit.Cryptography.sourcelink.json
