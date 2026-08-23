@@ -35,8 +35,8 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
 </aside>
 <main id="content">
 <header class="hero" id="ozet">
- <div><p class="kicker">Uygulama ilerleme kaydı</p><h1>Tek NuGet ön sürümü yayına hazır.</h1><p class="lede">İmzalama, doğrulama, PKCS#11 sözleşmesi, Agent güvenliği, API durum/idempotency ve süreç içi akış; dokuz modülü taşıyan tek bir doğrulanmış NuGet paketine dönüştürüldü.</p></div>
- <div class="verdict"><strong>Mevcut aşama</strong><span>Düzeltme ön sürümü hazırlanıyor</span><p>Eski deneme arşivinin kullandığı <code>1.0.0-alpha.1</code> sürümü değiştirilemediği için doğrulanmış tek paket <code>1.0.0-alpha.2</code> olarak yayımlanacak. Anahtarsız OIDC yayın politikası aktiftir.</p></div>
+ <div><p class="kicker">Uygulama ilerleme kaydı</p><h1>Tek NuGet ön sürümü yayımlandı.</h1><p class="lede">İmzalama, doğrulama, PKCS#11 sözleşmesi, Agent güvenliği, API durum/idempotency ve süreç içi akış; dokuz modülü taşıyan tek bir doğrulanmış NuGet paketi olarak erişime açıldı.</p></div>
+ <div class="verdict"><strong>Mevcut aşama</strong><span>Harici kabul kanıtlarına geçildi</span><p><code>ImzaKit 1.0.0-alpha.2</code> Trusted Publishing ile yayımlandı; uzak arşivde 9 DLL, güncel README, 3 dış bağımlılık ve 0 iç paket bağımlılığı doğrulandı. Hatalı <code>alpha.1</code> liste dışıdır.</p></div>
 </header>
 <div class="metrics" aria-label="Geliştirme metrikleri">
  <div class="metric"><b>18</b><span>solution projesi</span></div><div class="metric"><b>90</b><span>başarılı test çalışması</span></div><div class="metric"><b>1+1</b><span>NuGet + sembol paketi</span></div><div class="metric"><b>0</b><span>build hatası</span></div><div class="metric"><b>0</b><span>build uyarısı</span></div><div class="metric"><b>109/109</b><span>FRD izlenebilirliği</span></div>
@@ -91,7 +91,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
 </section>
 <section id="sonraki">
  <div class="section-head"><p class="kicker">Önerilen devam</p><h2>Bir sonraki işlem</h2></div>
- <div class="next-card"><div><h3>NuGet.org düzeltme yayını</h3><p>Doğrulanmış <code>ImzaKit 1.0.0-alpha.2</code> Trusted Publishing ile yayımlanacak; uzak arşiv tekrar indirilerek dokuz DLL ve güncel README doğrulanacak.</p></div><ol><li>Hatalı alpha.1 sürümünü aramadan kaldırma</li><li>OIDC ile alpha.2 yayını</li><li>Uzak paket içerik kontrolü</li><li>Harici kabul kanıtları</li></ol></div>
+ <div class="next-card"><div><h3>Harici kabul kanıtları</h3><p>NuGet teslimatı tamamlandı. Sıradaki kapılar fiziksel AKİS kartı, native kullanıcı onayı, mTLS callback, trust/revocation ve kurulum/dağıtım doğrulamasıdır.</p></div><ol><li>Gerçek AKİS kart imzası</li><li>Native onay ve mTLS</li><li>Trust/revocation kontrolü</li><li>Kurulum ve dağıtım kanıtı</li></ol></div>
 </section>
 <footer><span>İmzaKit Geliştirme Durum Raporu</span><span>Kaynak tarihi: 23 Ağustos 2026</span></footer>
 </main>
@@ -102,8 +102,8 @@ const items=[
  {status:"done",component:"Foundation",title:"NuGet kaynak izolasyonu",detail:"Depo yalnız nuget.org kaynağını kullanıyor.",evidence:"restore passed"},
  {status:"done",component:"Release",title:"Tek NuGet düzeltme paketi",detail:"Dokuz modül ImzaKit 1.0.0-alpha.2 içinde Apache-2.0 metadata, README ve sembollerle paketlendi.",evidence:"1 nupkg + 1 snupkg"},
  {status:"done",component:"Release",title:"Trusted Publishing yayın akışı",detail:"GitHub OIDC ve NuGet/login@v1 ile kısa ömürlü yayın kimliği; build, 90 test, paket sözleşmesi ve sembol yayını kapılarıyla tanımlandı.",evidence:"secret gerektirmez"},
- {status:"done",component:"Release",title:"Alpha.1 içerik uyumsuzluğu tespiti",detail:"NuGet.org arşivinde fazladan ImzaKit.Bundle.dll ve eski README bulundu; sürüm çakışmasını gizleyen skip-duplicate kaldırıldı.",evidence:"uzak paket: 10 DLL"},
- {status:"next",component:"Release",title:"NuGet.org alpha.2 yayını",detail:"Aktif Kodekibi Trusted Publishing politikasıyla doğrulanmış paket yayımlanacak ve uzak arşiv içeriği tekrar kontrol edilecek.",evidence:"alpha.2 hazırlanıyor"},
+ {status:"done",component:"Release",title:"Alpha.1 içerik uyumsuzluğu ve liste dışı bırakma",detail:"NuGet.org arşivinde fazladan ImzaKit.Bundle.dll ve eski README bulundu; sürüm liste dışı bırakıldı ve skip-duplicate kaldırıldı.",evidence:"alpha.1 unlisted"},
+ {status:"done",component:"Release",title:"NuGet.org alpha.2 yayını",detail:"Aktif Kodekibi Trusted Publishing politikasıyla paket yayımlandı; CDN arşivinde dokuz DLL, güncel README ve doğru bağımlılıklar doğrulandı.",evidence:"NuGet.org / ImzaKit 1.0.0-alpha.2"},
  {status:"done",component:"Core",title:"SignaturePreparation",detail:"Operation, digest, algoritma, sertifika ve prepare version bağlamı.",evidence:"4 Core testi"},
  {status:"done",component:"Core",title:"SignatureCompletion",detail:"SignatureValue kopyalama ve prepare bağlamı.",evidence:"4 Core testi"},
  {status:"done",component:"Cryptography",title:"Algoritma modeli ayrımı",detail:"Hash ve key algoritmaları ayrı domain modelleri.",evidence:"3 Crypto testi"},
