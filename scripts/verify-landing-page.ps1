@@ -80,21 +80,19 @@ if ($html -match '(?:href|src)\s*=\s*["'']\.\./') {
 
 $readmePath = Join-Path $root 'README.md'
 $reportPath = Join-Path $root 'reports\imzakit-gelistirme-durum.html'
-if ((Test-Path -LiteralPath $readmePath) -and (Test-Path -LiteralPath $reportPath)) {
-    # Repository integration checks are enabled after Task 4 adds its marker.
-    $report = Get-Content -LiteralPath $reportPath -Raw
-    if ($report.IndexOf('landing-page-integration', [StringComparison]::OrdinalIgnoreCase) -ge 0) {
-        $readme = Get-Content -LiteralPath $readmePath -Raw
-        foreach ($pattern in @('https://yasinilkalp.github.io/imzakit/', 'CONTRIBUTING.md', 'SECURITY.md', 'CODE_OF_CONDUCT.md')) {
-            if ($readme.IndexOf($pattern, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
-                throw "README is missing landing-page integration content: $pattern"
-            }
-        }
-        foreach ($pattern in @('Açık kaynak landing page', 'GitHub Pages', 'landing page verification passed')) {
-            if ($report.IndexOf($pattern, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
-                throw "Status report is missing landing-page integration content: $pattern"
-            }
-        }
+if (-not (Test-Path -LiteralPath $readmePath) -or -not (Test-Path -LiteralPath $reportPath)) {
+    throw 'README or live status report is missing.'
+}
+$readme = Get-Content -LiteralPath $readmePath -Raw
+$report = Get-Content -LiteralPath $reportPath -Raw
+foreach ($pattern in @('https://yasinilkalp.github.io/imzakit/', 'CONTRIBUTING.md', 'SECURITY.md', 'CODE_OF_CONDUCT.md')) {
+    if ($readme.IndexOf($pattern, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        throw "README is missing landing-page integration content: $pattern"
+    }
+}
+foreach ($pattern in @('Açık kaynak landing page', 'GitHub Pages', 'landing page verification passed')) {
+    if ($report.IndexOf($pattern, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        throw "Status report is missing landing-page integration content: $pattern"
     }
 }
 

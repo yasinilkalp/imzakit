@@ -105,9 +105,13 @@ foreach (ValidationFinding finding in report.Findings)
 
 ## Kaynak, durum ve lisans
 
+- [Açık kaynak tanıtım sayfası](https://yasinilkalp.github.io/imzakit/)
 - [Kaynak kodu](https://github.com/yasinilkalp/imzakit)
 - [Etkileşimli teknik kullanım rehberi](https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html)
 - [Geliştirme durum raporu](https://github.com/yasinilkalp/imzakit/blob/main/reports/imzakit-gelistirme-durum.html)
+- [Katkı rehberi](CONTRIBUTING.md)
+- [Davranış kuralları](CODE_OF_CONDUCT.md)
+- [Güvenlik politikası](SECURITY.md)
 - [Apache License 2.0](https://github.com/yasinilkalp/imzakit/blob/main/LICENSE)
 - [NOTICE](https://github.com/yasinilkalp/imzakit/blob/main/NOTICE)
 
@@ -130,5 +134,12 @@ dotnet add package ImzaKit --version 1.0.0-alpha.3
 ### Prerelease and security notice
 
 This is a prerelease and its APIs may change before `1.0.0`. ImzaKit validates PDF structure and CMS signatures but does not automatically establish certificate trust or revocation status. Integrators must supply deployment-specific PKCS#11 adapters, trust policy, hardware validation, native user approval, secure transport, and operational controls before production use.
+
+### Project and community
+
+- [Project website](https://yasinilkalp.github.io/imzakit/)
+- [Contributing guide](CONTRIBUTING.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
 
 Copyright 2026 ImzaKit contributors. Licensed under the [Apache License 2.0](https://github.com/yasinilkalp/imzakit/blob/main/LICENSE).
