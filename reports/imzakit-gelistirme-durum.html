@@ -35,7 +35,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
 </aside>
 <main id="content">
 <header class="hero" id="ozet">
- <div><p class="kicker">Uygulama ilerleme kaydı</p><h1>İki dilli NuGet ön sürümü yayımlandı.</h1><p class="lede">Türkçe ana anlatım ve İngilizce özet içeren açıklayıcı README; kurulum, modüller, kullanım, sınırlar ve güvenlik notlarıyla NuGet.org'da erişime açıldı.</p></div>
+ <div><p class="kicker">Uygulama ilerleme kaydı</p><h1>Teknik kullanım rehberi tamamlandı.</h1><p class="lede">Kurulumdan üretim kontrolüne uzanan tek dosyalık etkileşimli Türkçe rehber; arama, modül filtresi, kopyalanabilir örnekler, tema ve yazdırma desteğiyle hazırlandı.</p></div>
  <div class="verdict"><strong>Mevcut aşama</strong><span>Harici kabul kanıtlarına geçildi</span><p><code>ImzaKit 1.0.0-alpha.3</code> Trusted Publishing ile yayımlandı. Uzak arşivde 9 DLL, iki dilli README, 3 dış bağımlılık ve 0 iç paket bağımlılığı doğrulandı.</p></div>
 </header>
 <div class="metrics" aria-label="Geliştirme metrikleri">
@@ -65,7 +65,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
  <div class="section-head"><p class="kicker">Taze kanıt</p><h2>Doğrulama özeti</h2><p>Son başarılı çalıştırmalar ve mevcut sınırlar.</p></div>
  <div class="grid">
   <article class="panel span6"><h3>Test paketleri</h3><div class="check"><span>ImzaKit.Core.Tests</span><code>4 / 4</code></div><div class="check"><span>ImzaKit.Cryptography.Tests</span><code>3 / 3</code></div><div class="check"><span>ImzaKit.Cms.Tests</span><code>12 / 12</code></div><div class="check"><span>ImzaKit.PAdES.Tests</span><code>35 / 35</code></div><div class="check"><span>ImzaKit.Verify.Tests</span><code>6 / 6</code></div><div class="check"><span>ImzaKit.Pkcs11.Tests</span><code>5 / 5</code></div><div class="check"><span>ImzaKit.Agent.Tests</span><code>9 / 9</code></div><div class="check"><span>ImzaKit.Api.Tests</span><code>16 / 16</code></div></article>
-  <article class="panel span6"><h3>Kalite kapıları</h3><div class="check"><span>Release build</span><code>0 hata, 0 uyarı</code></div><div class="check"><span>FRD doğrulama</span><code>passed</code></div><div class="check"><span>NuGet paket doğrulaması</span><code>1 nupkg + 1 snupkg</code></div><div class="check"><span>Solution proje sayısı</span><code>18</code></div></article>
+  <article class="panel span6"><h3>Kalite kapıları</h3><div class="check"><span>Release build</span><code>0 hata, 0 uyarı</code></div><div class="check"><span>FRD doğrulama</span><code>passed</code></div><div class="check"><span>Teknik rehber sözleşmesi</span><code>passed</code></div><div class="check"><span>NuGet paket doğrulaması</span><code>1 nupkg + 1 snupkg</code></div><div class="check"><span>Solution proje sayısı</span><code>18</code></div></article>
   <article class="panel span6"><h3>Henüz kanıtlanmayanlar</h3><p>Gerçek AKİS kart imzası, sertifika güven zinciri ve iptal kontrolü, native kullanıcı onayı, mTLS callback ve kurulum/dağıtım kanıtları.</p></article>
   <article class="panel span6"><h3>Build ortamı notu</h3><p>Kısıtlı çalışma ortamı Roslyn yerel iletişim kanalını engelleyebiliyor; Release doğrulaması izinli süreçte tamamlandı. Kod ve analizör çıktısı temiz.</p></article>
  </div>
@@ -88,6 +88,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
  <details><summary><code>E2E</code><strong>Süreç içi PAdES MVP akışı</strong><span>1 test</span></summary><div class="detail"><a href="../tests/ImzaKit.Api.Tests/InProcessSigningFlowTests.cs">InProcessSigningFlowTests.cs</a>. Gerçek modüller DI üzerinden birleşir; yalnız fiziksel kart sınırı bellek içi sağlayıcıdır. Verify kriptografik PASSED, dış trust INDETERMINATE.</div></details>
  <details><summary><code>Build</code><strong>Merkezi solution yapılandırması</strong><span>18 proje</span></summary><div class="detail"><a href="../ImzaKit.slnx">ImzaKit.slnx</a>, Directory.Build.props, Directory.Packages.props, global.json ve NuGet.Config.</div></details>
  <details><summary><code>NuGet</code><strong>Apache-2.0 tek ön sürüm paketi</strong><span>ImzaKit 1.0.0-alpha.3</span></summary><div class="detail"><a href="../README.md">README.md</a> ve <a href="../packaging/ImzaKit/ImzaKit.csproj">ImzaKit.csproj</a>. Tek üretim paketi dokuz modül DLL'sini, tek sembol paketi dokuz PDB'yi ve Türkçe/İngilizce README'yi taşır.</div></details>
+ <details><summary><code>Docs</code><strong>Etkileşimli teknik kullanım rehberi</strong><span>tek HTML</span></summary><div class="detail"><a href="../docs/imzakit-teknik-kullanim-rehberi.html">imzakit-teknik-kullanim-rehberi.html</a>. Kurulum, modül mimarisi, DI, doğrulama, prepare/complete, PKCS#11 adaptörü, süreç içi orkestrasyon, durum/hata modeli, sınırlar ve üretim kontrolü.</div></details>
 </section>
 <section id="sonraki">
  <div class="section-head"><p class="kicker">Önerilen devam</p><h2>Bir sonraki işlem</h2></div>
@@ -105,6 +106,7 @@ const items=[
  {status:"done",component:"Release",title:"Alpha.1 içerik uyumsuzluğu ve liste dışı bırakma",detail:"NuGet.org arşivinde fazladan ImzaKit.Bundle.dll ve eski README bulundu; sürüm liste dışı bırakıldı ve skip-duplicate kaldırıldı.",evidence:"alpha.1 unlisted"},
  {status:"done",component:"Release",title:"NuGet.org alpha.2 yayını",detail:"Aktif Kodekibi Trusted Publishing politikasıyla paket yayımlandı; CDN arşivinde dokuz DLL, güncel README ve doğru bağımlılıklar doğrulandı.",evidence:"NuGet.org / ImzaKit 1.0.0-alpha.2"},
  {status:"done",component:"Release",title:"İki dilli alpha.3 README yayını",detail:"Türkçe ayrıntılı kullanım rehberi ve İngilizce özet Trusted Publishing ile yayımlandı; uzak arşivde içerik ve dokuz DLL doğrulandı.",evidence:"NuGet.org / ImzaKit 1.0.0-alpha.3"},
+ {status:"done",component:"Docs",title:"Etkileşimli teknik kullanım rehberi",detail:"Tek dosyalık Türkçe HTML; arama, modül filtresi, API ayrıntıları, kopyalanabilir örnekler, tema ve yazdırma desteği içeriyor.",evidence:"teknik rehber sözleşmesi passed"},
  {status:"done",component:"Core",title:"SignaturePreparation",detail:"Operation, digest, algoritma, sertifika ve prepare version bağlamı.",evidence:"4 Core testi"},
  {status:"done",component:"Core",title:"SignatureCompletion",detail:"SignatureValue kopyalama ve prepare bağlamı.",evidence:"4 Core testi"},
  {status:"done",component:"Cryptography",title:"Algoritma modeli ayrımı",detail:"Hash ve key algoritmaları ayrı domain modelleri.",evidence:"3 Crypto testi"},

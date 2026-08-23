@@ -106,6 +106,7 @@ foreach (ValidationFinding finding in report.Findings)
 ## Kaynak, durum ve lisans
 
 - [Kaynak kodu](https://github.com/yasinilkalp/imzakit)
+- [Etkileşimli teknik kullanım rehberi](https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html)
 - [Geliştirme durum raporu](https://github.com/yasinilkalp/imzakit/blob/main/reports/imzakit-gelistirme-durum.html)
 - [Apache License 2.0](https://github.com/yasinilkalp/imzakit/blob/main/LICENSE)
 - [NOTICE](https://github.com/yasinilkalp/imzakit/blob/main/NOTICE)
