@@ -6,3 +6,4 @@ artifacts/
 *.suo
 TestResults/
 coverage/
+.superpowers/
