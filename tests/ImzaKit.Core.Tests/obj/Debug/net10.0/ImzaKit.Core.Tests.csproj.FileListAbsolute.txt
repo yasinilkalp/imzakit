@@ -98,3 +98,4 @@ C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Debug\net10.0\r
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Debug\net10.0\ImzaKit.Core.Tests.pdb
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Debug\net10.0\ImzaKit.Core.Tests.genruntimeconfig.cache
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Debug\net10.0\ref\ImzaKit.Core.Tests.dll
+C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Core.Tests\obj\Debug\net10.0\ImzaKit.Core.Tests.sourcelink.json

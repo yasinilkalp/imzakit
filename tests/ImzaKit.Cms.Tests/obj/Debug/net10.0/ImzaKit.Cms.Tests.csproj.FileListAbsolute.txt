@@ -103,3 +103,4 @@ C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cms.Tests\obj\Debug\net10.0\Im
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cms.Tests\obj\Debug\net10.0\ref\ImzaKit.Cms.Tests.dll
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cms.Tests\bin\Debug\net10.0\System.Security.Cryptography.Pkcs.dll
 C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cms.Tests\bin\Debug\net10.0\runtimes\win\lib\net10.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\yasin\source\repos\imzakit\tests\ImzaKit.Cms.Tests\obj\Debug\net10.0\ImzaKit.Cms.Tests.sourcelink.json

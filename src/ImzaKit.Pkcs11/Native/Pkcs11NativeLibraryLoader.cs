@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using ImzaKit.Pkcs11.Akis;
 using ImzaKit.Pkcs11.Models;
 

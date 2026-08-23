@@ -65,20 +65,24 @@ services.AddImzaKitCore();
 using ServiceProvider provider = services.BuildServiceProvider();
 ```
 
-PKCS#11 kart imzalama servislerini kullanacaksanız uygulamanızda `IPkcs11Provider` sözleşmesini gerçek kart/üretici kitaplığına bağlayın ve ardından modülü ekleyin:
+PKCS#11 kart imzalama için allowlist’teki mutlak yoldan vendor modülünü yükleyin. ImzaKit üretici DLL’i paketlemez; PIN HTTP’den geçmez.
 
 ```csharp
 using ImzaKit.DependencyInjection;
 using ImzaKit.Pkcs11.Abstractions;
+using ImzaKit.Pkcs11.Native;
 using Microsoft.Extensions.DependencyInjection;
 
+IPkcs11NativeApi native = Pkcs11NativeLibraryLoader.Load(
+    @"C:\Program Files\AKIS\akisp11.dll",
+    [@"C:\Program Files\AKIS"]);
 var services = new ServiceCollection();
 services.AddImzaKitCore();
-services.AddSingleton<IPkcs11Provider, MyPkcs11Provider>();
+services.AddSingleton<IPkcs11Provider>(new NativePkcs11Provider(native));
 services.AddImzaKitPkcs11();
 ```
 
-Buradaki `MyPkcs11Provider`, hedef PKCS#11 sürücünüz için sizin geliştireceğiniz adaptörü temsil eder. ImzaKit üreticiye özel native sürücü veya PIN arayüzü paketlemez.
+AKİS quirk’leri (`CKA_ID` eşlemesi, tek iş parçacığı, `CKM_SHA256_RSA_PKCS`) `NativePkcs11ProviderOptions.ForAkis()` içindedir. Fiziksel kart kabulü laboratuvar kontrol listesiyle yapılır; CI sahte native API kullanır.
 
 ### İmzalı PDF doğrulama
 

@@ -60,19 +60,23 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
         return session;
     });
 
-    public void Login(ulong session, ReadOnlySpan<char> pin) => Execute(() =>
+    public void Login(ulong session, ReadOnlySpan<char> pin)
     {
-        EnsureInitialized();
-        byte[] utf8Pin = Encoding.UTF8.GetBytes(pin);
+        byte[] utf8Pin = new byte[Encoding.UTF8.GetByteCount(pin)];
+        Encoding.UTF8.GetBytes(pin, utf8Pin);
         try
         {
-            _api.LoginUser(session, utf8Pin);
+            Execute(() =>
+            {
+                EnsureInitialized();
+                _api.LoginUser(session, utf8Pin);
+            });
         }
         finally
         {
             CryptographicOperations.ZeroMemory(utf8Pin);
         }
-    });
+    }
 
     public IReadOnlyList<Pkcs11Certificate> FindCertificates(ulong session) => Execute(() =>
     {
@@ -112,30 +116,37 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
         return certificates;
     });
 
-    public ulong? FindPrivateKey(ulong session, ReadOnlySpan<byte> ckaId) => Execute(() =>
+    public ulong? FindPrivateKey(ulong session, ReadOnlySpan<byte> ckaId)
     {
-        EnsureInitialized();
         byte[] id = ckaId.ToArray();
-        if (_options.MatchPrivateKeyByCkaIdFirst)
+        return Execute(() =>
         {
-            ulong? byId = FindSignablePrivateKeyByCkaId(session, id);
-            if (byId is not null)
+            EnsureInitialized();
+            if (_options.MatchPrivateKeyByCkaIdFirst)
             {
-                return byId;
+                ulong? byId = FindSignablePrivateKeyByCkaId(session, id);
+                if (byId is not null)
+                {
+                    return byId;
+                }
             }
-        }
 
-        return _privateKeysByCertificateId.TryGetValue((session, Convert.ToHexString(id)), out ulong cached)
-            ? cached
-            : null;
-    });
+            return _privateKeysByCertificateId.TryGetValue((session, Convert.ToHexString(id)), out ulong cached)
+                ? cached
+                : null;
+        });
+    }
 
-    public byte[] SignRsaPkcs1Sha256(ulong session, ulong keyHandle, ReadOnlySpan<byte> digestInfo) => Execute(() =>
+    public byte[] SignRsaPkcs1Sha256(ulong session, ulong keyHandle, ReadOnlySpan<byte> digestInfo)
     {
-        EnsureInitialized();
-        _api.SignInit(session, Pkcs11NativeConstants.CkmSha256RsaPkcs, keyHandle);
-        return _api.Sign(session, digestInfo);
-    });
+        byte[] data = digestInfo.ToArray();
+        return Execute(() =>
+        {
+            EnsureInitialized();
+            _api.SignInit(session, Pkcs11NativeConstants.CkmSha256RsaPkcs, keyHandle);
+            return _api.Sign(session, data);
+        });
+    }
 
     public void Logout(ulong session) => Execute(() =>
     {
@@ -323,7 +334,7 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
     {
         try
         {
-            using X509Certificate2 certificate = new(der);
+            using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(der);
             using RSA? rsa = certificate.GetRSAPublicKey();
             return rsa?.ExportParameters(includePrivateParameters: false).Modulus;
         }

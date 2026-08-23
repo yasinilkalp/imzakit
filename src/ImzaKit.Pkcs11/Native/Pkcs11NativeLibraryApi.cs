@@ -6,246 +6,215 @@ namespace ImzaKit.Pkcs11.Native;
 
 internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
 {
+    private static readonly string[] RequiredExports =
+    [
+        "C_Initialize", "C_Finalize", "C_GetSlotList", "C_GetTokenInfo", "C_OpenSession", "C_CloseSession",
+        "C_Login", "C_Logout", "C_FindObjectsInit", "C_FindObjects", "C_FindObjectsFinal", "C_GetAttributeValue",
+        "C_SignInit", "C_Sign"
+    ];
+
     private readonly nint _handle;
     private readonly bool _windowsUlong;
-    private readonly InitializeFn _initialize;
-    private readonly FinalizeFn _finalize;
-    private readonly GetSlotListFn _getSlotList;
-    private readonly GetTokenInfoFn _getTokenInfo;
-    private readonly OpenSessionFn _openSession;
-    private readonly CloseSessionFn _closeSession;
-    private readonly LoginFn _login;
-    private readonly LogoutFn _logout;
-    private readonly FindObjectsInitFn _findObjectsInit;
-    private readonly FindObjectsFn _findObjects;
-    private readonly FindObjectsFinalFn _findObjectsFinal;
-    private readonly GetAttributeValueFn _getAttributeValue;
-    private readonly SignInitFn _signInit;
-    private readonly SignFn _sign;
+    private readonly Dictionary<string, nint> _exports;
     private bool _disposed;
 
-    private Pkcs11NativeLibraryApi(
-        nint handle,
-        bool windowsUlong,
-        InitializeFn initialize,
-        FinalizeFn finalize,
-        GetSlotListFn getSlotList,
-        GetTokenInfoFn getTokenInfo,
-        OpenSessionFn openSession,
-        CloseSessionFn closeSession,
-        LoginFn login,
-        LogoutFn logout,
-        FindObjectsInitFn findObjectsInit,
-        FindObjectsFn findObjects,
-        FindObjectsFinalFn findObjectsFinal,
-        GetAttributeValueFn getAttributeValue,
-        SignInitFn signInit,
-        SignFn sign)
+    private Pkcs11NativeLibraryApi(nint handle, bool windowsUlong, Dictionary<string, nint> exports)
     {
         _handle = handle;
         _windowsUlong = windowsUlong;
-        _initialize = initialize;
-        _finalize = finalize;
-        _getSlotList = getSlotList;
-        _getTokenInfo = getTokenInfo;
-        _openSession = openSession;
-        _closeSession = closeSession;
-        _login = login;
-        _logout = logout;
-        _findObjectsInit = findObjectsInit;
-        _findObjects = findObjects;
-        _findObjectsFinal = findObjectsFinal;
-        _getAttributeValue = getAttributeValue;
-        _signInit = signInit;
-        _sign = sign;
+        _exports = exports;
     }
 
     public static Pkcs11NativeLibraryApi FromHandle(nint handle)
     {
-        try
+        Dictionary<string, nint> exports = new(StringComparer.Ordinal);
+        foreach (string name in RequiredExports)
         {
-            bool windowsUlong = OperatingSystem.IsWindows();
-            return new Pkcs11NativeLibraryApi(
-                handle,
-                windowsUlong,
-                Get<InitializeFn>(handle, "C_Initialize"),
-                Get<FinalizeFn>(handle, "C_Finalize"),
-                Get<GetSlotListFn>(handle, "C_GetSlotList"),
-                Get<GetTokenInfoFn>(handle, "C_GetTokenInfo"),
-                Get<OpenSessionFn>(handle, "C_OpenSession"),
-                Get<CloseSessionFn>(handle, "C_CloseSession"),
-                Get<LoginFn>(handle, "C_Login"),
-                Get<LogoutFn>(handle, "C_Logout"),
-                Get<FindObjectsInitFn>(handle, "C_FindObjectsInit"),
-                Get<FindObjectsFn>(handle, "C_FindObjects"),
-                Get<FindObjectsFinalFn>(handle, "C_FindObjectsFinal"),
-                Get<GetAttributeValueFn>(handle, "C_GetAttributeValue"),
-                Get<SignInitFn>(handle, "C_SignInit"),
-                Get<SignFn>(handle, "C_Sign"));
+            if (!NativeLibrary.TryGetExport(handle, name, out nint address))
+            {
+                NativeLibrary.Free(handle);
+                throw new Pkcs11ProviderException(
+                    Pkcs11ErrorCode.DriverError,
+                    "PKCS#11 module is missing a required export.");
+            }
+
+            exports[name] = address;
         }
-        catch (Exception exception) when (exception is not Pkcs11ProviderException)
-        {
-            NativeLibrary.Free(handle);
-            throw new Pkcs11ProviderException(
-                Pkcs11ErrorCode.DriverError,
-                "PKCS#11 module is missing a required export.",
-                exception);
-        }
+
+        return new Pkcs11NativeLibraryApi(handle, OperatingSystem.IsWindows(), exports);
     }
 
-    public void Initialize() => Pkcs11RvMapper.ThrowIfFailed(_initialize(IntPtr.Zero), "initialize");
+    public void Initialize() =>
+        Pkcs11RvMapper.ThrowIfFailed(PtrFn("C_Initialize")(IntPtr.Zero), "initialize");
 
-    public void FinalizeCryptoki() => Pkcs11RvMapper.ThrowIfFailed(_finalize(IntPtr.Zero), "finalize");
+    public void FinalizeCryptoki() =>
+        Pkcs11RvMapper.ThrowIfFailed(PtrFn("C_Finalize")(IntPtr.Zero), "finalize");
 
     public IReadOnlyList<ulong> GetSlotsWithPresentTokens()
     {
-        nuint count = 0;
-        Pkcs11RvMapper.ThrowIfFailed(_getSlotList(1, IntPtr.Zero, ref count), "get slot list");
-        if (count == 0)
-        {
-            return [];
-        }
-
-        int ulongSize = UlongSize;
-        byte[] buffer = new byte[(int)count * ulongSize];
-        GCHandle pinned = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        nint countPtr = Marshal.AllocHGlobal(UlongSize);
+        nint listPtr = IntPtr.Zero;
         try
         {
-            nuint actual = count;
-            Pkcs11RvMapper.ThrowIfFailed(_getSlotList(1, pinned.AddrOfPinnedObject(), ref actual), "get slot list");
-            List<ulong> slots = [];
-            for (int index = 0; index < (int)actual; index++)
+            WriteUlong(countPtr, 0);
+            Pkcs11RvMapper.ThrowIfFailed(GetSlotList(1, IntPtr.Zero, countPtr), "get slot list");
+            ulong count = ReadUlong(countPtr);
+            if (count == 0)
             {
-                slots.Add(ReadUlong(buffer.AsSpan(index * ulongSize, ulongSize)));
+                return [];
+            }
+
+            listPtr = Marshal.AllocHGlobal((int)count * UlongSize);
+            Pkcs11RvMapper.ThrowIfFailed(GetSlotList(1, listPtr, countPtr), "get slot list");
+            count = ReadUlong(countPtr);
+            ulong[] slots = new ulong[count];
+            for (int index = 0; index < (int)count; index++)
+            {
+                slots[index] = ReadUlong(listPtr + (index * UlongSize));
             }
 
             return slots;
         }
         finally
         {
-            pinned.Free();
+            if (listPtr != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(listPtr);
+            }
+
+            Marshal.FreeHGlobal(countPtr);
         }
     }
 
     public Pkcs11NativeTokenInfo GetTokenInfo(ulong slotId)
     {
-        byte[] info = new byte[256];
-        GCHandle pinned = GCHandle.Alloc(info, GCHandleType.Pinned);
+        nint info = Marshal.AllocHGlobal(256);
         try
         {
-            Pkcs11RvMapper.ThrowIfFailed(
-                _getTokenInfo(ToNativeUlong(slotId), pinned.AddrOfPinnedObject()),
-                "get token info");
+            Pkcs11RvMapper.ThrowIfFailed(SlotPtrFn("C_GetTokenInfo")(ToNative(slotId), info), "get token info");
+            byte[] buffer = new byte[96];
+            Marshal.Copy(info, buffer, 0, buffer.Length);
+            return new Pkcs11NativeTokenInfo(
+                ReadPaddedUtf8(buffer.AsSpan(0, 32)),
+                ReadPaddedUtf8(buffer.AsSpan(32, 32)),
+                ReadPaddedUtf8(buffer.AsSpan(64, 16)),
+                ReadPaddedUtf8(buffer.AsSpan(80, 16)));
         }
         finally
         {
-            pinned.Free();
+            Marshal.FreeHGlobal(info);
         }
-
-        return new Pkcs11NativeTokenInfo(
-            ReadPaddedUtf8(info.AsSpan(0, 32)),
-            ReadPaddedUtf8(info.AsSpan(32, 32)),
-            ReadPaddedUtf8(info.AsSpan(64, 16)),
-            ReadPaddedUtf8(info.AsSpan(80, 16)));
     }
 
     public ulong OpenSession(ulong slotId)
     {
-        nuint session = 0;
-        uint flags = Pkcs11NativeConstants.CkfSerialSession | Pkcs11NativeConstants.CkfRwSession;
-        Pkcs11RvMapper.ThrowIfFailed(
-            _openSession(ToNativeUlong(slotId), flags, IntPtr.Zero, IntPtr.Zero, ref session),
-            "open session");
-        return session;
+        nint sessionPtr = Marshal.AllocHGlobal(UlongSize);
+        try
+        {
+            WriteUlong(sessionPtr, 0);
+            uint flags = Pkcs11NativeConstants.CkfSerialSession | Pkcs11NativeConstants.CkfRwSession;
+            Pkcs11RvMapper.ThrowIfFailed(
+                OpenSessionFn("C_OpenSession")(ToNative(slotId), flags, IntPtr.Zero, IntPtr.Zero, sessionPtr),
+                "open session");
+            return ReadUlong(sessionPtr);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(sessionPtr);
+        }
     }
 
     public void CloseSession(ulong session) =>
-        Pkcs11RvMapper.ThrowIfFailed(_closeSession(ToNativeUlong(session)), "close session");
+        Pkcs11RvMapper.ThrowIfFailed(UlongFn("C_CloseSession")(ToNative(session)), "close session");
 
     public void LoginUser(ulong session, byte[] utf8Pin)
     {
         ArgumentNullException.ThrowIfNull(utf8Pin);
-        GCHandle pinned = GCHandle.Alloc(utf8Pin, GCHandleType.Pinned);
+        GCHandle pin = GCHandle.Alloc(utf8Pin, GCHandleType.Pinned);
         try
         {
             Pkcs11RvMapper.ThrowIfFailed(
-                _login(
-                    ToNativeUlong(session),
+                LoginFn("C_Login")(
+                    ToNative(session),
                     Pkcs11NativeConstants.CkuUser,
-                    pinned.AddrOfPinnedObject(),
-                    ToNativeUlong((ulong)utf8Pin.Length)),
+                    pin.AddrOfPinnedObject(),
+                    ToNative((ulong)utf8Pin.Length)),
                 "login");
         }
         finally
         {
-            pinned.Free();
+            pin.Free();
         }
     }
 
     public void Logout(ulong session) =>
-        Pkcs11RvMapper.ThrowIfFailed(_logout(ToNativeUlong(session)), "logout");
+        Pkcs11RvMapper.ThrowIfFailed(UlongFn("C_Logout")(ToNative(session)), "logout");
 
     public IReadOnlyList<ulong> FindObjects(ulong session, ulong objectClass, params (ulong Type, byte[] Value)[] additional)
     {
         additional ??= [];
-        using AttributeBuffer template = AttributeBuffer.Create(_windowsUlong, objectClass, additional);
+        using AttributeBlock template = AttributeBlock.Create(_windowsUlong, objectClass, additional);
         Pkcs11RvMapper.ThrowIfFailed(
-            _findObjectsInit(ToNativeUlong(session), template.Pointer, ToNativeUlong((ulong)template.Count)),
+            FindInitFn("C_FindObjectsInit")(ToNative(session), template.Pointer, ToNative((ulong)template.Count)),
             "find objects init");
+        nint handlesPtr = Marshal.AllocHGlobal(32 * UlongSize);
+        nint countPtr = Marshal.AllocHGlobal(UlongSize);
         try
         {
-            byte[] handles = new byte[32 * UlongSize];
-            GCHandle pinned = GCHandle.Alloc(handles, GCHandleType.Pinned);
-            try
+            WriteUlong(countPtr, 0);
+            Pkcs11RvMapper.ThrowIfFailed(
+                FindFn("C_FindObjects")(ToNative(session), handlesPtr, ToNative(32), countPtr),
+                "find objects");
+            ulong found = ReadUlong(countPtr);
+            ulong[] handles = new ulong[found];
+            for (int index = 0; index < (int)found; index++)
             {
-                nuint found = 0;
-                Pkcs11RvMapper.ThrowIfFailed(
-                    _findObjects(ToNativeUlong(session), pinned.AddrOfPinnedObject(), ToNativeUlong(32), ref found),
-                    "find objects");
-                List<ulong> result = [];
-                for (int index = 0; index < (int)found; index++)
-                {
-                    result.Add(ReadUlong(handles.AsSpan(index * UlongSize, UlongSize)));
-                }
+                handles[index] = ReadUlong(handlesPtr + (index * UlongSize));
+            }
 
-                return result;
-            }
-            finally
-            {
-                pinned.Free();
-            }
+            return handles;
         }
         finally
         {
-            Pkcs11RvMapper.ThrowIfFailed(_findObjectsFinal(ToNativeUlong(session)), "find objects final");
+            Marshal.FreeHGlobal(countPtr);
+            Marshal.FreeHGlobal(handlesPtr);
+            Pkcs11RvMapper.ThrowIfFailed(UlongFn("C_FindObjectsFinal")(ToNative(session)), "find objects final");
         }
     }
 
     public byte[]? TryGetAttribute(ulong session, ulong objectHandle, ulong attributeType)
     {
-        using AttributeBuffer lengthQuery = AttributeBuffer.ForRead(_windowsUlong, attributeType, IntPtr.Zero, 0);
-        uint rv = _getAttributeValue(ToNativeUlong(session), ToNativeUlong(objectHandle), lengthQuery.Pointer, ToNativeUlong(1));
+        using AttributeBlock lengthQuery = AttributeBlock.ForRead(_windowsUlong, attributeType, IntPtr.Zero, 0);
+        uint rv = GetAttributeFn("C_GetAttributeValue")(
+            ToNative(session),
+            ToNative(objectHandle),
+            lengthQuery.Pointer,
+            ToNative(1));
         if (rv != Pkcs11Rv.Ok)
         {
             return null;
         }
 
-        nuint length = lengthQuery.ReadValueLength();
-        if (length == 0 || length == nuint.MaxValue)
+        ulong length = lengthQuery.ReadLength();
+        if (length is 0 or ulong.MaxValue)
         {
             return [];
         }
 
-        byte[] value = new byte[(int)length];
+        byte[] value = new byte[length];
         GCHandle pinned = GCHandle.Alloc(value, GCHandleType.Pinned);
         try
         {
-            using AttributeBuffer valueQuery = AttributeBuffer.ForRead(
+            using AttributeBlock valueQuery = AttributeBlock.ForRead(
                 _windowsUlong,
                 attributeType,
                 pinned.AddrOfPinnedObject(),
                 length);
-            rv = _getAttributeValue(ToNativeUlong(session), ToNativeUlong(objectHandle), valueQuery.Pointer, ToNativeUlong(1));
+            rv = GetAttributeFn("C_GetAttributeValue")(
+                ToNative(session),
+                ToNative(objectHandle),
+                valueQuery.Pointer,
+                ToNative(1));
             return rv == Pkcs11Rv.Ok ? value : null;
         }
         finally
@@ -256,9 +225,9 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
 
     public void SignInit(ulong session, ulong mechanismType, ulong keyHandle)
     {
-        using MechanismBuffer mechanism = MechanismBuffer.Create(_windowsUlong, mechanismType);
+        using MechanismBlock mechanism = MechanismBlock.Create(_windowsUlong, mechanismType);
         Pkcs11RvMapper.ThrowIfFailed(
-            _signInit(ToNativeUlong(session), mechanism.Pointer, ToNativeUlong(keyHandle)),
+            SignInitFn("C_SignInit")(ToNative(session), mechanism.Pointer, ToNative(keyHandle)),
             "sign init");
     }
 
@@ -266,32 +235,35 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
     {
         byte[] payload = data.ToArray();
         GCHandle dataHandle = GCHandle.Alloc(payload, GCHandleType.Pinned);
+        nint lengthPtr = Marshal.AllocHGlobal(UlongSize);
         try
         {
-            nuint signatureLength = 0;
+            WriteUlong(lengthPtr, 0);
             Pkcs11RvMapper.ThrowIfFailed(
-                _sign(
-                    ToNativeUlong(session),
+                SignFn("C_Sign")(
+                    ToNative(session),
                     dataHandle.AddrOfPinnedObject(),
-                    ToNativeUlong((ulong)payload.Length),
+                    ToNative((ulong)payload.Length),
                     IntPtr.Zero,
-                    ref signatureLength),
+                    lengthPtr),
                 "sign");
-            byte[] signature = new byte[(int)signatureLength];
+            ulong signatureLength = ReadUlong(lengthPtr);
+            byte[] signature = new byte[signatureLength];
             GCHandle signatureHandle = GCHandle.Alloc(signature, GCHandleType.Pinned);
             try
             {
                 Pkcs11RvMapper.ThrowIfFailed(
-                    _sign(
-                        ToNativeUlong(session),
+                    SignFn("C_Sign")(
+                        ToNative(session),
                         dataHandle.AddrOfPinnedObject(),
-                        ToNativeUlong((ulong)payload.Length),
+                        ToNative((ulong)payload.Length),
                         signatureHandle.AddrOfPinnedObject(),
-                        ref signatureLength),
+                        lengthPtr),
                     "sign");
-                if ((int)signatureLength != signature.Length)
+                ulong actual = ReadUlong(lengthPtr);
+                if (actual != (ulong)signature.Length)
                 {
-                    Array.Resize(ref signature, (int)signatureLength);
+                    Array.Resize(ref signature, (int)actual);
                 }
 
                 return signature;
@@ -303,6 +275,7 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
         }
         finally
         {
+            Marshal.FreeHGlobal(lengthPtr);
             dataHandle.Free();
         }
     }
@@ -320,19 +293,38 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
 
     private int UlongSize => _windowsUlong ? 4 : 8;
 
-    private nuint ToNativeUlong(ulong value) => _windowsUlong ? (uint)value : (nuint)value;
+    private nuint ToNative(ulong value) => _windowsUlong ? (uint)value : (nuint)value;
 
-    private ulong ReadUlong(ReadOnlySpan<byte> source) =>
-        _windowsUlong ? BitConverter.ToUInt32(source) : BitConverter.ToUInt64(source);
-
-    private static T Get<T>(nint handle, string name) where T : Delegate
+    private void WriteUlong(nint pointer, ulong value)
     {
-        if (!NativeLibrary.TryGetExport(handle, name, out nint address))
+        if (_windowsUlong)
         {
-            throw new Pkcs11ProviderException(Pkcs11ErrorCode.DriverError, "PKCS#11 module is missing a required export.");
+            Marshal.WriteInt32(pointer, (int)value);
         }
+        else
+        {
+            Marshal.WriteInt64(pointer, (long)value);
+        }
+    }
 
-        return Marshal.GetDelegateForFunctionPointer<T>(address);
+    private ulong ReadUlong(nint pointer) =>
+        _windowsUlong ? (uint)Marshal.ReadInt32(pointer) : (ulong)Marshal.ReadInt64(pointer);
+
+    private PtrDelegate PtrFn(string name) => Marshal.GetDelegateForFunctionPointer<PtrDelegate>(_exports[name]);
+    private UlongDelegate UlongFn(string name) => Marshal.GetDelegateForFunctionPointer<UlongDelegate>(_exports[name]);
+    private SlotPtrDelegate SlotPtrFn(string name) => Marshal.GetDelegateForFunctionPointer<SlotPtrDelegate>(_exports[name]);
+    private OpenSessionDelegate OpenSessionFn(string name) => Marshal.GetDelegateForFunctionPointer<OpenSessionDelegate>(_exports[name]);
+    private LoginDelegate LoginFn(string name) => Marshal.GetDelegateForFunctionPointer<LoginDelegate>(_exports[name]);
+    private FindInitDelegate FindInitFn(string name) => Marshal.GetDelegateForFunctionPointer<FindInitDelegate>(_exports[name]);
+    private FindDelegate FindFn(string name) => Marshal.GetDelegateForFunctionPointer<FindDelegate>(_exports[name]);
+    private GetAttributeDelegate GetAttributeFn(string name) => Marshal.GetDelegateForFunctionPointer<GetAttributeDelegate>(_exports[name]);
+    private SignInitDelegate SignInitFn(string name) => Marshal.GetDelegateForFunctionPointer<SignInitDelegate>(_exports[name]);
+    private SignDelegate SignFn(string name) => Marshal.GetDelegateForFunctionPointer<SignDelegate>(_exports[name]);
+
+    private uint GetSlotList(byte tokenPresent, IntPtr slotList, nint countPtr)
+    {
+        GetSlotListDelegate fn = Marshal.GetDelegateForFunctionPointer<GetSlotListDelegate>(_exports["C_GetSlotList"]);
+        return fn(tokenPresent, slotList, countPtr);
     }
 
     private static string ReadPaddedUtf8(ReadOnlySpan<byte> buffer)
@@ -347,55 +339,46 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint InitializeFn(IntPtr args);
+    private delegate uint PtrDelegate(IntPtr argument);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint FinalizeFn(IntPtr reserved);
+    private delegate uint UlongDelegate(nuint value);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint GetSlotListFn(byte tokenPresent, IntPtr slotList, ref nuint count);
+    private delegate uint SlotPtrDelegate(nuint slotId, IntPtr info);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint GetTokenInfoFn(nuint slotId, IntPtr info);
+    private delegate uint GetSlotListDelegate(byte tokenPresent, IntPtr slotList, nint count);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint OpenSessionFn(nuint slotId, uint flags, IntPtr application, IntPtr notify, ref nuint session);
+    private delegate uint OpenSessionDelegate(nuint slotId, uint flags, IntPtr application, IntPtr notify, nint session);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint CloseSessionFn(nuint session);
+    private delegate uint LoginDelegate(nuint session, uint userType, IntPtr pin, nuint pinLength);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint LoginFn(nuint session, uint userType, IntPtr pin, nuint pinLength);
+    private delegate uint FindInitDelegate(nuint session, IntPtr template, nuint count);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint LogoutFn(nuint session);
+    private delegate uint FindDelegate(nuint session, IntPtr objects, nuint maxCount, nint count);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint FindObjectsInitFn(nuint session, IntPtr template, nuint count);
+    private delegate uint GetAttributeDelegate(nuint session, nuint objectHandle, IntPtr template, nuint count);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint FindObjectsFn(nuint session, IntPtr objects, nuint maxCount, ref nuint count);
+    private delegate uint SignInitDelegate(nuint session, IntPtr mechanism, nuint keyHandle);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint FindObjectsFinalFn(nuint session);
+    private delegate uint SignDelegate(nuint session, IntPtr data, nuint dataLength, IntPtr signature, nint signatureLength);
 
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint GetAttributeValueFn(nuint session, nuint objectHandle, IntPtr template, nuint count);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint SignInitFn(nuint session, IntPtr mechanism, nuint keyHandle);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate uint SignFn(nuint session, IntPtr data, nuint dataLength, IntPtr signature, ref nuint signatureLength);
-
-    private sealed class AttributeBuffer : IDisposable
+    private sealed class AttributeBlock : IDisposable
     {
-        private readonly List<GCHandle> _pins = [];
+        private readonly List<GCHandle> _valuePins = [];
         private GCHandle _templatePin;
         private readonly byte[] _template;
         private readonly bool _windowsUlong;
 
-        private AttributeBuffer(byte[] template, bool windowsUlong)
+        private AttributeBlock(byte[] template, bool windowsUlong)
         {
             _template = template;
             _windowsUlong = windowsUlong;
@@ -405,48 +388,39 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
         public IntPtr Pointer => _templatePin.AddrOfPinnedObject();
         public int Count { get; private init; }
 
-        public static AttributeBuffer Create(bool windowsUlong, ulong objectClass, (ulong Type, byte[] Value)[] additional)
+        public static AttributeBlock Create(bool windowsUlong, ulong objectClass, (ulong Type, byte[] Value)[] additional)
         {
             int count = 1 + additional.Length;
-            int stride = AttributeStride(windowsUlong);
-            AttributeBuffer buffer = new(new byte[count * stride], windowsUlong) { Count = count };
-            buffer.WriteAttribute(0, Pkcs11NativeConstants.CkaClass, EncodeUlong(windowsUlong, objectClass));
+            AttributeBlock block = new(new byte[count * 24], windowsUlong) { Count = count };
+            block.Write(0, Pkcs11NativeConstants.CkaClass, EncodeUlong(windowsUlong, objectClass));
             for (int index = 0; index < additional.Length; index++)
             {
-                buffer.WriteAttribute(index + 1, additional[index].Type, additional[index].Value);
+                block.Write(index + 1, additional[index].Type, additional[index].Value);
             }
 
-            return buffer;
+            return block;
         }
 
-        public static AttributeBuffer ForRead(bool windowsUlong, ulong type, IntPtr value, nuint length)
+        public static AttributeBlock ForRead(bool windowsUlong, ulong type, IntPtr value, ulong length)
         {
-            int stride = AttributeStride(windowsUlong);
-            AttributeBuffer buffer = new(new byte[stride], windowsUlong) { Count = 1 };
-            buffer.WriteHeader(0, type, value, length);
-            return buffer;
+            AttributeBlock block = new(new byte[24], windowsUlong) { Count = 1 };
+            block.WriteHeader(0, type, value, length);
+            return block;
         }
 
-        public nuint ReadValueLength()
-        {
-            int stride = AttributeStride(_windowsUlong);
-            int offset = _windowsUlong ? 16 : 16;
-            return _windowsUlong
-                ? BitConverter.ToUInt32(_template, offset)
-                : (nuint)BitConverter.ToUInt64(_template, offset);
-        }
+        public ulong ReadLength() =>
+            _windowsUlong ? BitConverter.ToUInt32(_template, 16) : BitConverter.ToUInt64(_template, 16);
 
-        private void WriteAttribute(int index, ulong type, byte[] value)
+        private void Write(int index, ulong type, byte[] value)
         {
             GCHandle pin = GCHandle.Alloc(value, GCHandleType.Pinned);
-            _pins.Add(pin);
-            WriteHeader(index, type, pin.AddrOfPinnedObject(), (nuint)value.Length);
+            _valuePins.Add(pin);
+            WriteHeader(index, type, pin.AddrOfPinnedObject(), (ulong)value.Length);
         }
 
-        private void WriteHeader(int index, ulong type, IntPtr value, nuint length)
+        private void WriteHeader(int index, ulong type, IntPtr value, ulong length)
         {
-            int stride = AttributeStride(_windowsUlong);
-            int offset = index * stride;
+            int offset = index * 24;
             if (_windowsUlong)
             {
                 BitConverter.TryWriteBytes(_template.AsSpan(offset), (uint)type);
@@ -457,7 +431,7 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
             {
                 BitConverter.TryWriteBytes(_template.AsSpan(offset), type);
                 WritePointer(_template.AsSpan(offset + 8), value);
-                BitConverter.TryWriteBytes(_template.AsSpan(offset + 16), (ulong)length);
+                BitConverter.TryWriteBytes(_template.AsSpan(offset + 16), length);
             }
         }
 
@@ -468,7 +442,7 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
                 _templatePin.Free();
             }
 
-            foreach (GCHandle pin in _pins)
+            foreach (GCHandle pin in _valuePins)
             {
                 if (pin.IsAllocated)
                 {
@@ -477,12 +451,8 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
             }
         }
 
-        private static int AttributeStride(bool windowsUlong) => 24;
-
-        private static byte[] EncodeUlong(bool windowsUlong, ulong value)
-        {
-            return windowsUlong ? BitConverter.GetBytes((uint)value) : BitConverter.GetBytes(value);
-        }
+        private static byte[] EncodeUlong(bool windowsUlong, ulong value) =>
+            windowsUlong ? BitConverter.GetBytes((uint)value) : BitConverter.GetBytes(value);
 
         private static void WritePointer(Span<byte> destination, IntPtr value)
         {
@@ -497,20 +467,15 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
         }
     }
 
-    private sealed class MechanismBuffer : IDisposable
+    private sealed class MechanismBlock : IDisposable
     {
-        private readonly byte[] _buffer;
         private GCHandle _pin;
 
-        private MechanismBuffer(byte[] buffer)
-        {
-            _buffer = buffer;
-            _pin = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-        }
+        private MechanismBlock(byte[] buffer) => _pin = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 
         public IntPtr Pointer => _pin.AddrOfPinnedObject();
 
-        public static MechanismBuffer Create(bool windowsUlong, ulong mechanismType)
+        public static MechanismBlock Create(bool windowsUlong, ulong mechanismType)
         {
             byte[] buffer = new byte[24];
             if (windowsUlong)
@@ -522,7 +487,7 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
                 BitConverter.TryWriteBytes(buffer.AsSpan(0), mechanismType);
             }
 
-            return new MechanismBuffer(buffer);
+            return new MechanismBlock(buffer);
         }
 
         public void Dispose()

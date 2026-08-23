@@ -149,7 +149,7 @@ public sealed class NativePkcs11ProviderTests
     }
 
     [Fact]
-    public void FinalizeClosesOutstandingSessions()
+    public void FinalizeProviderClosesOutstandingSessions()
     {
         FakePkcs11NativeApi api = FakePkcs11NativeApi.CreateAkisFixture();
         using NativePkcs11Provider provider = new(api);

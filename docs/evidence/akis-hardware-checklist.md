@@ -1,8 +1,8 @@
 # AKİS Donanım Kabul Kontrol Listesi
 
-**Durum:** Çalıştırılmadı — fiziksel referans kart, izinli vendor driver'ı ve kontrollü Windows laboratuvarı gerekir.
+**Durum:** Adaptör kodu hazır; fiziksel referans kart, izinli vendor driver'ı ve kontrollü Windows laboratuvarı olmadan çalıştırılmadı. CI sahte native API ile yeşil kalır; bu liste işaretlenmeden AKİS kabulü iddia edilmez.
 
-- [ ] Vendor modülü allowlist içindeki mutlak yoldan ve güvenilir ACL ile yükleniyor.
+- [ ] Vendor modülü allowlist içindeki mutlak yoldan ve güvenilir ACL ile yükleniyor (`Pkcs11NativeLibraryLoader` + `akisp11.dll`).
 - [ ] Takılı token; etiket, üretici, model ve maskeli seri numarasıyla keşfediliyor.
 - [ ] X.509 sertifikası `CKO_CERTIFICATE`, `CKC_X_509`, `CKA_VALUE`, `CKA_ID` ve `CKA_LABEL` üzerinden okunuyor.
 - [ ] Private key sertifikayla aynı `CKA_ID` üzerinden bulunuyor.
