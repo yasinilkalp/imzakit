@@ -1,3 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Secure loopback-agent configuration and authorization ticket primitives for ImzaKit.</Description>
+    <PackageId>ImzaKit.Agent</PackageId>
+  </PropertyGroup>
   <ItemGroup><PackageReference Include="BouncyCastle.Cryptography" /></ItemGroup>
 </Project>

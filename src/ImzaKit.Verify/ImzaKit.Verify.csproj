@@ -1,3 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>CMS and PAdES signature validation reports for ImzaKit.</Description>
+    <PackageId>ImzaKit.Verify</PackageId>
+  </PropertyGroup>
   <ItemGroup><PackageReference Include="System.Security.Cryptography.Pkcs" /></ItemGroup>
 </Project>

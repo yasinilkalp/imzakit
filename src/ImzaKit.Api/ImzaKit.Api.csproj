@@ -1,1 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Idempotent signature-operation services and API problem mapping for ImzaKit.</Description>
+    <PackageId>ImzaKit.Api</PackageId>
+  </PropertyGroup>
+</Project>
