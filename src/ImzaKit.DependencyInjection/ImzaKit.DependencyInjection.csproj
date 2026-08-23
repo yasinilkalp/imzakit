@@ -7,11 +7,14 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <ProjectReference Include="..\ImzaKit.Agent\ImzaKit.Agent.csproj" />
     <ProjectReference Include="..\ImzaKit.Api\ImzaKit.Api.csproj" />
+    <ProjectReference Include="..\ImzaKit.Certificate\ImzaKit.Certificate.csproj" />
     <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
     <ProjectReference Include="..\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" />
     <ProjectReference Include="..\ImzaKit.Cms\ImzaKit.Cms.csproj" />
     <ProjectReference Include="..\ImzaKit.PAdES\ImzaKit.PAdES.csproj" />
     <ProjectReference Include="..\ImzaKit.Pkcs11\ImzaKit.Pkcs11.csproj" />
+    <ProjectReference Include="..\ImzaKit.Revocation\ImzaKit.Revocation.csproj" />
+    <ProjectReference Include="..\ImzaKit.Trust\ImzaKit.Trust.csproj" />
     <ProjectReference Include="..\ImzaKit.Verify\ImzaKit.Verify.csproj" />
   </ItemGroup>
 </Project>
