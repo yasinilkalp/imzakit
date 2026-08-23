@@ -10,6 +10,9 @@
     <Project Path="src/ImzaKit.DependencyInjection/ImzaKit.DependencyInjection.csproj" />
     <Project Path="src/ImzaKit.Verify/ImzaKit.Verify.csproj" />
   </Folder>
+  <Folder Name="/packaging/">
+    <Project Path="packaging/ImzaKit/ImzaKit.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ImzaKit.Agent.Tests/ImzaKit.Agent.Tests.csproj" />
     <Project Path="tests/ImzaKit.Api.Tests/ImzaKit.Api.Tests.csproj" />

@@ -161,7 +161,6 @@ Create `packaging/ImzaKit/ImzaKit.csproj`:
     <IsPackable>true</IsPackable>
     <PackageId>ImzaKit</PackageId>
     <Description>Provider-independent electronic signature toolkit for .NET.</Description>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeProjectAssemblies</TargetsForTfmSpecificBuildOutput>
     <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);IncludeProjectSymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
   </PropertyGroup>
@@ -179,19 +178,40 @@ Create `packaging/ImzaKit/ImzaKit.csproj`:
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
-  <Target Name="IncludeProjectAssemblies" DependsOnTargets="ResolveReferences">
+  <Target Name="IncludeProjectAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)"
-                            Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' And '%(ReferenceCopyLocalPaths.Extension)' == '.dll'"
-                            TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+      <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Agent\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Agent.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Api\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Api.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Cms\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cms.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Core\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Core.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Cryptography\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cryptography.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.DependencyInjection\bin\$(Configuration)\$(TargetFramework)\ImzaKit.DependencyInjection.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.PAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.PAdES.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Pkcs11\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Pkcs11.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Verify\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Verify.dll" />
+      <BuildOutputInPackage Include="@(_ModuleAssembly)" TargetPath="%(Filename)%(Extension)" FinalOutputPath="%(FullPath)" />
     </ItemGroup>
+    <Error Condition="!Exists('%(_ModuleAssembly.Identity)')" Text="Required module assembly is missing: %(_ModuleAssembly.Identity). Build the solution before packing." />
   </Target>
-  <Target Name="IncludeProjectSymbols" DependsOnTargets="ResolveReferences">
+  <Target Name="IncludeProjectSymbols">
     <ItemGroup>
-      <_ProjectSymbol Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).pdb')"
-                      Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' And '%(ReferenceCopyLocalPaths.Extension)' == '.dll' And Exists('%(ReferenceCopyLocalPaths.RootDir)%(ReferenceCopyLocalPaths.Directory)%(ReferenceCopyLocalPaths.Filename).pdb')" />
-      <TfmSpecificDebugSymbolsFile Include="@(_ProjectSymbol)" TargetPath="%(Filename)%(Extension)" />
+      <DebugSymbolsProjectOutputGroupOutput Remove="@(DebugSymbolsProjectOutputGroupOutput)" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Agent\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Agent.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Api\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Api.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Cms\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cms.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Core\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Core.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Cryptography\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cryptography.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.DependencyInjection\bin\$(Configuration)\$(TargetFramework)\ImzaKit.DependencyInjection.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.PAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.PAdES.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Pkcs11\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Pkcs11.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Verify\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Verify.pdb" />
+      <TfmSpecificDebugSymbolsFile Include="@(_ModuleSymbol)"
+                                   TargetPath="%(Filename)%(Extension)"
+                                   TargetFramework="$(TargetFramework)"
+                                   FinalOutputPath="%(FullPath)" />
     </ItemGroup>
+    <Error Condition="!Exists('%(_ModuleSymbol.Identity)')" Text="Required module symbol is missing: %(_ModuleSymbol.Identity). Build the solution before packing." />
   </Target>
 </Project>
 ```

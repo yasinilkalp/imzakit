@@ -12,6 +12,7 @@
     <Copyright>Copyright 2026 ImzaKit contributors</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IsPackable>false</IsPackable>
     <Version>1.0.0-alpha.1</Version>
     <PackageProjectUrl>https://github.com/yasinilkalp/imzakit</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yasinilkalp/imzakit</RepositoryUrl>
