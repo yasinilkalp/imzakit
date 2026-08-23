@@ -1,37 +1,133 @@
 # ImzaKit
 
-ImzaKit is an Apache-2.0 licensed .NET toolkit for provider-independent electronic signature workflows. The current prerelease focuses on CMS and PAdES preparation/completion, PKCS#11 provider abstractions, signature validation, local-agent security primitives, API operation semantics, and dependency-injection integration.
+ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
-> **Prerelease:** The API may change before the stable `1.0.0` release. Validate legal, regulatory, hardware, certificate-policy, and interoperability requirements before production use.
+> **Ön sürüm:** `1.0.0-alpha.3` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
 
-## Modules in the package
+## Öne çıkan özellikler
 
-NuGet distributes every production module below through the single `ImzaKit` package.
+- Tek `ImzaKit` paketi içinde dokuz modül
+- Haricî imzalama akışları için prepare/complete modeli
+- CMS detached imza verisi hazırlama ve tamamlama
+- PDF bütünlüğünü koruyan artımlı PAdES imzalama altyapısı
+- PKCS#11 sağlayıcı sözleşmeleri ve kart imzalama orkestrasyonu
+- PAdES `ByteRange` ve CMS kriptografik imza doğrulaması
+- DI kayıtları ve süreç içi örnek orkestrasyon
+- Agent bileti, tekrar oynatma koruması, API durum makinesi ve idempotency bileşenleri
 
-| Package | Purpose |
-| --- | --- |
-| `ImzaKit.Core` | Provider-independent signing and cryptography contracts |
-| `ImzaKit.Cryptography` | Digest calculation and algorithm models |
-| `ImzaKit.Cms` | CMS signed-attributes preparation and completion |
-| `ImzaKit.PAdES` | PDF/PAdES preflight, preparation, completion, and policy checks |
-| `ImzaKit.Pkcs11` | PKCS#11 provider contracts and signing orchestration |
-| `ImzaKit.Verify` | CMS/PAdES validation reports |
-| `ImzaKit.Agent` | Loopback-agent configuration and ticket security primitives |
-| `ImzaKit.Api` | Idempotent signature-operation domain services and API problem mapping |
-| `ImzaKit.DependencyInjection` | DI registration and in-process orchestration |
+## Gereksinimler
 
-Install the toolkit with one package reference:
+- .NET 10 SDK veya uyumlu bir .NET 10 çalışma zamanı
+- Kartla imzalama için hedef cihazınıza uygun bir `IPkcs11Provider` uygulaması
+- Üretim ortamında uygulamanıza özel sertifika güveni ve iptal kontrolü politikası
+
+## Kurulum
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.2
+dotnet add package ImzaKit --version 1.0.0-alpha.3
 ```
 
-The package targets `.NET 10`. Source, requirements, technical evidence, and implementation status are maintained in this repository.
+Ya da proje dosyanıza doğrudan ekleyin:
 
-## Security
+```xml
+<PackageReference Include="ImzaKit" Version="1.0.0-alpha.3" />
+```
 
-Do not log PINs, private keys, raw authorization tickets, or unmasked token serial numbers. Keep private-key operations inside the intended cryptographic provider or hardware token, use deployment-specific trust policy, and test with representative PDF readers and PKCS#11 devices.
+## Paketteki modüller
 
-## License
+| Modül | Sorumluluk |
+| --- | --- |
+| `ImzaKit.Core` | Sağlayıcıdan bağımsız imzalama ve kriptografi sözleşmeleri |
+| `ImzaKit.Cryptography` | Özet hesaplama ve algoritma modelleri |
+| `ImzaKit.Cms` | CMS signed-attributes hazırlama ve SignedData tamamlama |
+| `ImzaKit.PAdES` | PDF/PAdES ön kontrol, hazırlama, tamamlama ve değişiklik politikaları |
+| `ImzaKit.Pkcs11` | PKCS#11 sağlayıcı sözleşmeleri ve imzalama orkestrasyonu |
+| `ImzaKit.Verify` | CMS/PAdES doğrulama raporları |
+| `ImzaKit.Agent` | Loopback Agent yapılandırması, imzalı bilet ve replay koruması |
+| `ImzaKit.Api` | İdempotent imza işlemleri, durum makinesi ve problem eşlemeleri |
+| `ImzaKit.DependencyInjection` | DI kayıtları ve süreç içi PAdES orkestrasyonu |
 
-Copyright 2026 ImzaKit contributors. Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for attribution information.
+## Hızlı başlangıç
+
+### Temel servisleri kaydetme
+
+```csharp
+using ImzaKit.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+
+var services = new ServiceCollection();
+services.AddImzaKitCore();
+
+using ServiceProvider provider = services.BuildServiceProvider();
+```
+
+PKCS#11 kart imzalama servislerini kullanacaksanız uygulamanızda `IPkcs11Provider` sözleşmesini gerçek kart/üretici kitaplığına bağlayın ve ardından modülü ekleyin:
+
+```csharp
+using ImzaKit.DependencyInjection;
+using ImzaKit.Pkcs11.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+
+var services = new ServiceCollection();
+services.AddImzaKitCore();
+services.AddSingleton<IPkcs11Provider, MyPkcs11Provider>();
+services.AddImzaKitPkcs11();
+```
+
+Buradaki `MyPkcs11Provider`, hedef PKCS#11 sürücünüz için sizin geliştireceğiniz adaptörü temsil eder. ImzaKit üreticiye özel native sürücü veya PIN arayüzü paketlemez.
+
+### İmzalı PDF doğrulama
+
+```csharp
+using ImzaKit.Verify.Validation;
+
+byte[] signedPdf = File.ReadAllBytes("signed-document.pdf");
+PadesValidationReport report = PadesValidator.Validate(signedPdf);
+
+Console.WriteLine($"Durum: {report.Status}");
+Console.WriteLine($"Kriptografik doğrulama: {report.CryptographicStatus}");
+Console.WriteLine($"Güven zinciri: {report.TrustStatus}");
+
+foreach (ValidationFinding finding in report.Findings)
+{
+    Console.WriteLine($"{finding.Code}: {finding.Message}");
+}
+```
+
+`PadesValidator`, PDF yapısını ve CMS imzasını denetler; sertifika güven zinciri ile iptal durumunu kendiliğinden doğrulamaz. Bu nedenle kriptografik imza geçerli olsa bile `TrustStatus` değeri `Indeterminate` olabilir.
+
+## Güvenlik notları
+
+- PIN, özel anahtar, ham Agent bileti veya maskelenmemiş token seri numarasını loglamayın.
+- Özel anahtar işlemlerini kart, HSM veya amaçlanan kriptografik sağlayıcı sınırında tutun.
+- Sertifika güveni, OCSP/CRL, zaman damgası ve kurumsal politika kararlarını uygulama katmanında açıkça yönetin.
+- Fiziksel kart, native kullanıcı onayı, mTLS ve kurulum/dağıtım senaryolarını hedef ortamınızda ayrıca test edin.
+
+## Kaynak, durum ve lisans
+
+- [Kaynak kodu](https://github.com/yasinilkalp/imzakit)
+- [Geliştirme durum raporu](https://github.com/yasinilkalp/imzakit/blob/main/reports/imzakit-gelistirme-durum.html)
+- [Apache License 2.0](https://github.com/yasinilkalp/imzakit/blob/main/LICENSE)
+- [NOTICE](https://github.com/yasinilkalp/imzakit/blob/main/NOTICE)
+
+---
+
+## English summary
+
+ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature toolkit for .NET 10. A single NuGet package contains nine modules covering CMS and PAdES preparation/completion, PKCS#11 abstractions, signature validation, local-agent security primitives, API operation semantics, and dependency-injection integration.
+
+### Install
+
+```shell
+dotnet add package ImzaKit --version 1.0.0-alpha.3
+```
+
+### Included modules
+
+`ImzaKit.Core`, `ImzaKit.Cryptography`, `ImzaKit.Cms`, `ImzaKit.PAdES`, `ImzaKit.Pkcs11`, `ImzaKit.Verify`, `ImzaKit.Agent`, `ImzaKit.Api`, and `ImzaKit.DependencyInjection` are distributed together through the `ImzaKit` package.
+
+### Prerelease and security notice
+
+This is a prerelease and its APIs may change before `1.0.0`. ImzaKit validates PDF structure and CMS signatures but does not automatically establish certificate trust or revocation status. Integrators must supply deployment-specific PKCS#11 adapters, trust policy, hardware validation, native user approval, secure transport, and operational controls before production use.
+
+Copyright 2026 ImzaKit contributors. Licensed under the [Apache License 2.0](https://github.com/yasinilkalp/imzakit/blob/main/LICENSE).

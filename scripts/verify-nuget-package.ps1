@@ -1,6 +1,6 @@
 param(
     [string]$PackageDirectory = (Join-Path (Split-Path -Parent $PSScriptRoot) 'artifacts\packages'),
-    [string]$Version = '1.0.0-alpha.2'
+    [string]$Version = '1.0.0-alpha.3'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,6 +39,12 @@ try {
     if ($metadata.license.'#text' -ne 'Apache-2.0') { throw 'Apache-2.0 license is missing.' }
     if ($metadata.repository.url -ne 'https://github.com/yasinilkalp/imzakit') { throw 'Repository URL is invalid.' }
     if ($metadata.readme -ne 'README.md' -or -not ($packageArchive.Entries.FullName -contains 'README.md')) { throw 'README is missing.' }
+    $readmeEntry = $packageArchive.GetEntry('README.md')
+    $readmeReader = [System.IO.StreamReader]::new($readmeEntry.Open())
+    try { $readmeText = $readmeReader.ReadToEnd() } finally { $readmeReader.Dispose() }
+    if (-not $readmeText.Contains('## Öne çıkan özellikler')) { throw 'Turkish README content is missing.' }
+    if (-not $readmeText.Contains('## English summary')) { throw 'English README summary is missing.' }
+    if (-not $readmeText.Contains("ImzaKit --version $Version")) { throw 'README installation version is invalid.' }
 
     $actualDlls = @($packageArchive.Entries.FullName |
         Where-Object { $_ -like 'lib/net10.0/ImzaKit.*.dll' } |
