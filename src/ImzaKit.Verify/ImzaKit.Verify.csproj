@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><PackageReference Include="System.Security.Cryptography.Pkcs" /></ItemGroup>
+</Project>

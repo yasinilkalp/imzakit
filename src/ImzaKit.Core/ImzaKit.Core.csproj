@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Provider-independent domain contracts for ImzaKit.</Description>
+    <PackageId>ImzaKit.Core</PackageId>
+  </PropertyGroup>
+</Project>

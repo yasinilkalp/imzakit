@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>PAdES signing and validation integration for ImzaKit.</Description>
+    <PackageId>ImzaKit.PAdES</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+    <ProjectReference Include="..\ImzaKit.Cms\ImzaKit.Cms.csproj" />
+  </ItemGroup>
+</Project>

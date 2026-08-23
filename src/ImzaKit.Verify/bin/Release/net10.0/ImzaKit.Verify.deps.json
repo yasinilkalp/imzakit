@@ -1,0 +1,49 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ImzaKit.Verify/1.0.0": {
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "10.0.11"
+        },
+        "runtime": {
+          "ImzaKit.Verify.dll": {}
+        }
+      },
+      "System.Security.Cryptography.Pkcs/10.0.11": {
+        "runtime": {
+          "lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.1126.37416"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.1126.37416"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ImzaKit.Verify/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "System.Security.Cryptography.Pkcs/10.0.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8IV+rI3xN/Mkq9MsSX7VZTv9T9Wt+tyhHLwBX9VNZBk8m8kknEs1JeTSjI2x9M2L/fSja+c2WSE5n5Yy0GXdoQ==",
+      "path": "system.security.cryptography.pkcs/10.0.11",
+      "hashPath": "system.security.cryptography.pkcs.10.0.11.nupkg.sha512"
+    }
+  }
+}

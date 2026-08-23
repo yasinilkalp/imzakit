@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Cryptographic algorithm models and primitives integration for ImzaKit.</Description>
+    <PackageId>ImzaKit.Cryptography</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+  </ItemGroup>
+</Project>

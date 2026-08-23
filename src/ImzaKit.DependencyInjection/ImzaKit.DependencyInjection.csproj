@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Dependency injection registration for ImzaKit.</Description>
+    <PackageId>ImzaKit.DependencyInjection</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <ProjectReference Include="..\ImzaKit.Agent\ImzaKit.Agent.csproj" />
+    <ProjectReference Include="..\ImzaKit.Api\ImzaKit.Api.csproj" />
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+    <ProjectReference Include="..\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" />
+    <ProjectReference Include="..\ImzaKit.Cms\ImzaKit.Cms.csproj" />
+    <ProjectReference Include="..\ImzaKit.PAdES\ImzaKit.PAdES.csproj" />
+    <ProjectReference Include="..\ImzaKit.Pkcs11\ImzaKit.Pkcs11.csproj" />
+    <ProjectReference Include="..\ImzaKit.Verify\ImzaKit.Verify.csproj" />
+  </ItemGroup>
+</Project>

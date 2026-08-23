@@ -1,0 +1,208 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ImzaKit.DependencyInjection/1.0.0": {
+        "dependencies": {
+          "ImzaKit.Agent": "1.0.0",
+          "ImzaKit.Api": "1.0.0",
+          "ImzaKit.Cms": "1.0.0",
+          "ImzaKit.Core": "1.0.0",
+          "ImzaKit.Cryptography": "1.0.0",
+          "ImzaKit.PAdES": "1.0.0",
+          "ImzaKit.Pkcs11": "1.0.0",
+          "ImzaKit.Verify": "1.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11"
+        },
+        "runtime": {
+          "ImzaKit.DependencyInjection.dll": {}
+        }
+      },
+      "BouncyCastle.Cryptography/2.7.0": {
+        "runtime": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.7.0.16391"
+          }
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11": {
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.1126.37416"
+          }
+        }
+      },
+      "System.Security.Cryptography.Pkcs/10.0.11": {
+        "runtime": {
+          "lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.1126.37416"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.1126.37416"
+          }
+        }
+      },
+      "ImzaKit.Agent/1.0.0": {
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.7.0"
+        },
+        "runtime": {
+          "ImzaKit.Agent.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Api/1.0.0": {
+        "runtime": {
+          "ImzaKit.Api.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Cms/1.0.0": {
+        "dependencies": {
+          "ImzaKit.Core": "1.0.0",
+          "ImzaKit.Cryptography": "1.0.0"
+        },
+        "runtime": {
+          "ImzaKit.Cms.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Core/1.0.0": {
+        "runtime": {
+          "ImzaKit.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Cryptography/1.0.0": {
+        "dependencies": {
+          "ImzaKit.Core": "1.0.0"
+        },
+        "runtime": {
+          "ImzaKit.Cryptography.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.PAdES/1.0.0": {
+        "dependencies": {
+          "ImzaKit.Cms": "1.0.0",
+          "ImzaKit.Core": "1.0.0"
+        },
+        "runtime": {
+          "ImzaKit.PAdES.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Pkcs11/1.0.0": {
+        "runtime": {
+          "ImzaKit.Pkcs11.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Verify/1.0.0": {
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "10.0.11"
+        },
+        "runtime": {
+          "ImzaKit.Verify.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ImzaKit.DependencyInjection/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "BouncyCastle.Cryptography/2.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U+12df8UEWHgBi04YVf/Lgi2dy3SItlIYvHjjEVa/BngCQIzDCDRBk50DDByCfDvSbe5pRNFr3b7UrVK2kMcLw==",
+      "path": "bouncycastle.cryptography/2.7.0",
+      "hashPath": "bouncycastle.cryptography.2.7.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/a1aJz4m7ylhEDf25ugQChLQoN5XwoGjWw/BoR/ZWWKsO1v4DdJElS1uyngahz4B/eOzjFk1KNTkarRLE5wsIg==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/10.0.11",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.10.0.11.nupkg.sha512"
+    },
+    "System.Security.Cryptography.Pkcs/10.0.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8IV+rI3xN/Mkq9MsSX7VZTv9T9Wt+tyhHLwBX9VNZBk8m8kknEs1JeTSjI2x9M2L/fSja+c2WSE5n5Yy0GXdoQ==",
+      "path": "system.security.cryptography.pkcs/10.0.11",
+      "hashPath": "system.security.cryptography.pkcs.10.0.11.nupkg.sha512"
+    },
+    "ImzaKit.Agent/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Api/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Cms/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Cryptography/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.PAdES/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Pkcs11/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Verify/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

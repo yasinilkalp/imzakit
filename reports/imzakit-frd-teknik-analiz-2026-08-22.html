@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>İmzaKit FRD Teknik Analiz Raporu</title>
+<style>
+:root{--bg:#091012;--panel:#0d171a;--panel2:#111e21;--line:#26383c;--text:#e7efef;--muted:#91a4a7;--accent:#31d0aa;--accent-soft:#163c35;--focus:#79efd1;--radius:3px;--nav:250px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:22px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.55}
+button,input,select{font:inherit}
+a{color:inherit}
+.skip{position:fixed;left:12px;top:-80px;z-index:99;background:var(--accent);color:#06110e;padding:10px 14px;font-weight:700}.skip:focus{top:12px}
+.sidebar{position:fixed;inset:0 auto 0 0;width:var(--nav);padding:24px 18px;border-right:1px solid var(--line);background:#080e10;overflow:auto;z-index:10}
+.brand{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;margin-bottom:28px}.mark{width:34px;height:34px;border:1px solid var(--accent);display:grid;place-items:center;color:var(--accent);font-family:Consolas,monospace;font-weight:700}.brand strong{display:block;font-size:14px;letter-spacing:.08em}.brand small{color:var(--muted)}
+nav a{display:block;padding:8px 9px;margin:2px 0;text-decoration:none;color:var(--muted);border-left:2px solid transparent}nav a:hover,nav a:focus-visible{color:var(--text);border-left-color:var(--accent);background:var(--panel)}
+.sidebar-meta{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.sidebar-meta b{color:var(--accent)}
+main{margin-left:var(--nav);max-width:1480px;padding:34px 44px 80px}
+.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.5fr);gap:48px;padding:18px 0 42px;border-bottom:1px solid var(--line)}
+.kicker{font:700 12px/1.2 Consolas,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 18px}
+h1{font-size:clamp(42px,6vw,84px);line-height:.94;letter-spacing:-.055em;margin:0;max-width:950px}
+.lede{color:var(--muted);font-size:18px;max-width:68ch;margin:24px 0 0}
+.verdict{align-self:end;border-left:3px solid var(--accent);padding:4px 0 4px 20px}.verdict strong{display:block;color:var(--accent);font:700 13px Consolas,monospace;text-transform:uppercase;letter-spacing:.08em}.verdict span{display:block;font-size:24px;font-weight:700;line-height:1.2;margin-top:8px}.verdict p{color:var(--muted);margin:9px 0 0}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}.metric{padding:26px 22px;border-right:1px solid var(--line)}.metric:last-child{border-right:0}.metric b{display:block;font:700 38px/1 Consolas,monospace;color:var(--accent)}.metric span{display:block;color:var(--muted);margin-top:8px}
+section{padding:56px 0;border-bottom:1px solid var(--line)}
+.section-head{max-width:820px;margin-bottom:28px}h2{font-size:30px;letter-spacing:-.03em;margin:0 0 8px}.section-head p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.span4{grid-column:span 4}.span6{grid-column:span 6}.span8{grid-column:span 8}.span12{grid-column:span 12}
+.panel{border:1px solid var(--line);background:var(--panel);padding:22px;border-radius:var(--radius)}.panel h3{margin:0 0 12px;font-size:17px}.panel p{color:var(--muted);margin:0}.panel strong{color:var(--text)}
+.status-line{display:flex;justify-content:space-between;gap:20px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line)}.status-line:last-child{border:0}.status-line code,.mono{font-family:Consolas,monospace;color:var(--accent)}.state{font:700 11px Consolas,monospace;text-transform:uppercase;letter-spacing:.07em;color:var(--accent)}
+.phase{display:grid;grid-template-columns:72px 1fr auto;gap:18px;align-items:start;padding:18px 0;border-bottom:1px solid var(--line)}.phase:last-child{border-bottom:0}.phase-id{font:700 13px Consolas,monospace;color:var(--accent)}.phase h3{margin:0 0 5px}.phase p{margin:0;color:var(--muted)}.phase-count{font:700 20px Consolas,monospace}
+.toolbar{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;margin-bottom:14px}.control{width:100%;background:#091214;color:var(--text);border:1px solid var(--line);border-radius:var(--radius);padding:11px 12px}.control:focus{outline:2px solid var(--focus);outline-offset:1px}
+.table-wrap{overflow:auto;border:1px solid var(--line);max-height:620px}table{width:100%;border-collapse:collapse;min-width:820px}th{position:sticky;top:0;background:#101b1e;color:var(--muted);font:700 11px Consolas,monospace;text-transform:uppercase;letter-spacing:.07em;text-align:left;z-index:2}th,td{padding:11px 13px;border-bottom:1px solid var(--line)}tbody tr:hover{background:var(--panel2)}td:first-child{font-family:Consolas,monospace;color:var(--accent);font-weight:700}.result-meta{display:flex;justify-content:space-between;color:var(--muted);margin:10px 0;font-size:13px}
+details{border-top:1px solid var(--line)}details:last-child{border-bottom:1px solid var(--line)}summary{cursor:pointer;display:grid;grid-template-columns:92px 1fr auto;gap:16px;align-items:center;padding:17px 4px;list-style:none}summary::-webkit-details-marker{display:none}summary:focus-visible{outline:2px solid var(--focus)}summary code{color:var(--accent);font-family:Consolas,monospace}summary span:last-child{color:var(--muted)}.detail-body{padding:0 4px 20px 108px;color:var(--muted);max-width:920px}
+.endpoint{display:grid;grid-template-columns:72px minmax(300px,1fr) 240px;gap:15px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.method{font:700 12px Consolas,monospace;color:var(--accent)}.endpoint code{font-family:Consolas,monospace}.endpoint small{color:var(--muted)}
+.gates{counter-reset:gate}.gate{counter-increment:gate;display:grid;grid-template-columns:48px 1fr auto;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}.gate:before{content:counter(gate,decimal-leading-zero);font:700 13px Consolas,monospace;color:var(--accent)}.gate h3{margin:0 0 5px}.gate p{margin:0;color:var(--muted)}.gate .state{white-space:nowrap}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:20px 22px}.callout strong{color:var(--accent)}.callout p{margin:5px 0 0;color:#bfd5d0}
+footer{padding:34px 0;color:var(--muted);display:flex;justify-content:space-between;gap:20px;font-size:13px}
+.reveal{animation:rise .45s ease both}@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media(max-width:1000px){:root{--nav:0px}.sidebar{position:static;width:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;gap:4px;overflow:auto}.sidebar-meta{display:none}main{margin:0;padding:28px 22px 60px}.hero{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.metric:nth-child(2){border-right:0}.span4,.span6,.span8{grid-column:span 12}.toolbar{grid-template-columns:1fr 1fr}.toolbar input{grid-column:span 2}.endpoint{grid-template-columns:64px 1fr}.endpoint small{grid-column:2}}
+@media(max-width:600px){main{padding-inline:16px}.hero{gap:24px}h1{font-size:44px}.metrics{grid-template-columns:1fr}.metric{border-right:0}.toolbar{grid-template-columns:1fr}.toolbar input{grid-column:auto}.phase{grid-template-columns:54px 1fr}.phase-count{grid-column:2}.gate{grid-template-columns:38px 1fr}.gate .state{grid-column:2}.detail-body{padding-left:4px}footer{display:block}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{animation:none}}
+@media print{.sidebar,.toolbar{display:none!important}main{margin:0;max-width:none;padding:0}.table-wrap{max-height:none;overflow:visible}.hero{padding-top:0}body{background:#fff;color:#111}.panel,th{background:#fff;color:#111}.metric b,.mono,.state,td:first-child,.method,.kicker{color:#08745e}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">İçeriğe geç</a>
+<aside class="sidebar">
+ <div class="brand"><div class="mark">İK</div><div><strong>İMZAKİT</strong><small>FRD Teknik Analiz</small></div></div>
+ <nav aria-label="Rapor bölümleri">
+  <a href="#genel">Genel durum</a><a href="#kapsam">Kapsam ve fazlar</a><a href="#gereksinimler">Gereksinimler</a><a href="#kararlar">Mimari kararlar</a><a href="#api">API sözleşmesi</a><a href="#guvenlik">Güvenlik</a><a href="#test">Test ve kabul</a><a href="#kapilar">Faz 0 kapıları</a>
+ </nav>
+ <div class="sidebar-meta">Kaynak: FRD 1.0 MVP tabanı<br><b>22 Ağustos 2026</b><br>Yerel ve çevrimdışı rapor</div>
+</aside>
+<main id="content">
+ <header class="hero reveal" id="genel">
+  <div><p class="kicker">Teknik hazırlık incelemesi</p><h1>FRD uygulama tabanı hazır. MVP kanıtları sırada.</h1><p class="lede">Ürün kararları kesinleştirildi, gereksinimler izlenebilir hale getirildi ve MVP API sözleşmesi oluşturuldu. Faz 0 uygulama kanıtları tamamlanmadan MVP kapısı açılmaz.</p></div>
+  <div class="verdict"><strong>Teknik karar</strong><span>Faz 0 geliştirmesine hazır</span><p>Tam MVP geliştirmesi PDF, AKİS ve Agent güvenlik spike sonuçlarına koşulludur.</p></div>
+ </header>
+ <div class="metrics" aria-label="Rapor metrikleri">
+  <div class="metric"><b>109</b><span>tekil gereksinim</span></div><div class="metric"><b>109/109</b><span>izlenebilir kayıt</span></div><div class="metric"><b>7</b><span>kabul edilmiş ADR</span></div><div class="metric"><b>10</b><span>MVP API operasyonu</span></div>
+ </div>
+ <section id="kapsam">
+  <div class="section-head"><p class="kicker">Kapsam haritası</p><h2>Fazlar ve ürün sınırları</h2><p>MVP bilinçli olarak PAdES B-B ve yerel AKİS imza akışıyla sınırlandı. Uzun dönem kanıt ve diğer formatlar sonraki fazlarda.</p></div>
+  <div class="panel" id="phaseList"></div>
+ </section>
+ <section id="gereksinimler">
+  <div class="section-head"><p class="kicker">İzlenebilirlik</p><h2>Gereksinim gezgini</h2><p>Kimlik, bileşen, faz, öncelik ve MVP engelleyici durumuna göre 109 kaydı filtreleyin.</p></div>
+  <div class="toolbar">
+   <input class="control" id="search" type="search" placeholder="Kimlik, bileşen veya konu ara" aria-label="Gereksinim ara">
+   <select class="control" id="phaseFilter" aria-label="Faz filtresi"><option value="">Tüm fazlar</option><option value="1">Faz 1</option><option value="2">Faz 2</option><option value="3">Faz 3</option><option value="4">Faz 4</option></select>
+   <select class="control" id="componentFilter" aria-label="Bileşen filtresi"><option value="">Tüm bileşenler</option></select>
+   <select class="control" id="priorityFilter" aria-label="Öncelik filtresi"><option value="">Tüm öncelikler</option><option>Zorunlu</option><option>Yüksek</option><option>Orta</option><option>Sonraki</option></select>
+   <select class="control" id="mvpFilter" aria-label="MVP filtresi"><option value="">MVP durumu</option><option value="true">MVP engelleyici</option><option value="false">Sonraki kapsam</option></select>
+  </div>
+  <div class="result-meta"><span id="resultCount"></span><button class="control" id="clearFilters" type="button">Filtreleri temizle</button></div>
+  <div class="table-wrap" tabindex="0"><table><thead><tr><th>Kimlik</th><th>Konu</th><th>Bileşen</th><th>Faz</th><th>Öncelik</th><th>MVP</th></tr></thead><tbody id="reqBody"></tbody></table></div>
+ </section>
+ <section id="kararlar">
+  <div class="section-head"><p class="kicker">Karar günlüğü</p><h2>Kabul edilmiş mimari kararlar</h2><p>Karar gerekçeleri ve doğrulama beklentileri ADR kayıtlarında kalıcı olarak tutuluyor.</p></div>
+  <div id="adrList"></div>
+ </section>
+ <section id="api">
+  <div class="section-head"><p class="kicker">OpenAPI 3.1</p><h2>MVP HTTP yüzeyi</h2><p>Yan etkili uçlarda idempotency, token claim tabanlı tenant bağlama ve Agent callback için mTLS zorunlu.</p></div>
+  <div class="panel" id="endpointList"></div>
+ </section>
+ <section id="guvenlik">
+  <div class="section-head"><p class="kicker">Güven sınırları</p><h2>Tehditten kontrole</h2><p>Tarayıcı, Agent, API, kart sürücüsü, belge deposu ve dış kanıt kaynakları ayrı güven sınırlarıdır.</p></div>
+  <div class="grid">
+   <article class="panel span6"><h3>Agent ve yerel imza</h3><div class="status-line"><span>Loopback bind</span><code>127.0.0.1 / ::1</code></div><div class="status-line"><span>Operasyon bileti</span><code>Ed25519, 120 sn</code></div><div class="status-line"><span>Kullanıcı yetkisi</span><code>Native onay</code></div><div class="status-line"><span>Callback kimliği</span><code>mTLS, 30 gün</code></div></article>
+   <article class="panel span6"><h3>Sunucu ve veri</h3><div class="status-line"><span>Tenant kaynağı</span><code>Token claim</code></div><div class="status-line"><span>Operasyon metadata</span><code>24 saat</code></div><div class="status-line"><span>Çıktı ve rapor</span><code>7 gün</code></div><div class="status-line"><span>Audit bütünlüğü</span><code>Hash-chain</code></div></article>
+   <article class="panel span6"><h3>Trust ve revocation</h3><p>Türkiye Trust Store işletim sisteminden ayrıdır, sürümlü ve imzalı paketlerle atomik güncellenir. Faz 1 çevrimiçi OCSP/CRL sorgulamaz.</p></article>
+   <article class="panel span6"><h3>Tedarik zinciri</h3><p>Apache-2.0 uyumlu bağımlılık allowlist'i, NOTICE, SBOM, artefakt imzası ve kaynak commit ile digest provenance ilişkisi sürüm kapısındadır.</p></article>
+  </div>
+ </section>
+ <section id="test">
+  <div class="section-head"><p class="kicker">Kabul modeli</p><h2>Kanıt katmanları</h2><p>Doğrulama yalnız belge metniyle değil, gerçek cihaz, golden vector, saldırı corpus'u ve bağımsız doğrulayıcılarla yapılır.</p></div>
+  <div class="grid">
+   <div class="panel span4"><h3>Kriptografi ve format</h3><p>DER, CMS, ByteRange, incremental revision, DocMDP ve harici doğrulayıcı uyumu.</p></div>
+   <div class="panel span4"><h3>Cihaz ve güvenlik</h3><p>Gerçek AKİS, yanlış PIN, kart çıkarma, replay, origin, digest ve mTLS yaşam döngüsü.</p></div>
+   <div class="panel span4"><h3>Platform ve release</h3><p>OpenAPI, idempotency, tenant izolasyonu, lisans allowlist'i, SBOM, provenance ve TTL.</p></div>
+  </div>
+  <div class="callout" style="margin-top:18px"><strong>Doğrulama sonucu</strong><p><span class="mono">FRD validation passed</span>. Kaynak ve matris kümeleri 109/109 eşleşiyor.</p></div>
+ </section>
+ <section id="kapilar">
+  <div class="section-head"><p class="kicker">Sonraki teknik iş</p><h2>Faz 0 uygulama kanıtları</h2><p>Bu kapılar tanımlıdır fakat henüz tamamlanmış sayılmaz. Her biri ölçüm ve artefakt kanıtı üretmelidir.</p></div>
+  <div class="gates">
+   <div class="gate"><div><h3>PDF motoru seçim spike'ı</h3><p>Incremental update, ByteRange, mevcut imzaları koruma, DocMDP/FieldMDP, DSS genişleme noktası, parser limitleri, interop ve lisans.</p></div><span class="state">Kanıt bekleniyor</span></div>
+   <div class="gate"><div><h3>Gerçek AKİS kart testi</h3><p>Token keşfi, CKA_ID eşleme, RSA/SHA-256 imza ve ayrı hata sonuçları.</p></div><span class="state">Kanıt bekleniyor</span></div>
+   <div class="gate"><div><h3>Agent güvenlik prototipi</h3><p>Loopback bind, bilet replay, origin/digest bağı, native onay ve mTLS enrollment yaşam döngüsü.</p></div><span class="state">Kanıt bekleniyor</span></div>
+   <div class="gate"><div><h3>Golden PAdES doğrulaması</h3><p>Aynı çıktı İmzaKit Verify ve iki bağımsız doğrulayıcıda beklenen sonucu vermeli.</p></div><span class="state">Kanıt bekleniyor</span></div>
+  </div>
+ </section>
+ <footer><span>İmzaKit FRD Teknik Analiz Raporu</span><span>Kaynak tarihi: 22 Ağustos 2026</span></footer>
+</main>
+<script>
+const requirements=[{"id":"FR-001","component":"Core","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ortak SDK"},{"id":"FR-002","component":"Core","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ortak SDK"},{"id":"FR-003","component":"Core","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ortak SDK"},{"id":"FR-004","component":"Core","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ortak SDK"},{"id":"FR-005","component":"Core","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ortak SDK"},{"id":"FR-006","component":"Core","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ortak SDK"},{"id":"FR-020","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-021","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-022","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-023","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-024","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-025","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-026","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-027","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-028","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-029","component":"Agent","phase":1,"priority":"Zorunlu","mvp":true,"title":"PKCS#11 ve Agent"},{"id":"FR-040","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-041","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-042","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-046","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-047","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-048","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-049","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-050","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-051","component":"PAdES","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES B-B ve revision"},{"id":"FR-043","component":"PAdES","phase":2,"priority":"Yüksek","mvp":false,"title":"Uzun dönem PAdES"},{"id":"FR-044","component":"PAdES","phase":2,"priority":"Yüksek","mvp":false,"title":"Uzun dönem PAdES"},{"id":"FR-045","component":"PAdES","phase":2,"priority":"Yüksek","mvp":false,"title":"Uzun dönem PAdES"},{"id":"FR-060","component":"CMS","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES CMS çekirdeği"},{"id":"FR-061","component":"CMS","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES CMS çekirdeği"},{"id":"FR-062","component":"CMS","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES CMS çekirdeği"},{"id":"FR-063","component":"CMS","phase":1,"priority":"Zorunlu","mvp":true,"title":"PAdES CMS çekirdeği"},{"id":"FR-064","component":"CAdES","phase":3,"priority":"Orta","mvp":false,"title":"CAdES"},{"id":"FR-065","component":"CAdES","phase":3,"priority":"Orta","mvp":false,"title":"CAdES"},{"id":"FR-070","component":"XAdES","phase":4,"priority":"Sonraki","mvp":false,"title":"XAdES"},{"id":"FR-071","component":"XAdES","phase":4,"priority":"Sonraki","mvp":false,"title":"XAdES"},{"id":"FR-072","component":"XAdES","phase":4,"priority":"Sonraki","mvp":false,"title":"XAdES"},{"id":"FR-073","component":"XAdES","phase":4,"priority":"Sonraki","mvp":false,"title":"XAdES"},{"id":"FR-074","component":"ASiC","phase":4,"priority":"Sonraki","mvp":false,"title":"ASiC"},{"id":"FR-075","component":"ASiC","phase":4,"priority":"Sonraki","mvp":false,"title":"ASiC"},{"id":"FR-076","component":"ASiC","phase":4,"priority":"Sonraki","mvp":false,"title":"ASiC"},{"id":"FR-080","component":"Timestamp","phase":2,"priority":"Yüksek","mvp":false,"title":"RFC 3161"},{"id":"FR-081","component":"Timestamp","phase":2,"priority":"Yüksek","mvp":false,"title":"RFC 3161"},{"id":"FR-082","component":"Timestamp","phase":2,"priority":"Yüksek","mvp":false,"title":"RFC 3161"},{"id":"FR-083","component":"Timestamp","phase":2,"priority":"Yüksek","mvp":false,"title":"RFC 3161"},{"id":"FR-084","component":"Timestamp","phase":2,"priority":"Yüksek","mvp":false,"title":"RFC 3161"},{"id":"FR-090","component":"Trust","phase":1,"priority":"Zorunlu","mvp":true,"title":"Trust ve sertifika"},{"id":"FR-091","component":"Trust","phase":1,"priority":"Zorunlu","mvp":true,"title":"Trust ve sertifika"},{"id":"FR-092","component":"Trust","phase":1,"priority":"Zorunlu","mvp":true,"title":"Trust ve sertifika"},{"id":"FR-093","component":"Trust","phase":1,"priority":"Zorunlu","mvp":true,"title":"Trust ve sertifika"},{"id":"FR-094","component":"Trust","phase":1,"priority":"Zorunlu","mvp":true,"title":"Trust ve sertifika"},{"id":"FR-095","component":"Trust","phase":3,"priority":"Orta","mvp":false,"title":"Trust güncelleme"},{"id":"FR-096","component":"Revocation","phase":2,"priority":"Yüksek","mvp":false,"title":"OCSP ve CRL"},{"id":"FR-097","component":"Revocation","phase":2,"priority":"Yüksek","mvp":false,"title":"OCSP ve CRL"},{"id":"FR-098","component":"Revocation","phase":2,"priority":"Yüksek","mvp":false,"title":"OCSP ve CRL"},{"id":"FR-099","component":"Revocation","phase":2,"priority":"Yüksek","mvp":false,"title":"OCSP ve CRL"},{"id":"FR-110","component":"Workflow","phase":1,"priority":"Zorunlu","mvp":true,"title":"Çoklu PDF revision"},{"id":"FR-111","component":"Workflow","phase":3,"priority":"Orta","mvp":false,"title":"Workflow"},{"id":"FR-112","component":"Workflow","phase":3,"priority":"Orta","mvp":false,"title":"Workflow"},{"id":"FR-113","component":"Workflow","phase":3,"priority":"Orta","mvp":false,"title":"Workflow"},{"id":"FR-114","component":"Workflow","phase":3,"priority":"Orta","mvp":false,"title":"Workflow"},{"id":"FR-115","component":"Workflow","phase":3,"priority":"Orta","mvp":false,"title":"Workflow"},{"id":"VAL-001","component":"Validation","phase":1,"priority":"Zorunlu","mvp":true,"title":"Doğrulama"},{"id":"VAL-002","component":"Validation","phase":1,"priority":"Zorunlu","mvp":true,"title":"Doğrulama"},{"id":"VAL-003","component":"Validation","phase":1,"priority":"Zorunlu","mvp":true,"title":"Doğrulama"},{"id":"VAL-004","component":"Validation","phase":1,"priority":"Zorunlu","mvp":true,"title":"Doğrulama"},{"id":"VAL-005","component":"Validation","phase":1,"priority":"Zorunlu","mvp":true,"title":"Doğrulama"},{"id":"VAL-006","component":"Validation","phase":1,"priority":"Zorunlu","mvp":true,"title":"Doğrulama"},{"id":"VAL-007","component":"Validation","phase":1,"priority":"Zorunlu","mvp":true,"title":"Doğrulama"},{"id":"NFR-001","component":"API","phase":3,"priority":"Orta","mvp":false,"title":"Performans"},{"id":"NFR-002","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-003","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-004","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-005","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-006","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-007","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-008","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-009","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"NFR-010","component":"Platform","phase":1,"priority":"Zorunlu","mvp":true,"title":"Ürün kalitesi"},{"id":"SEC-001","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-002","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-003","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-004","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-005","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-006","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-007","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-008","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-009","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-010","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-011","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-012","component":"Agent Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Agent güvenliği"},{"id":"SEC-020","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"SEC-021","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"SEC-022","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"SEC-023","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"SEC-024","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"SEC-025","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"SEC-026","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"SEC-027","component":"Server Security","phase":1,"priority":"Zorunlu","mvp":true,"title":"Sunucu ve veri güvenliği"},{"id":"API-001","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-002","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-003","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-004","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-005","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-006","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-007","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-008","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-009","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"},{"id":"API-010","component":"API","phase":1,"priority":"Zorunlu","mvp":true,"title":"API sözleşmesi"}];
+const phases=[
+ {id:0,title:"Teknik risk azaltma",text:"PDF, AKİS, Agent güvenliği, Trust Store yönetişimi ve ilk golden vector.",count:"4 kapı"},
+ {id:1,title:"MVP: PAdES B-B",text:"Core, CMS alt kümesi, AKİS, Windows Agent, API ve temel Verify.",count:requirements.filter(x=>x.phase===1).length+" kayıt"},
+ {id:2,title:"Güvenilir zaman ve uzun dönem PAdES",text:"RFC 3161, OCSP/CRL, B-T, B-LT, B-LTA ve tam revocation.",count:requirements.filter(x=>x.phase===2).length+" kayıt"},
+ {id:3,title:"CAdES ve kurumsallaştırma",text:"Bağımsız CAdES, workflow, Trust update ve performans sertleştirmesi.",count:requirements.filter(x=>x.phase===3).length+" kayıt"},
+ {id:4,title:"XAdES ve ASiC",text:"Güvenli XMLDSig, ASiC paket güvenliği ve formatlar arası rapor.",count:requirements.filter(x=>x.phase===4).length+" kayıt"}
+];
+const adrs=[
+ ["ADR-001","Açık kaynak ve lisans","Apache-2.0; izin verici bağımlılık allowlist'i; NOTICE ve SBOM sürüm kapısı."],
+ ["ADR-002",".NET platform tabanı",".NET 10 LTS; Windows x64/arm64 Agent; semantic versioning."],
+ ["ADR-003","Agent loopback güven modeli","Loopback HTTP, Ed25519 bilet, native onay ve mTLS callback."],
+ ["ADR-004","Türkiye Trust Store","İşletim sisteminden ayrı, sürümlü, imzalı ve geri alınabilir paket."],
+ ["ADR-005","PDF motoru seçim kapısı","Sekiz ölçülebilir kriter geçilmeden kütüphane seçimi yok."],
+ ["ADR-006","MVP kapsamı ve revocation","Faz 1 kanıt yokluğunda INDETERMINATE; online OCSP/CRL Faz 2."],
+ ["ADR-007","Saklama ve audit","120 saniye bilet, 24 saat operasyon, 7 gün çıktı, hash-chain audit."]
+];
+const endpoints=[
+ ["POST","/signature-operations","createSignatureOperation"],["GET","/signature-operations/{operationId}","getSignatureOperation"],
+ ["POST","/signature-operations/{operationId}/agent-ticket","createAgentTicket"],["POST","/signature-operations/{operationId}/certificate","bindCertificate"],
+ ["POST","/signature-operations/{operationId}/prepare","prepareSignature"],["POST","/signature-operations/{operationId}/complete","completeSignature"],
+ ["POST","/signature-operations/{operationId}/cancel","cancelSignatureOperation"],["POST","/validations","createValidation"],
+ ["GET","/validations/{validationId}","getValidation"],["POST","/agent-callbacks/signature-results","submitAgentSignatureResult"]
+];
+document.getElementById("phaseList").innerHTML=phases.map(p=>`<div class="phase"><span class="phase-id">FAZ ${p.id}</span><div><h3>${p.title}</h3><p>${p.text}</p></div><span class="phase-count">${p.count}</span></div>`).join("");
+document.getElementById("adrList").innerHTML=adrs.map((a,i)=>`<details ${i===0?"open":""}><summary><code>${a[0]}</code><strong>${a[1]}</strong><span>Kabul edildi</span></summary><div class="detail-body">${a[2]} Doğrulama ölçütü ilgili ADR kaydında bağlayıcıdır.</div></details>`).join("");
+document.getElementById("endpointList").innerHTML=endpoints.map(e=>`<div class="endpoint"><span class="method">${e[0]}</span><code>/v1${e[1]}</code><small>${e[2]}</small></div>`).join("");
+const component=document.getElementById("componentFilter");
+[...new Set(requirements.map(x=>x.component))].sort().forEach(v=>component.insertAdjacentHTML("beforeend",`<option>${v}</option>`));
+const els={search:document.getElementById("search"),phase:document.getElementById("phaseFilter"),component,priority:document.getElementById("priorityFilter"),mvp:document.getElementById("mvpFilter"),body:document.getElementById("reqBody"),count:document.getElementById("resultCount")};
+function render(){
+ const q=els.search.value.trim().toLocaleLowerCase("tr");
+ const rows=requirements.filter(x=>(!q||[x.id,x.component,x.title].join(" ").toLocaleLowerCase("tr").includes(q))&&(!els.phase.value||String(x.phase)===els.phase.value)&&(!els.component.value||x.component===els.component.value)&&(!els.priority.value||x.priority===els.priority.value)&&(!els.mvp.value||String(x.mvp)===els.mvp.value));
+ els.body.innerHTML=rows.map(x=>`<tr><td>${x.id}</td><td>${x.title}</td><td>${x.component}</td><td>Faz ${x.phase}</td><td>${x.priority}</td><td>${x.mvp?"Evet":"Hayır"}</td></tr>`).join("")||'<tr><td colspan="6">Bu filtrelerle eşleşen kayıt yok.</td></tr>';
+ els.count.textContent=`${rows.length} / ${requirements.length} kayıt gösteriliyor`;
+}
+["input","change"].forEach(ev=>[els.search,els.phase,els.component,els.priority,els.mvp].forEach(el=>el.addEventListener(ev,render)));
+document.getElementById("clearFilters").addEventListener("click",()=>{els.search.value="";els.phase.value="";els.component.value="";els.priority.value="";els.mvp.value="";render();els.search.focus()});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject></PropertyGroup>
+  <ItemGroup><PackageReference Include="Microsoft.NET.Test.Sdk" /><PackageReference Include="System.Security.Cryptography.Pkcs" /><PackageReference Include="xunit" /><PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\src\ImzaKit.Cms\ImzaKit.Cms.csproj" /><ProjectReference Include="..\..\src\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" /><ProjectReference Include="..\..\src\ImzaKit.PAdES\ImzaKit.PAdES.csproj" /><ProjectReference Include="..\..\src\ImzaKit.Verify\ImzaKit.Verify.csproj" /><Using Include="Xunit" /></ItemGroup>
+</Project>

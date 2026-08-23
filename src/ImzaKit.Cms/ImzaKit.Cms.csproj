@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>CMS contracts and encoding for ImzaKit.</Description>
+    <PackageId>ImzaKit.Cms</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+    <ProjectReference Include="..\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>İmzaKit Geliştirme Durum Raporu</title>
+<style>
+:root{--bg:#091012;--panel:#0d171a;--panel2:#111e21;--line:#26383c;--text:#e7efef;--muted:#91a4a7;--accent:#31d0aa;--accent2:#1f806b;--focus:#79efd1;--nav:248px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:20px}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 "Segoe UI",Arial,sans-serif}button,input,select{font:inherit}a{color:inherit}.skip{position:fixed;top:-80px;left:12px;z-index:99;background:var(--accent);color:#06110e;padding:10px 14px;font-weight:700}.skip:focus{top:12px}
+.sidebar{position:fixed;inset:0 auto 0 0;width:var(--nav);padding:24px 18px;background:#080e10;border-right:1px solid var(--line);overflow:auto}.brand{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;margin-bottom:26px}.mark{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);font:700 13px Consolas,monospace}.brand strong{display:block;font-size:14px;letter-spacing:.08em}.brand small{color:var(--muted)}nav a{display:block;padding:8px 9px;margin:2px 0;border-left:2px solid transparent;text-decoration:none;color:var(--muted)}nav a:hover,nav a:focus-visible{background:var(--panel);border-left-color:var(--accent);color:var(--text)}.side-meta{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}.side-meta b{color:var(--accent)}
+main{margin-left:var(--nav);max-width:1480px;padding:34px 44px 80px}.kicker{margin:0 0 16px;color:var(--accent);font:700 12px/1.2 Consolas,monospace;letter-spacing:.14em;text-transform:uppercase}.hero{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.55fr);gap:46px;padding:18px 0 40px;border-bottom:1px solid var(--line)}h1{max-width:940px;margin:0;font-size:clamp(42px,6vw,78px);line-height:.96;letter-spacing:-.05em}.lede{max-width:67ch;margin:22px 0 0;color:var(--muted);font-size:18px}.verdict{align-self:end;padding-left:20px;border-left:3px solid var(--accent)}.verdict strong{display:block;color:var(--accent);font:700 12px Consolas,monospace;text-transform:uppercase;letter-spacing:.08em}.verdict span{display:block;margin-top:8px;font-size:24px;font-weight:700;line-height:1.2}.verdict p{margin:8px 0 0;color:var(--muted)}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line)}.metric{padding:24px 20px;border-right:1px solid var(--line)}.metric:last-child{border-right:0}.metric b{display:block;color:var(--accent);font:700 34px/1 Consolas,monospace}.metric span{display:block;margin-top:8px;color:var(--muted)}
+section{padding:54px 0;border-bottom:1px solid var(--line)}.section-head{max-width:830px;margin-bottom:28px}h2{margin:0 0 8px;font-size:30px;letter-spacing:-.03em}.section-head p{margin:0;color:var(--muted)}
+.timeline{display:grid;grid-template-columns:repeat(9,minmax(116px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);overflow:auto}.stage{min-height:140px;padding:16px;background:var(--panel)}.stage .num{color:var(--muted);font:700 11px Consolas,monospace}.stage h3{margin:30px 0 6px;font-size:15px}.stage p{margin:0;color:var(--muted);font-size:12px}.stage.done{box-shadow:inset 0 3px var(--accent)}.stage.next{box-shadow:inset 0 3px #d4e1df}.stage.wait{box-shadow:inset 0 3px var(--line)}
+.toolbar{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;margin-bottom:14px}.control{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:3px;background:#091214;color:var(--text)}.control:focus{outline:2px solid var(--focus);outline-offset:1px}.meta{display:flex;justify-content:space-between;gap:16px;margin:10px 0;color:var(--muted);font-size:13px}
+.work-list{border:1px solid var(--line)}.work{display:grid;grid-template-columns:124px minmax(220px,1fr) 170px 130px;gap:16px;align-items:start;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--panel)}.work:last-child{border-bottom:0}.work:hover{background:var(--panel2)}.status{font:700 11px Consolas,monospace;text-transform:uppercase;letter-spacing:.07em}.status.done{color:var(--accent)}.status.next{color:#d4e1df}.status.wait{color:var(--muted)}.work h3{margin:0 0 4px;font-size:15px}.work p{margin:0;color:var(--muted);font-size:13px}.component{color:var(--muted);font-family:Consolas,monospace;font-size:12px}.evidence{font-family:Consolas,monospace;font-size:12px;color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.span4{grid-column:span 4}.span6{grid-column:span 6}.panel{padding:21px;border:1px solid var(--line);border-radius:3px;background:var(--panel)}.panel h3{margin:0 0 12px;font-size:17px}.panel p{margin:0;color:var(--muted)}.check{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid var(--line)}.check:last-child{border:0}.check code{color:var(--accent);font-family:Consolas,monospace}
+details{border-top:1px solid var(--line)}details:last-child{border-bottom:1px solid var(--line)}summary{display:grid;grid-template-columns:120px 1fr auto;gap:16px;padding:16px 4px;cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}summary code{color:var(--accent)}summary span{color:var(--muted)}.detail{padding:0 4px 18px 140px;color:var(--muted)}.detail a{color:var(--accent)}
+.next-card{display:grid;grid-template-columns:1.4fr .6fr;gap:30px;padding:26px;border-left:3px solid var(--accent);background:#112b27}.next-card h3{margin:0 0 8px;font-size:22px}.next-card p{margin:0;color:#bfd5d0}.next-card ol{margin:0;padding-left:20px;color:#bfd5d0}.next-card code{color:var(--accent)}
+footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:var(--muted);font-size:13px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media(max-width:1100px){:root{--nav:0px}.sidebar{position:static;width:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto}.side-meta{display:none}main{margin:0;padding:28px 22px 60px}.hero{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.metric{border-bottom:1px solid var(--line)}.work{grid-template-columns:110px 1fr}.component,.evidence{grid-column:2}.span4,.span6{grid-column:span 12}}
+@media(max-width:650px){main{padding-inline:16px}h1{font-size:44px}.metrics{grid-template-columns:1fr}.metric{border-right:0}.toolbar{grid-template-columns:1fr}.meta{display:block}.work{grid-template-columns:1fr;gap:6px}.component,.evidence{grid-column:1}.next-card{grid-template-columns:1fr}.detail{padding-left:4px}footer{display:block}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{.sidebar,.toolbar,#clear{display:none!important}main{margin:0;max-width:none;padding:0}.work,.panel,.stage{background:#fff;color:#111}body{background:#fff;color:#111}.status.done,.metric b,.evidence,.check code,.kicker{color:#08745e}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">İçeriğe geç</a>
+<aside class="sidebar">
+ <div class="brand"><div class="mark">İK</div><div><strong>İMZAKİT</strong><small>Geliştirme Durumu</small></div></div>
+ <nav aria-label="Rapor bölümleri"><a href="#ozet">Özet</a><a href="#yol">Yol haritası</a><a href="#isler">İş kalemleri</a><a href="#kanit">Doğrulama</a><a href="#artefakt">Artefaktlar</a><a href="#sonraki">Sonraki iş</a></nav>
+ <div class="side-meta">Son doğrulama<br><b>23 Ağustos 2026</b><br>Yerel, çevrimdışı rapor</div>
+</aside>
+<main id="content">
+<header class="hero" id="ozet">
+ <div><p class="kicker">Uygulama ilerleme kaydı</p><h1>Yerel MVP çekirdeği doğrulandı.</h1><p class="lede">İmzalama, doğrulama, PKCS#11 sözleşmesi, Agent güvenliği, API durum/idempotency ve süreç içi akış yerel kanıt paketinde toplandı.</p></div>
+ <div class="verdict"><strong>Mevcut aşama</strong><span>Harici kabul kanıtları bekleniyor</span><p>Yerel geliştirme planı tamamlandı. Üretim kabulü için fiziksel AKİS kartı, native Windows onayı, mTLS, trust/revocation ve dağıtım kanıtları gerekir.</p></div>
+</header>
+<div class="metrics" aria-label="Geliştirme metrikleri">
+ <div class="metric"><b>17</b><span>solution projesi</span></div><div class="metric"><b>90</b><span>başarılı test çalışması</span></div><div class="metric"><b>0</b><span>build hatası</span></div><div class="metric"><b>0</b><span>build uyarısı</span></div><div class="metric"><b>109/109</b><span>FRD izlenebilirliği</span></div>
+</div>
+<section id="yol">
+ <div class="section-head"><p class="kicker">Teslimat sırası</p><h2>Ürün yol haritası</h2><p>Durumlar kanıta dayanır. Gri aşamalar planlıdır; tamamlanmış sayılmaz.</p></div>
+ <div class="timeline">
+  <article class="stage done"><span class="num">01</span><h3>Foundation</h3><p>Tamamlandı</p></article>
+  <article class="stage done"><span class="num">02</span><h3>Core</h3><p>İlk dilim tamamlandı</p></article>
+  <article class="stage done"><span class="num">03</span><h3>Cryptography</h3><p>İlk dilim tamamlandı</p></article>
+  <article class="stage done"><span class="num">04</span><h3>CMS</h3><p>MVP çekirdeği tamamlandı</p></article>
+  <article class="stage done"><span class="num">05</span><h3>PAdES</h3><p>MVP imzalama çekirdeği tamamlandı</p></article>
+  <article class="stage done"><span class="num">06</span><h3>AKİS</h3><p>Sözleşmeler tamamlandı; kart kanıtı bekliyor</p></article>
+  <article class="stage done"><span class="num">07</span><h3>Agent</h3><p>Bilet ve replay çekirdeği tamamlandı</p></article>
+  <article class="stage done"><span class="num">08</span><h3>API</h3><p>Durum ve idempotency çekirdeği tamamlandı</p></article>
+  <article class="stage done"><span class="num">09</span><h3>Verify</h3><p>Temel motor tamamlandı</p></article>
+ </div>
+</section>
+<section id="isler">
+ <div class="section-head"><p class="kicker">Takip listesi</p><h2>İş kalemleri</h2><p>Metin, durum ve bileşen filtresiyle uygulama kapsamını inceleyin.</p></div>
+ <div class="toolbar"><input class="control" id="search" type="search" placeholder="İş veya kanıt ara" aria-label="İş ara"><select class="control" id="statusFilter" aria-label="Durum filtresi"><option value="">Tüm durumlar</option><option value="done">Tamamlandı</option><option value="next">Sırada</option><option value="wait">Bekliyor</option></select><select class="control" id="componentFilter" aria-label="Bileşen filtresi"><option value="">Tüm bileşenler</option></select><button class="control" id="clear" type="button">Temizle</button></div>
+ <div class="meta"><span id="count"></span><span>Durumlar uygulama ve test kanıtına göre belirlenir.</span></div>
+ <div class="work-list" id="workList"></div>
+</section>
+<section id="kanit">
+ <div class="section-head"><p class="kicker">Taze kanıt</p><h2>Doğrulama özeti</h2><p>Son başarılı çalıştırmalar ve mevcut sınırlar.</p></div>
+ <div class="grid">
+  <article class="panel span6"><h3>Test paketleri</h3><div class="check"><span>ImzaKit.Core.Tests</span><code>4 / 4</code></div><div class="check"><span>ImzaKit.Cryptography.Tests</span><code>3 / 3</code></div><div class="check"><span>ImzaKit.Cms.Tests</span><code>12 / 12</code></div><div class="check"><span>ImzaKit.PAdES.Tests</span><code>35 / 35</code></div><div class="check"><span>ImzaKit.Verify.Tests</span><code>6 / 6</code></div><div class="check"><span>ImzaKit.Pkcs11.Tests</span><code>5 / 5</code></div><div class="check"><span>ImzaKit.Agent.Tests</span><code>9 / 9</code></div><div class="check"><span>ImzaKit.Api.Tests</span><code>16 / 16</code></div></article>
+  <article class="panel span6"><h3>Kalite kapıları</h3><div class="check"><span>Release build</span><code>0 hata, 0 uyarı</code></div><div class="check"><span>FRD doğrulama</span><code>passed</code></div><div class="check"><span>Solution proje sayısı</span><code>17</code></div></article>
+  <article class="panel span6"><h3>Henüz kanıtlanmayanlar</h3><p>Gerçek AKİS kart imzası, sertifika güven zinciri ve iptal kontrolü, native kullanıcı onayı, mTLS callback ve kurulum/dağıtım kanıtları.</p></article>
+  <article class="panel span6"><h3>Build ortamı notu</h3><p>Bu çalışma ortamında paralel MSBuild sessiz kesilebildiği için doğrulama <code>-m:1</code> ile yapılıyor. Kod ve analizör çıktısı temiz.</p></article>
+ </div>
+</section>
+<section id="artefakt">
+ <div class="section-head"><p class="kicker">Kod envanteri</p><h2>Önemli artefaktlar</h2><p>Her kayıt mevcut dosyaya ve doğrulanan davranışa bağlanır.</p></div>
+ <details open><summary><code>Core</code><strong>Prepare ve completion domain sözleşmeleri</strong><span>4 test</span></summary><div class="detail"><a href="../src/ImzaKit.Core/Signing/SignaturePreparation.cs">SignaturePreparation.cs</a> ve <a href="../src/ImzaKit.Core/Signing/SignatureCompletion.cs">SignatureCompletion.cs</a>. Byte kopyalama, bağlam koruma ve boş veri reddi.</div></details>
+ <details><summary><code>Crypto</code><strong>Algoritma profili ve digest servisi</strong><span>3 test</span></summary><div class="detail"><a href="../src/ImzaKit.Core/Cryptography/SignatureAlgorithmProfile.cs">SignatureAlgorithmProfile.cs</a> ve <a href="../src/ImzaKit.Cryptography/Digests/DefaultDigestCalculator.cs">DefaultDigestCalculator.cs</a>. Ayrı hash/key modelleri ve bilinen SHA-256 vektörü.</div></details>
+ <details><summary><code>CMS</code><strong>Prepare, SignedData ve roundtrip</strong><span>12 test</span></summary><div class="detail"><a href="../src/ImzaKit.Cms/Preparation/CmsSignaturePreparer.cs">CmsSignaturePreparer.cs</a> ve <a href="../src/ImzaKit.Cms/Completion/CmsSignedDataCompleter.cs">CmsSignedDataCompleter.cs</a>. Gerçek RSA imzası resmi SignedCms okuyucusunda doğrulanır; değiştirilmiş detached içerik reddedilir.</div></details>
+ <details><summary><code>PAdES</code><strong>PDF motoru seçim spike'ı</strong><span>karar</span></summary><div class="detail"><a href="../docs/spikes/2026-08-23-pdf-motoru-secim-spike.md">Spike raporu</a>. PDFsharp yeniden yazma nedeniyle, PdfPig ise incremental signing yazıcısı sunmadığı için motor olarak seçilmedi; izole writer kararı alındı.</div></details>
+ <details><summary><code>PAdES</code><strong>Incremental signature placeholder ve AcroForm</strong><span>7 test</span></summary><div class="detail"><a href="../src/ImzaKit.PAdES/Incremental/PdfIncrementalSignatureWriter.cs">PdfIncrementalSignatureWriter.cs</a> ve <a href="../src/ImzaKit.PAdES/Incremental/PdfSignaturePlaceholder.cs">PdfSignaturePlaceholder.cs</a>. Append-only revision, /Prev, /ByteRange, /Contents rezervi, katalog/AcroForm alan ağı ve signable byte akışı.</div></details>
+ <details><summary><code>PAdES</code><strong>Prepare ve complete orkestrasyonu</strong><span>2 test</span></summary><div class="detail"><a href="../src/ImzaKit.PAdES/Preparation/PadesSignaturePreparer.cs">PadesSignaturePreparer.cs</a>, <a href="../src/ImzaKit.PAdES/Preparation/PadesSignaturePreparation.cs">PadesSignaturePreparation.cs</a> ve <a href="../src/ImzaKit.PAdES/Completion/PadesSignatureCompleter.cs">PadesSignatureCompleter.cs</a>. PDF digest → CMS signed attributes → external signature → SignedData → /Contents akışı.</div></details>
+ <details><summary><code>Interop</code><strong>PdfPig + SignedCms bağımsız roundtrip</strong><span>2 test</span></summary><div class="detail"><a href="../tests/ImzaKit.PAdES.Tests/Interop/PadesIndependentRoundtripTests.cs">PadesIndependentRoundtripTests.cs</a>. Strict PDF parse, sayfa ağacı koruması, CMS extraction ve detached kriptografik doğrulama.</div></details>
+ <details><summary><code>Golden</code><strong>İkinci doğrulayıcı ve sabit hash</strong><span>2 test</span></summary><div class="detail"><a href="../tests/ImzaKit.PAdES.Tests/Interop/GoldenPadesFixtureTests.cs">GoldenPadesFixtureTests.cs</a>. SHA-256 <code>8206460B...EBC83</code>; PDFsharp parse ve Bouncy Castle CMS doğrulaması.</div></details>
+ <details><summary><code>Policy</code><strong>DocMDP ve FieldMDP okuyucu</strong><span>7 test</span></summary><div class="detail"><a href="../src/ImzaKit.PAdES/Policy/PdfModificationPolicyInspector.cs">PdfModificationPolicyInspector.cs</a>. Sertifikasyon değişiklik seviyesi, alan kilit eylemi ve alan adları salt-okunur çıkarılır.</div></details>
+ <details><summary><code>Verify</code><strong>ByteRange ve CMS doğrulama motoru</strong><span>6 test</span></summary><div class="detail"><a href="../src/ImzaKit.Verify/Validation/PadesValidator.cs">PadesValidator.cs</a>. Yapısal ByteRange kontrolü, detached SignedCms doğrulaması, sertifika SHA-256 parmak izi ve makinece okunur bulgular.</div></details>
+ <details><summary><code>PKCS#11</code><strong>Sağlayıcı ve imzalama sınırı</strong><span>5 test</span></summary><div class="detail"><a href="../src/ImzaKit.Pkcs11/Signing/Pkcs11SigningService.cs">Pkcs11SigningService.cs</a>. Yaşam döngüsü temizliği, CKA_ID eşleme ve PIN/kart/mekanizma hata kodları; fiziksel kart kanıtı ayrı kontrol listesindedir.</div></details>
+ <details><summary><code>Agent</code><strong>İmzalı bilet ve replay koruması</strong><span>9 test</span></summary><div class="detail"><a href="../src/ImzaKit.Agent/Security/AgentTicketValidator.cs">AgentTicketValidator.cs</a>. Ed25519, 120 saniye sınırı, bağlam eşleme, atomik nonce tüketimi ve yalnız loopback endpoint yapılandırması.</div></details>
+ <details><summary><code>API</code><strong>Durum makinesi ve idempotency</strong><span>14 test</span></summary><div class="detail"><a href="../src/ImzaKit.Api/Operations/SignatureOperationService.cs">SignatureOperationService.cs</a>. İzinli geçiş tablosu, version guard, terminal durumlar, aynı/farklı request hash davranışı ve problem kodu kataloğu.</div></details>
+ <details><summary><code>E2E</code><strong>Süreç içi PAdES MVP akışı</strong><span>1 test</span></summary><div class="detail"><a href="../tests/ImzaKit.Api.Tests/InProcessSigningFlowTests.cs">InProcessSigningFlowTests.cs</a>. Gerçek modüller DI üzerinden birleşir; yalnız fiziksel kart sınırı bellek içi sağlayıcıdır. Verify kriptografik PASSED, dış trust INDETERMINATE.</div></details>
+ <details><summary><code>Build</code><strong>Merkezi solution yapılandırması</strong><span>17 proje</span></summary><div class="detail"><a href="../ImzaKit.slnx">ImzaKit.slnx</a>, Directory.Build.props, Directory.Packages.props, global.json ve NuGet.Config.</div></details>
+</section>
+<section id="sonraki">
+ <div class="section-head"><p class="kicker">Önerilen devam</p><h2>Bir sonraki dikey dilim</h2></div>
+ <div class="next-card"><div><h3>Harici kabul kapıları</h3><p>Yerel kod planında açık iş kalmadı. Bir sonraki aşama laboratuvar ve altyapı çalışmasıdır; fiziksel AKİS, native Agent, mTLS, trust/revocation ve installer kanıtları ayrı yürütülmelidir.</p></div><ol><li>Gerçek AKİS kartı</li><li>Native onay + PIN</li><li>mTLS callback</li><li>Trust ve dağıtım</li></ol></div>
+</section>
+<footer><span>İmzaKit Geliştirme Durum Raporu</span><span>Kaynak tarihi: 23 Ağustos 2026</span></footer>
+</main>
+<script>
+const items=[
+ {status:"done",component:"Foundation",title:"Solution ve proje sınırları",detail:"9 üretim, 8 test projesi; .NET 10 LTS.",evidence:"Release build"},
+ {status:"done",component:"Foundation",title:"Merkezi build ve paket yönetimi",detail:"Nullable, warnings-as-errors, deterministic build ve central package versions.",evidence:"0 hata / 0 uyarı"},
+ {status:"done",component:"Foundation",title:"NuGet kaynak izolasyonu",detail:"Depo yalnız nuget.org kaynağını kullanıyor.",evidence:"restore passed"},
+ {status:"done",component:"Core",title:"SignaturePreparation",detail:"Operation, digest, algoritma, sertifika ve prepare version bağlamı.",evidence:"4 Core testi"},
+ {status:"done",component:"Core",title:"SignatureCompletion",detail:"SignatureValue kopyalama ve prepare bağlamı.",evidence:"4 Core testi"},
+ {status:"done",component:"Cryptography",title:"Algoritma modeli ayrımı",detail:"Hash ve key algoritmaları ayrı domain modelleri.",evidence:"3 Crypto testi"},
+ {status:"done",component:"Cryptography",title:"SHA-256 digest servisi",detail:"Bilinen abc test vektörü ve unsupported algoritma hatası.",evidence:"3 Crypto testi"},
+ {status:"done",component:"CMS",title:"Required signed attributes",detail:"contentType, messageDigest ve signingCertificateV2.",evidence:"4 CMS testi"},
+ {status:"done",component:"CMS",title:"Deterministik DER",detail:"SET OF canonical sıralama ve 32 byte SHA-256 kontrolü.",evidence:"4 CMS testi"},
+ {status:"done",component:"CMS",title:"CMS prepare servisi",detail:"İçerik ve sertifika hash'lerini signed attributes üzerinden DataToBeSigned modeline bağlar.",evidence:"6 CMS testi"},
+ {status:"done",component:"CMS",title:"Detached SignedData complete",detail:"SignatureValue, SignerInfo, sertifika ve signed attributes ile detached CMS üretir.",evidence:"11 CMS testi"},
+ {status:"done",component:"CMS",title:"Kriptografik roundtrip ve interop",detail:"Gerçek RSA imzası SignedCms ile doğrulanır; değiştirilmiş içerik reddedilir.",evidence:"12 CMS testi"},
+ {status:"done",component:"PAdES",title:"PDF motoru seçim spike'ı",detail:"Hazır adaylar ADR-005 kapısında elendi; izole incremental signing writer kararı verildi.",evidence:"spike raporu"},
+ {status:"done",component:"PAdES",title:"ByteRange ve incremental update",detail:"Özgün byte'ları koruyan /Prev zincirli revision ve güvenli /Contents rezervi.",evidence:"5 PAdES testi"},
+ {status:"done",component:"PAdES",title:"AcroForm imza alanı bağlantısı",detail:"Katalog, AcroForm ve görünmez imza alanı /V üzerinden signature dictionary nesnesine bağlı.",evidence:"7 PAdES testi"},
+ {status:"done",component:"PAdES",title:"PAdES prepare/complete orkestrasyonu",detail:"PDF ByteRange içeriği CMS signed attributes'a bağlanıyor; external signature SignedData olarak /Contents alanına yerleşiyor.",evidence:"9 PAdES testi"},
+ {status:"done",component:"PAdES",title:"PAdES B-B bağımsız roundtrip",detail:"PdfPig strict parse ve SignedCms detached imza doğrulaması birlikte geçiyor.",evidence:"11 PAdES testi"},
+ {status:"done",component:"PAdES",title:"Golden PAdES ve ikinci doğrulayıcı",detail:"Sabit SHA-256, PDFsharp parse ve Bouncy Castle detached CMS doğrulaması.",evidence:"13 PAdES testi"},
+ {status:"done",component:"PAdES",title:"PDF preflight ve kaynak sınırları",detail:"32 MiB, 100.000 obje, 32 revision ve klasik xref destek matrisi açık ret kodlarıyla uygulanıyor.",evidence:"24 PAdES testi"},
+ {status:"done",component:"PAdES",title:"DocMDP ve FieldMDP politika okuyucu",detail:"P 1–3 seviyeleri, lock action ve alan adları salt-okunur çıkarılıyor.",evidence:"31 PAdES testi"},
+ {status:"done",component:"PAdES",title:"DocMDP/FieldMDP politika uygulama",detail:"NoChanges ve hedef alan kilidi özel preflight kodlarıyla reddediliyor.",evidence:"35 PAdES testi"},
+ {status:"done",component:"Verify",title:"Temel PAdES Verify motoru",detail:"ByteRange, CMS ve signer bulgularıyla PASSED/FAILED/INDETERMINATE raporu.",evidence:"6 Verify testi"},
+ {status:"done",component:"AKİS",title:"PKCS#11 sözleşmeleri ve sahte sağlayıcı",detail:"Yaşam döngüsü, CKA_ID eşleme, PIN, token ve mekanizma sonuçları.",evidence:"5 PKCS#11 testi"},
+ {status:"done",component:"Agent",title:"Bilet ve replay güvenliği",detail:"İmzalı, süreli, origin/digest/action bağlı ve tek kullanımlık Agent bileti.",evidence:"9 Agent testi"},
+ {status:"done",component:"API",title:"Operasyon state machine ve idempotency",detail:"İzinli geçişler, iyimser sürüm ve deterministik tekrar sonucu.",evidence:"14 API testi"},
+ {status:"done",component:"E2E",title:"Süreç içi MVP imzalama akışı",detail:"Create, prepare, external sign, complete ve Verify modüllerini DI üzerinden birleştirir.",evidence:"1 E2E testi / 89 toplam"},
+ {status:"done",component:"Evidence",title:"Nihai yerel kanıt paketi",detail:"Test, build, FRD, lisans, golden hash ve destek matrisi tek kayıtta.",evidence:"90 test / kanıt raporu"},
+ {status:"wait",component:"External",title:"Fiziksel AKİS ve altyapı kabulü",detail:"Gerçek kart, native onay, mTLS, trust/revocation ve installer.",evidence:"harici kanıt bekleniyor"},
+ {status:"wait",component:"AKİS",title:"Gerçek kart keşfi ve imza",detail:"Fiziksel AKİS kartıyla RSA/SHA-256 kanıtı.",evidence:"donanım kanıtı bekleniyor"},
+ {status:"done",component:"Agent",title:"Loopback güvenlik prototipi",detail:"Ed25519 bilet ve yalnız 127.0.0.1/::1 binding; native onay ve mTLS entegrasyonu sonraki adaptör sınırında.",evidence:"9 Agent testi"},
+ {status:"done",component:"API",title:"Operasyon state machine",detail:"OpenAPI durum kümesinin çalışan, sürümlü ve idempotent servis uygulaması.",evidence:"14 API testi"},
+ {status:"done",component:"Verify",title:"Temel PAdES doğrulama",detail:"Geçerli, değiştirilmiş, bozuk ByteRange, eksik CMS ve desteklenmeyen giriş ayrımları.",evidence:"6 Verify testi"}
+];
+const labels={done:"Tamamlandı",next:"Sırada",wait:"Bekliyor"};
+const search=document.getElementById("search"),statusFilter=document.getElementById("statusFilter"),componentFilter=document.getElementById("componentFilter"),list=document.getElementById("workList"),count=document.getElementById("count");
+[...new Set(items.map(x=>x.component))].sort().forEach(x=>componentFilter.insertAdjacentHTML("beforeend",`<option>${x}</option>`));
+function render(){const q=search.value.trim().toLocaleLowerCase("tr");const rows=items.filter(x=>(!q||[x.title,x.detail,x.component,x.evidence].join(" ").toLocaleLowerCase("tr").includes(q))&&(!statusFilter.value||x.status===statusFilter.value)&&(!componentFilter.value||x.component===componentFilter.value));list.innerHTML=rows.map(x=>`<article class="work"><span class="status ${x.status}">${labels[x.status]}</span><div><h3>${x.title}</h3><p>${x.detail}</p></div><span class="component">${x.component}</span><span class="evidence">${x.evidence}</span></article>`).join("")||'<article class="work"><div><h3>Eşleşen iş yok</h3><p>Filtreleri değiştirin.</p></div></article>';count.textContent=`${rows.length} / ${items.length} iş kalemi gösteriliyor`}
+[search,statusFilter,componentFilter].forEach(el=>{el.addEventListener("input",render);el.addEventListener("change",render)});
+document.getElementById("clear").addEventListener("click",()=>{search.value="";statusFilter.value="";componentFilter.value="";render();search.focus()});render();
+</script>
+</body>
+</html>

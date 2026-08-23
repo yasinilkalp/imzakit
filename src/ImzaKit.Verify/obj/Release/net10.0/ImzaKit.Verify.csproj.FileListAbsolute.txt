@@ -1,0 +1,12 @@
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\bin\Release\net10.0\ImzaKit.Verify.deps.json
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\bin\Release\net10.0\ImzaKit.Verify.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\bin\Release\net10.0\ImzaKit.Verify.pdb
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ImzaKit.Verify.csproj.AssemblyReference.cache
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ImzaKit.Verify.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ImzaKit.Verify.AssemblyInfoInputs.cache
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ImzaKit.Verify.AssemblyInfo.cs
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ImzaKit.Verify.csproj.CoreCompileInputs.cache
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ImzaKit.Verify.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\refint\ImzaKit.Verify.dll
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ImzaKit.Verify.pdb
+C:\Users\yasin\source\repos\imzakit\src\ImzaKit.Verify\obj\Release\net10.0\ref\ImzaKit.Verify.dll

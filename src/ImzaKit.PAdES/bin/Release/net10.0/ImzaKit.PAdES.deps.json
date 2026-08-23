@@ -1,0 +1,73 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ImzaKit.PAdES/1.0.0": {
+        "dependencies": {
+          "ImzaKit.Cms": "1.0.0",
+          "ImzaKit.Core": "1.0.0"
+        },
+        "runtime": {
+          "ImzaKit.PAdES.dll": {}
+        }
+      },
+      "ImzaKit.Cms/1.0.0": {
+        "dependencies": {
+          "ImzaKit.Core": "1.0.0",
+          "ImzaKit.Cryptography": "1.0.0"
+        },
+        "runtime": {
+          "ImzaKit.Cms.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Core/1.0.0": {
+        "runtime": {
+          "ImzaKit.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ImzaKit.Cryptography/1.0.0": {
+        "dependencies": {
+          "ImzaKit.Core": "1.0.0"
+        },
+        "runtime": {
+          "ImzaKit.Cryptography.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ImzaKit.PAdES/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Cms/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImzaKit.Cryptography/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

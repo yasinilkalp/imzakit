@@ -1,0 +1,285 @@
+openapi: 3.1.0
+info:
+  title: ImzaKit MVP API
+  version: 1.0.0
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+servers:
+  - url: /v1
+security:
+  - oauth2: [signature:write]
+paths:
+  /signature-operations:
+    post:
+      operationId: createSignatureOperation
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOperationRequest' }
+      responses:
+        '201':
+          description: Created
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureOperation' } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/TooLarge' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+  /signature-operations/{operationId}:
+    parameters:
+      - $ref: '#/components/parameters/OperationId'
+      - $ref: '#/components/parameters/CorrelationId'
+    get:
+      operationId: getSignatureOperation
+      responses:
+        '200':
+          description: Operation
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureOperation' } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /signature-operations/{operationId}/agent-ticket:
+    post:
+      operationId: createAgentTicket
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Ticket
+          content: { application/json: { schema: { $ref: '#/components/schemas/AgentTicket' } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /signature-operations/{operationId}/certificate:
+    post:
+      operationId: bindCertificate
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CertificateSelection' } } }
+      responses:
+        '200': { description: Bound, content: { application/json: { schema: { $ref: '#/components/schemas/SignatureOperation' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /signature-operations/{operationId}/prepare:
+    post:
+      operationId: prepareSignature
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { description: Prepared, content: { application/json: { schema: { $ref: '#/components/schemas/PrepareResult' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /signature-operations/{operationId}/complete:
+    post:
+      operationId: completeSignature
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CompleteRequest' } } }
+      responses:
+        '200': { description: Completed, content: { application/json: { schema: { $ref: '#/components/schemas/SignatureOperation' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /signature-operations/{operationId}/cancel:
+    post:
+      operationId: cancelSignatureOperation
+      parameters:
+        - $ref: '#/components/parameters/OperationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { description: Cancelled, content: { application/json: { schema: { $ref: '#/components/schemas/SignatureOperation' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /validations:
+    post:
+      operationId: createValidation
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateValidationRequest' } } }
+      responses:
+        '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/ValidationReport' } } } }
+        '413': { $ref: '#/components/responses/TooLarge' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /validations/{validationId}:
+    get:
+      operationId: getValidation
+      parameters:
+        - name: validationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Report, content: { application/json: { schema: { $ref: '#/components/schemas/ValidationReport' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /agent-callbacks/signature-results:
+    post:
+      operationId: submitAgentSignatureResult
+      security:
+        - mutualTls: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AgentSignatureResult' } } }
+      responses:
+        '200': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/SignatureOperation' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://identity.example/authorize
+          tokenUrl: https://identity.example/token
+          scopes: { 'signature:write': Create signatures, 'signature:read': Read operations }
+        clientCredentials:
+          tokenUrl: https://identity.example/token
+          scopes: { 'signature:write': Create signatures, 'signature:read': Read operations }
+    mutualTls: { type: mutualTLS }
+  parameters:
+    OperationId:
+      name: operationId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 16, maxLength: 128 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, maxLength: 128 }
+  schemas:
+    Sha256:
+      type: string
+      pattern: '^[A-Fa-f0-9]{64}$'
+    OperationStatus:
+      type: string
+      enum: [Created, WaitingForClient, ClientConnected, CertificateSelected, Prepared, Signing, Signed, Validating, Completed, Failed, Cancelled, Expired]
+    ValidationOutcome:
+      type: string
+      enum: [PASSED, FAILED, INDETERMINATE]
+    DocumentReference:
+      type: object
+      additionalProperties: false
+      required: [objectKey, sha256, size]
+      properties:
+        objectKey: { type: string, minLength: 1, maxLength: 1024 }
+        sha256: { $ref: '#/components/schemas/Sha256' }
+        size: { type: integer, minimum: 1, maximum: 104857600 }
+        contentType: { type: string, const: application/pdf }
+    CreateOperationRequest:
+      type: object
+      additionalProperties: false
+      required: [document, format, targetLevel, validationProfile]
+      properties:
+        document: { $ref: '#/components/schemas/DocumentReference' }
+        format: { type: string, const: PAdES }
+        targetLevel: { type: string, const: B-B }
+        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509] }
+        appearance: { type: object, additionalProperties: true }
+    SignatureOperation:
+      type: object
+      required: [operationId, status, documentDigest, expiresAt]
+      properties:
+        operationId: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/OperationStatus' }
+        documentDigest: { $ref: '#/components/schemas/Sha256' }
+        expiresAt: { type: string, format: date-time }
+        resultObjectKey: { type: [string, 'null'] }
+    AgentTicket:
+      type: object
+      required: [ticket, expiresAt]
+      properties:
+        ticket: { type: string, minLength: 32 }
+        expiresAt: { type: string, format: date-time }
+    CertificateSelection:
+      type: object
+      additionalProperties: false
+      required: [certificateDerBase64, fingerprintSha256]
+      properties:
+        certificateDerBase64: { type: string, contentEncoding: base64 }
+        fingerprintSha256: { $ref: '#/components/schemas/Sha256' }
+    PrepareResult:
+      type: object
+      required: [prepareVersion, dataToBeSignedBase64, dataToBeSignedSha256, algorithm, completionToken, expiresAt]
+      properties:
+        prepareVersion: { type: integer, minimum: 1 }
+        dataToBeSignedBase64: { type: string, contentEncoding: base64 }
+        dataToBeSignedSha256: { $ref: '#/components/schemas/Sha256' }
+        algorithm: { type: string, const: RSA-SHA256 }
+        completionToken: { type: string, minLength: 32 }
+        expiresAt: { type: string, format: date-time }
+    CompleteRequest:
+      type: object
+      additionalProperties: false
+      required: [prepareVersion, signatureValueBase64, completionToken, certificateFingerprintSha256]
+      properties:
+        prepareVersion: { type: integer, minimum: 1 }
+        signatureValueBase64: { type: string, contentEncoding: base64 }
+        completionToken: { type: string, minLength: 32 }
+        certificateFingerprintSha256: { $ref: '#/components/schemas/Sha256' }
+    CreateValidationRequest:
+      type: object
+      required: [document, validationProfile]
+      properties:
+        document: { $ref: '#/components/schemas/DocumentReference' }
+        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509] }
+    ValidationReport:
+      type: object
+      required: [validationId, outcome, onlineRevocationChecked, signatures]
+      properties:
+        validationId: { type: string, format: uuid }
+        outcome: { $ref: '#/components/schemas/ValidationOutcome' }
+        subIndication: { type: [string, 'null'], enum: [REVOCATION_DATA_UNAVAILABLE, CONTENT_INVALID, SIGNATURE_INVALID, TRUST_FAILURE, null] }
+        onlineRevocationChecked: { type: boolean, const: false }
+        trustStoreVersion: { type: string }
+        signatures: { type: array, items: { $ref: '#/components/schemas/RevisionResult' } }
+    RevisionResult:
+      type: object
+      required: [revision, outcome, documentSha256]
+      properties:
+        revision: { type: integer, minimum: 1 }
+        outcome: { $ref: '#/components/schemas/ValidationOutcome' }
+        documentSha256: { $ref: '#/components/schemas/Sha256' }
+    AgentSignatureResult:
+      type: object
+      required: [operationId, ticket, signatureValueBase64, certificateFingerprintSha256]
+      properties:
+        operationId: { type: string, format: uuid }
+        ticket: { type: string, minLength: 32 }
+        signatureValueBase64: { type: string, contentEncoding: base64 }
+        certificateFingerprintSha256: { $ref: '#/components/schemas/Sha256' }
+    ProblemDetails:
+      type: object
+      required: [type, title, status, code, correlationId]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        code: { type: string, pattern: '^IMZAKIT\.[A-Z]+\.[A-Z0-9_]+$' }
+        correlationId: { type: string }
+        operationId: { type: [string, 'null'], format: uuid }
+        retryable: { type: boolean }
+  responses:
+    Unauthorized: { description: Unauthorized, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+    NotFound: { description: Not found, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+    Conflict: { description: State or idempotency conflict, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+    TooLarge: { description: Payload too large, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+    Unprocessable: { description: Business validation failed, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+    TooManyRequests: { description: Rate limited, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+    ServerError: { description: Internal error, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
