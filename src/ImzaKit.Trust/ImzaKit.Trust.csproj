@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Versioned trust stores and certificate policy evaluation for ImzaKit.</Description>
+    <PackageId>ImzaKit.Trust</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Certificate\ImzaKit.Certificate.csproj" />
+  </ItemGroup>
+</Project>
