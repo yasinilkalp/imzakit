@@ -23,7 +23,7 @@ NuGet distributes every production module below through the single `ImzaKit` pac
 Install the toolkit with one package reference:
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.1
+dotnet add package ImzaKit --version 1.0.0-alpha.2
 ```
 
 The package targets `.NET 10`. Source, requirements, technical evidence, and implementation status are maintained in this repository.

@@ -20,8 +20,8 @@ $requiredPatterns = [ordered]@{
     'NuGet OIDC login' = 'uses:\s*NuGet/login@v1'
     'NuGet profile' = '(?m)^\s+user:\s*Kodekibi\s*$'
     'temporary API key output' = 'steps\.login\.outputs\.NUGET_API_KEY'
+    'alpha.2 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.2\.nupkg'
     'NuGet.org source' = 'https://api\.nuget\.org/v3/index\.json'
-    'duplicate protection' = '--skip-duplicate'
 }
 
 foreach ($requirement in $requiredPatterns.GetEnumerator()) {
@@ -32,6 +32,10 @@ foreach ($requirement in $requiredPatterns.GetEnumerator()) {
 
 if ($workflow -match 'secrets\.NUGET_API_KEY') {
     throw 'Publish workflow must not depend on a long-lived NuGet API key secret.'
+}
+
+if ($workflow -match '--skip-duplicate') {
+    throw 'Publish workflow must fail when the package version already exists.'
 }
 
 if ($workflow -match '(?i)(api[_-]?key|nuget[_-]?key)\s*:\s*[''\"][^$]') {
