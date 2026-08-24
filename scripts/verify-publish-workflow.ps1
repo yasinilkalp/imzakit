@@ -20,7 +20,7 @@ $requiredPatterns = [ordered]@{
     'NuGet OIDC login' = 'uses:\s*NuGet/login@v1'
     'NuGet profile' = '(?m)^\s+user:\s*Kodekibi\s*$'
     'temporary API key output' = 'steps\.login\.outputs\.NUGET_API_KEY'
-    'alpha.5 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.5\.nupkg'
+    'alpha.6 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.6\.nupkg'
     'NuGet.org source' = 'https://api\.nuget\.org/v3/index\.json'
 }
 

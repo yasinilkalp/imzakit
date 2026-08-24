@@ -12,7 +12,8 @@
     <Project Path="src/ImzaKit.Trust/ImzaKit.Trust.csproj" />
     <Project Path="src/ImzaKit.DependencyInjection/ImzaKit.DependencyInjection.csproj" />
     <Project Path="src/ImzaKit.Verify/ImzaKit.Verify.csproj" />
-  </Folder>
+    <Project Path="src/ImzaKit.Hosts.Api/ImzaKit.Hosts.Api.csproj" />
+    </Folder>
   <Folder Name="/packaging/">
     <Project Path="packaging/ImzaKit/ImzaKit.csproj" />
     <Project Path="packaging/ImzaKit.Release/ImzaKit.Release.csproj" />

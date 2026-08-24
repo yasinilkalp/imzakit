@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>ASP.NET Core / Kestrel host for the ImzaKit signature API. Not shipped in the ImzaKit NuGet package.</Description>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.DependencyInjection\ImzaKit.DependencyInjection.csproj" />
+  </ItemGroup>
+</Project>

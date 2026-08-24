@@ -10,7 +10,7 @@ public interface IMetadataStore
 
 public sealed class InMemoryMetadataStore(TimeProvider? timeProvider = null) : IMetadataStore
 {
-    public const int MaxValueBytes = 8192;
+    public const int MaxValueBytes = MetadataPayloadRules.MaxValueBytes;
 
     private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
     private readonly Lock _gate = new();
@@ -19,20 +19,7 @@ public sealed class InMemoryMetadataStore(TimeProvider? timeProvider = null) : I
     public void Put(string logicalKey, ReadOnlySpan<byte> value, TimeSpan ttl)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(logicalKey);
-        if (ttl <= TimeSpan.Zero || ttl == Timeout.InfiniteTimeSpan)
-        {
-            throw new ArgumentOutOfRangeException(nameof(ttl), "Metadata TTL is required and must be finite.");
-        }
-
-        if (value.Length > MaxValueBytes)
-        {
-            throw new ArgumentOutOfRangeException(nameof(value), "Redis metadata cannot hold large payloads.");
-        }
-
-        if (value.StartsWith("%PDF"u8))
-        {
-            throw new InvalidOperationException("Redis must not store document content.");
-        }
+        MetadataPayloadRules.Validate(value, ttl);
 
         lock (_gate)
         {

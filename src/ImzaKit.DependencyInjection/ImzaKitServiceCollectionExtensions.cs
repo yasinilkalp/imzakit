@@ -1,3 +1,4 @@
+using ImzaKit.Agent.Native;
 using ImzaKit.Agent.Security;
 using ImzaKit.Api.Audit;
 using ImzaKit.Api.Hosting;
@@ -64,6 +65,16 @@ public static class ImzaKitServiceCollectionExtensions
         services.AddSingleton<DeviceEnrollmentAuthority>();
         services.AddSingleton<ISignatureWorkflow, InMemorySignatureWorkflow>();
         services.AddSingleton<SignatureApiRequestHandler>();
+        return services;
+    }
+
+    public static IServiceCollection AddImzaKitWindowsAgent(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddSingleton<ISecurePinDialog, CredUiSecurePinDialog>();
+        services.AddSingleton<IConsentDialog, MessageBoxConsentDialog>();
+        services.AddSingleton<INativePinPrompt, WindowsNativePinPrompt>();
+        services.AddSingleton<INativeConsentPrompt, WindowsNativeConsentPrompt>();
         return services;
     }
 
