@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.Api/1.0.0-alpha.6": {
+      "ImzaKit.Api/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Agent": "1.0.0-alpha.6"
+          "ImzaKit.Agent": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Api.dll": {}
@@ -22,7 +22,7 @@
           }
         }
       },
-      "ImzaKit.Agent/1.0.0-alpha.6": {
+      "ImzaKit.Agent/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0"
         },
@@ -36,7 +36,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Api/1.0.0-alpha.6": {
+    "ImzaKit.Api/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -48,7 +48,7 @@
       "path": "bouncycastle.cryptography/2.7.0",
       "hashPath": "bouncycastle.cryptography.2.7.0.nupkg.sha512"
     },
-    "ImzaKit.Agent/1.0.0-alpha.6": {
+    "ImzaKit.Agent/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

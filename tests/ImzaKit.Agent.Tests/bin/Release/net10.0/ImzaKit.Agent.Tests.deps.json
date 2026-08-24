@@ -6,10 +6,10 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.Agent.Tests/1.0.0-alpha.6": {
+      "ImzaKit.Agent.Tests/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0",
-          "ImzaKit.Agent": "1.0.0-alpha.6",
+          "ImzaKit.Agent": "1.0.0-alpha.7",
           "Microsoft.NET.Test.Sdk": "17.14.1",
           "xunit": "2.9.3"
         },
@@ -340,7 +340,7 @@
           }
         }
       },
-      "ImzaKit.Agent/1.0.0-alpha.6": {
+      "ImzaKit.Agent/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0"
         },
@@ -354,7 +354,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Agent.Tests/1.0.0-alpha.6": {
+    "ImzaKit.Agent.Tests/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -443,7 +443,7 @@
       "path": "xunit.extensibility.execution/2.9.3",
       "hashPath": "xunit.extensibility.execution.2.9.3.nupkg.sha512"
     },
-    "ImzaKit.Agent/1.0.0-alpha.6": {
+    "ImzaKit.Agent/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

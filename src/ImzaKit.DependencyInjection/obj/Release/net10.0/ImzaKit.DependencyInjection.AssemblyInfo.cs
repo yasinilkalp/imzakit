@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright 2026 ImzaKit contributors")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Dependency injection registration for ImzaKit.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.6+4a0a29eabfaf6dbb5843d08b79cb74fee9e1f112")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.7+7d04de842f54d2253989420ea172d858bfe98958")]
 [assembly: System.Reflection.AssemblyProductAttribute("ImzaKit.DependencyInjection")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ImzaKit.DependencyInjection")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

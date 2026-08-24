@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Pkcs11\\ImzaKit.Pkcs11.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Pkcs11\\ImzaKit.Pkcs11.csproj",
         "projectName": "ImzaKit.Pkcs11",
@@ -360,7 +360,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Pkcs11.Tests\\ImzaKit.Pkcs11.Tests.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Pkcs11.Tests\\ImzaKit.Pkcs11.Tests.csproj",
         "projectName": "ImzaKit.Pkcs11.Tests",

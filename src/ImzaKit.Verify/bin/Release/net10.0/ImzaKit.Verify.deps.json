@@ -6,11 +6,11 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.Verify/1.0.0-alpha.6": {
+      "ImzaKit.Verify/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Certificate": "1.0.0-alpha.6",
-          "ImzaKit.Revocation": "1.0.0-alpha.6",
-          "ImzaKit.Trust": "1.0.0-alpha.6",
+          "ImzaKit.Certificate": "1.0.0-alpha.7",
+          "ImzaKit.Revocation": "1.0.0-alpha.7",
+          "ImzaKit.Trust": "1.0.0-alpha.7",
           "System.Security.Cryptography.Pkcs": "10.0.11"
         },
         "runtime": {
@@ -41,9 +41,9 @@
           }
         }
       },
-      "ImzaKit.Certificate/1.0.0-alpha.6": {
+      "ImzaKit.Certificate/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Certificate.dll": {
@@ -52,7 +52,7 @@
           }
         }
       },
-      "ImzaKit.Core/1.0.0-alpha.6": {
+      "ImzaKit.Core/1.0.0-alpha.7": {
         "runtime": {
           "ImzaKit.Core.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -60,10 +60,10 @@
           }
         }
       },
-      "ImzaKit.Revocation/1.0.0-alpha.6": {
+      "ImzaKit.Revocation/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0",
-          "ImzaKit.Certificate": "1.0.0-alpha.6"
+          "ImzaKit.Certificate": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Revocation.dll": {
@@ -72,9 +72,9 @@
           }
         }
       },
-      "ImzaKit.Trust/1.0.0-alpha.6": {
+      "ImzaKit.Trust/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Certificate": "1.0.0-alpha.6"
+          "ImzaKit.Certificate": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Trust.dll": {
@@ -86,7 +86,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Verify/1.0.0-alpha.6": {
+    "ImzaKit.Verify/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -105,22 +105,22 @@
       "path": "system.security.cryptography.pkcs/10.0.11",
       "hashPath": "system.security.cryptography.pkcs.10.0.11.nupkg.sha512"
     },
-    "ImzaKit.Certificate/1.0.0-alpha.6": {
+    "ImzaKit.Certificate/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Core/1.0.0-alpha.6": {
+    "ImzaKit.Core/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Revocation/1.0.0-alpha.6": {
+    "ImzaKit.Revocation/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Trust/1.0.0-alpha.6": {
+    "ImzaKit.Trust/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

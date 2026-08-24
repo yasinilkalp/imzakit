@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.Cms.Tests/1.0.0-alpha.6": {
+      "ImzaKit.Cms.Tests/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Cms": "1.0.0-alpha.6",
+          "ImzaKit.Cms": "1.0.0-alpha.7",
           "Microsoft.NET.Test.Sdk": "17.14.1",
           "System.Security.Cryptography.Pkcs": "10.0.11",
           "xunit": "2.9.3"
@@ -348,10 +348,10 @@
           }
         }
       },
-      "ImzaKit.Cms/1.0.0-alpha.6": {
+      "ImzaKit.Cms/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6",
-          "ImzaKit.Cryptography": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7",
+          "ImzaKit.Cryptography": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Cms.dll": {
@@ -360,7 +360,7 @@
           }
         }
       },
-      "ImzaKit.Core/1.0.0-alpha.6": {
+      "ImzaKit.Core/1.0.0-alpha.7": {
         "runtime": {
           "ImzaKit.Core.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -368,9 +368,9 @@
           }
         }
       },
-      "ImzaKit.Cryptography/1.0.0-alpha.6": {
+      "ImzaKit.Cryptography/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Cryptography.dll": {
@@ -382,7 +382,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Cms.Tests/1.0.0-alpha.6": {
+    "ImzaKit.Cms.Tests/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -471,17 +471,17 @@
       "path": "xunit.extensibility.execution/2.9.3",
       "hashPath": "xunit.extensibility.execution.2.9.3.nupkg.sha512"
     },
-    "ImzaKit.Cms/1.0.0-alpha.6": {
+    "ImzaKit.Cms/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Core/1.0.0-alpha.6": {
+    "ImzaKit.Core/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Cryptography/1.0.0-alpha.6": {
+    "ImzaKit.Cryptography/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

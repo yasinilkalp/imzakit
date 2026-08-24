@@ -6,10 +6,10 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.PAdES.Tests/1.0.0-alpha.6": {
+      "ImzaKit.PAdES.Tests/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0",
-          "ImzaKit.PAdES": "1.0.0-alpha.6",
+          "ImzaKit.PAdES": "1.0.0-alpha.7",
           "Microsoft.NET.Test.Sdk": "17.14.1",
           "PDFsharp": "6.2.4",
           "PdfPig": "0.1.15",
@@ -454,10 +454,10 @@
           }
         }
       },
-      "ImzaKit.Cms/1.0.0-alpha.6": {
+      "ImzaKit.Cms/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6",
-          "ImzaKit.Cryptography": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7",
+          "ImzaKit.Cryptography": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Cms.dll": {
@@ -466,7 +466,7 @@
           }
         }
       },
-      "ImzaKit.Core/1.0.0-alpha.6": {
+      "ImzaKit.Core/1.0.0-alpha.7": {
         "runtime": {
           "ImzaKit.Core.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -474,9 +474,9 @@
           }
         }
       },
-      "ImzaKit.Cryptography/1.0.0-alpha.6": {
+      "ImzaKit.Cryptography/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Cryptography.dll": {
@@ -485,10 +485,10 @@
           }
         }
       },
-      "ImzaKit.PAdES/1.0.0-alpha.6": {
+      "ImzaKit.PAdES/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Cms": "1.0.0-alpha.6",
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Cms": "1.0.0-alpha.7",
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.PAdES.dll": {
@@ -500,7 +500,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.PAdES.Tests/1.0.0-alpha.6": {
+    "ImzaKit.PAdES.Tests/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -624,22 +624,22 @@
       "path": "xunit.extensibility.execution/2.9.3",
       "hashPath": "xunit.extensibility.execution.2.9.3.nupkg.sha512"
     },
-    "ImzaKit.Cms/1.0.0-alpha.6": {
+    "ImzaKit.Cms/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Core/1.0.0-alpha.6": {
+    "ImzaKit.Core/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Cryptography/1.0.0-alpha.6": {
+    "ImzaKit.Cryptography/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.PAdES/1.0.0-alpha.6": {
+    "ImzaKit.PAdES/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

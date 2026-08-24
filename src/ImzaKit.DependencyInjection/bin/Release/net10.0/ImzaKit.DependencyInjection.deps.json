@@ -6,19 +6,19 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.DependencyInjection/1.0.0-alpha.6": {
+      "ImzaKit.DependencyInjection/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Agent": "1.0.0-alpha.6",
-          "ImzaKit.Api": "1.0.0-alpha.6",
-          "ImzaKit.Certificate": "1.0.0-alpha.6",
-          "ImzaKit.Cms": "1.0.0-alpha.6",
-          "ImzaKit.Core": "1.0.0-alpha.6",
-          "ImzaKit.Cryptography": "1.0.0-alpha.6",
-          "ImzaKit.PAdES": "1.0.0-alpha.6",
-          "ImzaKit.Pkcs11": "1.0.0-alpha.6",
-          "ImzaKit.Revocation": "1.0.0-alpha.6",
-          "ImzaKit.Trust": "1.0.0-alpha.6",
-          "ImzaKit.Verify": "1.0.0-alpha.6",
+          "ImzaKit.Agent": "1.0.0-alpha.7",
+          "ImzaKit.Api": "1.0.0-alpha.7",
+          "ImzaKit.Certificate": "1.0.0-alpha.7",
+          "ImzaKit.Cms": "1.0.0-alpha.7",
+          "ImzaKit.Core": "1.0.0-alpha.7",
+          "ImzaKit.Cryptography": "1.0.0-alpha.7",
+          "ImzaKit.PAdES": "1.0.0-alpha.7",
+          "ImzaKit.Pkcs11": "1.0.0-alpha.7",
+          "ImzaKit.Revocation": "1.0.0-alpha.7",
+          "ImzaKit.Trust": "1.0.0-alpha.7",
+          "ImzaKit.Verify": "1.0.0-alpha.7",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11"
         },
         "runtime": {
@@ -57,7 +57,7 @@
           }
         }
       },
-      "ImzaKit.Agent/1.0.0-alpha.6": {
+      "ImzaKit.Agent/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0"
         },
@@ -68,9 +68,9 @@
           }
         }
       },
-      "ImzaKit.Api/1.0.0-alpha.6": {
+      "ImzaKit.Api/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Agent": "1.0.0-alpha.6"
+          "ImzaKit.Agent": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Api.dll": {
@@ -79,9 +79,9 @@
           }
         }
       },
-      "ImzaKit.Certificate/1.0.0-alpha.6": {
+      "ImzaKit.Certificate/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Certificate.dll": {
@@ -90,10 +90,10 @@
           }
         }
       },
-      "ImzaKit.Cms/1.0.0-alpha.6": {
+      "ImzaKit.Cms/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6",
-          "ImzaKit.Cryptography": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7",
+          "ImzaKit.Cryptography": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Cms.dll": {
@@ -102,7 +102,7 @@
           }
         }
       },
-      "ImzaKit.Core/1.0.0-alpha.6": {
+      "ImzaKit.Core/1.0.0-alpha.7": {
         "runtime": {
           "ImzaKit.Core.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -110,9 +110,9 @@
           }
         }
       },
-      "ImzaKit.Cryptography/1.0.0-alpha.6": {
+      "ImzaKit.Cryptography/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Cryptography.dll": {
@@ -121,10 +121,10 @@
           }
         }
       },
-      "ImzaKit.PAdES/1.0.0-alpha.6": {
+      "ImzaKit.PAdES/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Cms": "1.0.0-alpha.6",
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Cms": "1.0.0-alpha.7",
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.PAdES.dll": {
@@ -133,7 +133,7 @@
           }
         }
       },
-      "ImzaKit.Pkcs11/1.0.0-alpha.6": {
+      "ImzaKit.Pkcs11/1.0.0-alpha.7": {
         "runtime": {
           "ImzaKit.Pkcs11.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -141,10 +141,10 @@
           }
         }
       },
-      "ImzaKit.Revocation/1.0.0-alpha.6": {
+      "ImzaKit.Revocation/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0",
-          "ImzaKit.Certificate": "1.0.0-alpha.6"
+          "ImzaKit.Certificate": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Revocation.dll": {
@@ -153,9 +153,9 @@
           }
         }
       },
-      "ImzaKit.Trust/1.0.0-alpha.6": {
+      "ImzaKit.Trust/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Certificate": "1.0.0-alpha.6"
+          "ImzaKit.Certificate": "1.0.0-alpha.7"
         },
         "runtime": {
           "ImzaKit.Trust.dll": {
@@ -164,11 +164,11 @@
           }
         }
       },
-      "ImzaKit.Verify/1.0.0-alpha.6": {
+      "ImzaKit.Verify/1.0.0-alpha.7": {
         "dependencies": {
-          "ImzaKit.Certificate": "1.0.0-alpha.6",
-          "ImzaKit.Revocation": "1.0.0-alpha.6",
-          "ImzaKit.Trust": "1.0.0-alpha.6",
+          "ImzaKit.Certificate": "1.0.0-alpha.7",
+          "ImzaKit.Revocation": "1.0.0-alpha.7",
+          "ImzaKit.Trust": "1.0.0-alpha.7",
           "System.Security.Cryptography.Pkcs": "10.0.11"
         },
         "runtime": {
@@ -181,7 +181,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.DependencyInjection/1.0.0-alpha.6": {
+    "ImzaKit.DependencyInjection/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -207,57 +207,57 @@
       "path": "system.security.cryptography.pkcs/10.0.11",
       "hashPath": "system.security.cryptography.pkcs.10.0.11.nupkg.sha512"
     },
-    "ImzaKit.Agent/1.0.0-alpha.6": {
+    "ImzaKit.Agent/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Api/1.0.0-alpha.6": {
+    "ImzaKit.Api/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Certificate/1.0.0-alpha.6": {
+    "ImzaKit.Certificate/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Cms/1.0.0-alpha.6": {
+    "ImzaKit.Cms/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Core/1.0.0-alpha.6": {
+    "ImzaKit.Core/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Cryptography/1.0.0-alpha.6": {
+    "ImzaKit.Cryptography/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.PAdES/1.0.0-alpha.6": {
+    "ImzaKit.PAdES/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Pkcs11/1.0.0-alpha.6": {
+    "ImzaKit.Pkcs11/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Revocation/1.0.0-alpha.6": {
+    "ImzaKit.Revocation/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Trust/1.0.0-alpha.6": {
+    "ImzaKit.Trust/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Verify/1.0.0-alpha.6": {
+    "ImzaKit.Verify/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

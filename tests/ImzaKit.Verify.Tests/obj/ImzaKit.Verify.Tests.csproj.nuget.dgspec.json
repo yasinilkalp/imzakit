@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Certificate\\ImzaKit.Certificate.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Certificate\\ImzaKit.Certificate.csproj",
         "projectName": "ImzaKit.Certificate",
@@ -364,7 +364,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cms\\ImzaKit.Cms.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cms\\ImzaKit.Cms.csproj",
         "projectName": "ImzaKit.Cms",
@@ -726,7 +726,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\ImzaKit.Core.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\ImzaKit.Core.csproj",
         "projectName": "ImzaKit.Core",
@@ -1081,7 +1081,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj",
         "projectName": "ImzaKit.Cryptography",
@@ -1440,7 +1440,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.PAdES\\ImzaKit.PAdES.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.PAdES\\ImzaKit.PAdES.csproj",
         "projectName": "ImzaKit.PAdES",
@@ -1802,7 +1802,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Revocation\\ImzaKit.Revocation.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Revocation\\ImzaKit.Revocation.csproj",
         "projectName": "ImzaKit.Revocation",
@@ -2168,7 +2168,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Trust\\ImzaKit.Trust.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Trust\\ImzaKit.Trust.csproj",
         "projectName": "ImzaKit.Trust",
@@ -2527,7 +2527,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Verify\\ImzaKit.Verify.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Verify\\ImzaKit.Verify.csproj",
         "projectName": "ImzaKit.Verify",
@@ -2899,7 +2899,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Testing\\ImzaKit.Testing.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Testing\\ImzaKit.Testing.csproj",
         "projectName": "ImzaKit.Testing",
@@ -3261,7 +3261,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Verify.Tests\\ImzaKit.Verify.Tests.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Verify.Tests\\ImzaKit.Verify.Tests.csproj",
         "projectName": "ImzaKit.Verify.Tests",

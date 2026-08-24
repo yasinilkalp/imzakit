@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cms\\ImzaKit.Cms.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cms\\ImzaKit.Cms.csproj",
         "projectName": "ImzaKit.Cms",
@@ -367,7 +367,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\ImzaKit.Core.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Core\\ImzaKit.Core.csproj",
         "projectName": "ImzaKit.Core",
@@ -722,7 +722,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj",
         "projectName": "ImzaKit.Cryptography",
@@ -1081,7 +1081,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Cms.Tests\\ImzaKit.Cms.Tests.csproj": {
-      "version": "1.0.0-alpha.6",
+      "version": "1.0.0-alpha.7",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Cms.Tests\\ImzaKit.Cms.Tests.csproj",
         "projectName": "ImzaKit.Cms.Tests",

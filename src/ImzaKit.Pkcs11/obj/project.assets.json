@@ -12,7 +12,7 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0-alpha.6",
+    "version": "1.0.0-alpha.7",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Pkcs11\\ImzaKit.Pkcs11.csproj",
       "projectName": "ImzaKit.Pkcs11",

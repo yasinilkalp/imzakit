@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.Agent/1.0.0-alpha.6": {
+      "ImzaKit.Agent/1.0.0-alpha.7": {
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0"
         },
@@ -25,7 +25,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Agent/1.0.0-alpha.6": {
+    "ImzaKit.Agent/1.0.0-alpha.7": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

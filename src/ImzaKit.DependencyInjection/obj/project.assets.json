@@ -53,7 +53,7 @@
           }
         }
       },
-      "ImzaKit.Agent/1.0.0-alpha.6": {
+      "ImzaKit.Agent/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
@@ -66,11 +66,11 @@
           "bin/placeholder/ImzaKit.Agent.dll": {}
         }
       },
-      "ImzaKit.Api/1.0.0-alpha.6": {
+      "ImzaKit.Api/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Agent": "1.0.0-alpha.6"
+          "ImzaKit.Agent": "1.0.0-alpha.7"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Api.dll": {}
@@ -79,11 +79,11 @@
           "bin/placeholder/ImzaKit.Api.dll": {}
         }
       },
-      "ImzaKit.Certificate/1.0.0-alpha.6": {
+      "ImzaKit.Certificate/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Certificate.dll": {}
@@ -92,12 +92,12 @@
           "bin/placeholder/ImzaKit.Certificate.dll": {}
         }
       },
-      "ImzaKit.Cms/1.0.0-alpha.6": {
+      "ImzaKit.Cms/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6",
-          "ImzaKit.Cryptography": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7",
+          "ImzaKit.Cryptography": "1.0.0-alpha.7"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Cms.dll": {}
@@ -106,7 +106,7 @@
           "bin/placeholder/ImzaKit.Cms.dll": {}
         }
       },
-      "ImzaKit.Core/1.0.0-alpha.6": {
+      "ImzaKit.Core/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "compile": {
@@ -116,11 +116,11 @@
           "bin/placeholder/ImzaKit.Core.dll": {}
         }
       },
-      "ImzaKit.Cryptography/1.0.0-alpha.6": {
+      "ImzaKit.Cryptography/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Cryptography.dll": {}
@@ -129,12 +129,12 @@
           "bin/placeholder/ImzaKit.Cryptography.dll": {}
         }
       },
-      "ImzaKit.PAdES/1.0.0-alpha.6": {
+      "ImzaKit.PAdES/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Cms": "1.0.0-alpha.6",
-          "ImzaKit.Core": "1.0.0-alpha.6"
+          "ImzaKit.Cms": "1.0.0-alpha.7",
+          "ImzaKit.Core": "1.0.0-alpha.7"
         },
         "compile": {
           "bin/placeholder/ImzaKit.PAdES.dll": {}
@@ -143,7 +143,7 @@
           "bin/placeholder/ImzaKit.PAdES.dll": {}
         }
       },
-      "ImzaKit.Pkcs11/1.0.0-alpha.6": {
+      "ImzaKit.Pkcs11/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "compile": {
@@ -153,12 +153,12 @@
           "bin/placeholder/ImzaKit.Pkcs11.dll": {}
         }
       },
-      "ImzaKit.Revocation/1.0.0-alpha.6": {
+      "ImzaKit.Revocation/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
           "BouncyCastle.Cryptography": "2.7.0",
-          "ImzaKit.Certificate": "1.0.0-alpha.6"
+          "ImzaKit.Certificate": "1.0.0-alpha.7"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Revocation.dll": {}
@@ -167,11 +167,11 @@
           "bin/placeholder/ImzaKit.Revocation.dll": {}
         }
       },
-      "ImzaKit.Trust/1.0.0-alpha.6": {
+      "ImzaKit.Trust/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Certificate": "1.0.0-alpha.6"
+          "ImzaKit.Certificate": "1.0.0-alpha.7"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Trust.dll": {}
@@ -180,13 +180,13 @@
           "bin/placeholder/ImzaKit.Trust.dll": {}
         }
       },
-      "ImzaKit.Verify/1.0.0-alpha.6": {
+      "ImzaKit.Verify/1.0.0-alpha.7": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Certificate": "1.0.0-alpha.6",
-          "ImzaKit.Revocation": "1.0.0-alpha.6",
-          "ImzaKit.Trust": "1.0.0-alpha.6",
+          "ImzaKit.Certificate": "1.0.0-alpha.7",
+          "ImzaKit.Revocation": "1.0.0-alpha.7",
+          "ImzaKit.Trust": "1.0.0-alpha.7",
           "System.Security.Cryptography.Pkcs": "10.0.11"
         },
         "compile": {
@@ -286,57 +286,57 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "ImzaKit.Agent/1.0.0-alpha.6": {
+    "ImzaKit.Agent/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Agent/ImzaKit.Agent.csproj",
       "msbuildProject": "../ImzaKit.Agent/ImzaKit.Agent.csproj"
     },
-    "ImzaKit.Api/1.0.0-alpha.6": {
+    "ImzaKit.Api/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Api/ImzaKit.Api.csproj",
       "msbuildProject": "../ImzaKit.Api/ImzaKit.Api.csproj"
     },
-    "ImzaKit.Certificate/1.0.0-alpha.6": {
+    "ImzaKit.Certificate/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Certificate/ImzaKit.Certificate.csproj",
       "msbuildProject": "../ImzaKit.Certificate/ImzaKit.Certificate.csproj"
     },
-    "ImzaKit.Cms/1.0.0-alpha.6": {
+    "ImzaKit.Cms/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Cms/ImzaKit.Cms.csproj",
       "msbuildProject": "../ImzaKit.Cms/ImzaKit.Cms.csproj"
     },
-    "ImzaKit.Core/1.0.0-alpha.6": {
+    "ImzaKit.Core/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Core/ImzaKit.Core.csproj",
       "msbuildProject": "../ImzaKit.Core/ImzaKit.Core.csproj"
     },
-    "ImzaKit.Cryptography/1.0.0-alpha.6": {
+    "ImzaKit.Cryptography/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Cryptography/ImzaKit.Cryptography.csproj",
       "msbuildProject": "../ImzaKit.Cryptography/ImzaKit.Cryptography.csproj"
     },
-    "ImzaKit.PAdES/1.0.0-alpha.6": {
+    "ImzaKit.PAdES/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.PAdES/ImzaKit.PAdES.csproj",
       "msbuildProject": "../ImzaKit.PAdES/ImzaKit.PAdES.csproj"
     },
-    "ImzaKit.Pkcs11/1.0.0-alpha.6": {
+    "ImzaKit.Pkcs11/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Pkcs11/ImzaKit.Pkcs11.csproj",
       "msbuildProject": "../ImzaKit.Pkcs11/ImzaKit.Pkcs11.csproj"
     },
-    "ImzaKit.Revocation/1.0.0-alpha.6": {
+    "ImzaKit.Revocation/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Revocation/ImzaKit.Revocation.csproj",
       "msbuildProject": "../ImzaKit.Revocation/ImzaKit.Revocation.csproj"
     },
-    "ImzaKit.Trust/1.0.0-alpha.6": {
+    "ImzaKit.Trust/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Trust/ImzaKit.Trust.csproj",
       "msbuildProject": "../ImzaKit.Trust/ImzaKit.Trust.csproj"
     },
-    "ImzaKit.Verify/1.0.0-alpha.6": {
+    "ImzaKit.Verify/1.0.0-alpha.7": {
       "type": "project",
       "path": "../ImzaKit.Verify/ImzaKit.Verify.csproj",
       "msbuildProject": "../ImzaKit.Verify/ImzaKit.Verify.csproj"
@@ -344,17 +344,17 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "ImzaKit.Agent >= 1.0.0-alpha.6",
-      "ImzaKit.Api >= 1.0.0-alpha.6",
-      "ImzaKit.Certificate >= 1.0.0-alpha.6",
-      "ImzaKit.Cms >= 1.0.0-alpha.6",
-      "ImzaKit.Core >= 1.0.0-alpha.6",
-      "ImzaKit.Cryptography >= 1.0.0-alpha.6",
-      "ImzaKit.PAdES >= 1.0.0-alpha.6",
-      "ImzaKit.Pkcs11 >= 1.0.0-alpha.6",
-      "ImzaKit.Revocation >= 1.0.0-alpha.6",
-      "ImzaKit.Trust >= 1.0.0-alpha.6",
-      "ImzaKit.Verify >= 1.0.0-alpha.6",
+      "ImzaKit.Agent >= 1.0.0-alpha.7",
+      "ImzaKit.Api >= 1.0.0-alpha.7",
+      "ImzaKit.Certificate >= 1.0.0-alpha.7",
+      "ImzaKit.Cms >= 1.0.0-alpha.7",
+      "ImzaKit.Core >= 1.0.0-alpha.7",
+      "ImzaKit.Cryptography >= 1.0.0-alpha.7",
+      "ImzaKit.PAdES >= 1.0.0-alpha.7",
+      "ImzaKit.Pkcs11 >= 1.0.0-alpha.7",
+      "ImzaKit.Revocation >= 1.0.0-alpha.7",
+      "ImzaKit.Trust >= 1.0.0-alpha.7",
+      "ImzaKit.Verify >= 1.0.0-alpha.7",
       "Microsoft.Extensions.DependencyInjection.Abstractions >= 10.0.11"
     ]
   },
@@ -363,7 +363,7 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0-alpha.6",
+    "version": "1.0.0-alpha.7",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.DependencyInjection\\ImzaKit.DependencyInjection.csproj",
       "projectName": "ImzaKit.DependencyInjection",
