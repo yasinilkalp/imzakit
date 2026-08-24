@@ -177,6 +177,19 @@ public sealed class NativePkcs11ProviderTests
     }
 
     [Fact]
+    public void EtokenOptionsUseSingleThreadedAccessLikeAkis()
+    {
+        FakePkcs11NativeApi api = FakePkcs11NativeApi.CreateAkisFixture();
+        api.CallDelay = TimeSpan.FromMilliseconds(10);
+        using NativePkcs11Provider provider = new(api, NativePkcs11ProviderOptions.ForEtoken());
+        provider.Initialize();
+
+        Parallel.For(0, 8, _ => provider.DiscoverTokens());
+
+        Assert.Equal(1, api.MaxConcurrentCalls);
+    }
+
+    [Fact]
     public void SigningServiceCleansUpAfterNativeAdapterSuccess()
     {
         FakePkcs11NativeApi api = FakePkcs11NativeApi.CreateAkisFixture();

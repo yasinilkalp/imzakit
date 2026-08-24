@@ -2,7 +2,7 @@
 
 ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
-> **Ön sürüm:** `1.0.0-alpha.6` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
+> **Ön sürüm:** `1.0.0-alpha.7` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
 
 ## Öne çıkan özellikler
 
@@ -25,13 +25,13 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 ## Kurulum
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.6
+dotnet add package ImzaKit --version 1.0.0-alpha.7
 ```
 
 Ya da proje dosyanıza doğrudan ekleyin:
 
 ```xml
-<PackageReference Include="ImzaKit" Version="1.0.0-alpha.6" />
+<PackageReference Include="ImzaKit" Version="1.0.0-alpha.7" />
 ```
 
 ## Paketteki modüller
@@ -82,7 +82,26 @@ services.AddSingleton<IPkcs11Provider>(new NativePkcs11Provider(native));
 services.AddImzaKitPkcs11();
 ```
 
-AKİS quirk’leri (`CKA_ID` eşlemesi, tek iş parçacığı, `CKM_SHA256_RSA_PKCS`) `NativePkcs11ProviderOptions.ForAkis()` içindedir. Fiziksel kart kabulü laboratuvar kontrol listesiyle yapılır; CI sahte native API kullanır.
+eToken (`eTPKCS11.dll`) ikinci doğrulanmış Windows profilidir. Varsayılan allowlist SafeNet/Thales `Program Files` kökleridir; `System32` varsayılan değildir. DLL paketlenmez.
+
+```csharp
+using ImzaKit.DependencyInjection;
+using ImzaKit.Pkcs11.Abstractions;
+using ImzaKit.Pkcs11.Etoken;
+using ImzaKit.Pkcs11.Native;
+using Microsoft.Extensions.DependencyInjection;
+
+IPkcs11NativeApi native = Pkcs11NativeLibraryLoader.Load(
+    @"C:\Program Files\SafeNet\Authentication\SAC\x64\eTPKCS11.dll",
+    [@"C:\Program Files\SafeNet\Authentication\SAC\x64"],
+    EtokenProviderProfile.SupportedLibraryFileNames);
+var services = new ServiceCollection();
+services.AddImzaKitCore();
+services.AddSingleton<IPkcs11Provider>(new NativePkcs11Provider(native, NativePkcs11ProviderOptions.ForEtoken()));
+services.AddImzaKitPkcs11();
+```
+
+AKİS quirk’leri `NativePkcs11ProviderOptions.ForAkis()`, eToken quirk’leri `ForEtoken()` içindedir (aynı güvenli varsayılanlar). Fiziksel kabul ayrı laboratuvar listeleriyledir; CI sahte native API kullanır.
 
 MVP HTTP sözleşmesi `SignatureApiRequestHandler` ile uygulanır. Üretim Kestrel host (`ImzaKit.Hosts.Api`) paket dışındadır; HTTPS üzerinde `AllowCertificate` mTLS kullanır, özel cihaz CA’sini OS store ile doğrulamaz ve client sertifikasını `MutualTlsRequestMapper` ile işler. Redis benzeri `RedisMetadataStore` belge tutmaz; `FileSystemBlobStore` object-store bağları içindir. PIN yalnız `AddImzaKitWindowsAgent()` native penceresinde alınır.
 
@@ -149,7 +168,7 @@ switch (report.Status)
 
 `TurkiyeNes` profili işletim sistemi kök deposunu kullanmaz. Trust Maintainer imzalı paketleri `TrustStorePackageCodec` + `TrustStoreActivationService` ile atomik etkinleştirir, rollback ve acil kaldırma yapar. Gerçek ESHS kökleri bu repoya konmaz; sentetik test paketleri CI’de kullanılır.
 
-Windows Agent installer yerleşimi (`AgentInstallerLayout`) yalnız `win-x64` ve `win-arm64`, `%ProgramFiles%\ImzaKit\Agent`, loopback bind ve PKCS#11 allowlist kökü taşır; vendor `akisp11.dll` paketlenmez. Authenticode imzası release anahtarıyla yapılır (CI’de sertifika yoktur). Her sürüm CycloneDX 1.6 SBOM, commit/digest provenance ve imzalı update manifest’i üretir; GPL/AGPL/SSPL bağımlılık release’i durdurur.
+Windows Agent installer yerleşimi (`AgentInstallerLayout`) yalnız `win-x64` ve `win-arm64`, `%ProgramFiles%\ImzaKit\Agent`, loopback bind ve profil başına PKCS#11 allowlist kökleri taşır; vendor `akisp11.dll` ve `eTPKCS11.dll` paketlenmez. Authenticode imzası release anahtarıyla yapılır (CI’de sertifika yoktur). Her sürüm CycloneDX 1.6 SBOM, commit/digest provenance ve imzalı update manifest’i üretir; GPL/AGPL/SSPL bağımlılık release’i durdurur.
 
 `RevocationDataUnavailable`, seçilen zaman ve tazelik politikası için uygun OCSP/CRL kanıtı bulunmadığını bildirir; ağdan otomatik kanıt indirilmez.
 
@@ -187,7 +206,7 @@ ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature too
 ### Install
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.6
+dotnet add package ImzaKit --version 1.0.0-alpha.7
 ```
 
 ### Included modules

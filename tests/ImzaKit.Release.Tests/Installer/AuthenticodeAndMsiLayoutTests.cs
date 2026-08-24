@@ -25,7 +25,7 @@ public sealed class AuthenticodeAndMsiLayoutTests
     [Fact]
     public void WixSourceInstallsToProgramFilesExcludesVendorDllAndRequiresAuthenticode()
     {
-        AgentInstallerPayload payload = AgentInstallerLayout.Create("1.0.0-alpha.6", ["win-x64", "win-arm64"]);
+        AgentInstallerPayload payload = AgentInstallerLayout.Create("1.0.0-alpha.7", ["win-x64", "win-arm64"]);
         string wxs = AgentMsiDocument.CreateWixSource(payload);
 
         Assert.Contains(@"ProgramFiles64Folder", wxs, StringComparison.Ordinal);
@@ -33,6 +33,9 @@ public sealed class AuthenticodeAndMsiLayoutTests
         Assert.Contains("win-x64", wxs, StringComparison.Ordinal);
         Assert.Contains("win-arm64", wxs, StringComparison.Ordinal);
         Assert.DoesNotContain("akisp11", wxs, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("etpkcs11.dll", wxs, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(@"SafeNet\Authentication\SAC\x64", wxs, StringComparison.Ordinal);
+        Assert.Contains(@"Thales\SafeNet Authentication Client", wxs, StringComparison.Ordinal);
         Assert.Contains("AuthenticodeRequired", wxs, StringComparison.Ordinal);
         Assert.Contains("127.0.0.1", wxs, StringComparison.Ordinal);
     }

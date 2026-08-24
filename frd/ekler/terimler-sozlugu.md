@@ -17,6 +17,8 @@
 | DocMDP | PDF’de sertifikasyon imzasının izin verdiği sonraki değişiklikleri tanımlar |
 | DSS | PDF Document Security Store; sertifika/OCSP/CRL kanıt deposu |
 | ESHS | Elektronik Sertifika Hizmet Sağlayıcısı |
+| eToken | SafeNet/Thales USB token PKCS#11 ekosistemi; Windows modülü `eTPKCS11.dll` |
+| eTPKCS11 | eToken PKCS#11 native kütüphane dosya adı |
 | FieldMDP | PDF form alanları üzerindeki değişiklik kısıtları |
 | INDETERMINATE | Kanıt yetersizliği/politika nedeniyle kesin başarı veya başarısızlık verilemeyen sonuç |
 | NES | Nitelikli elektronik sertifika |

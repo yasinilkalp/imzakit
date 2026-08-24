@@ -20,6 +20,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 | FR-027 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS entegrasyon kanıtı | Evet |
 | FR-028 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS entegrasyon kanıtı | Evet |
 | FR-029 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS entegrasyon kanıtı | Evet |
+| FR-030 | eToken PKCS#11 profili | Yüksek | 1 | Pkcs11 | ADR-003 | TST-021 | eToken profil birim testi ve laboratuvar listesi | Hayır |
 | FR-040 | Kaynak gereksinim metni | Zorunlu | 1 | PAdES | ADR-005/ADR-006 | TST-003/TST-006 | Golden PDF ve revision kanıtı | Evet |
 | FR-041 | Kaynak gereksinim metni | Zorunlu | 1 | PAdES | ADR-005/ADR-006 | TST-003/TST-006 | Golden PDF ve revision kanıtı | Evet |
 | FR-042 | Kaynak gereksinim metni | Zorunlu | 1 | PAdES | ADR-005/ADR-006 | TST-003/TST-006 | Golden PDF ve revision kanıtı | Evet |
@@ -122,9 +123,10 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - Sürümlü güven deposu, `GeneralX509` ve `TurkiyeNes` politika kararları: `tests/ImzaKit.Trust.Tests` (`ImzaKit.Trust.Tests`).
 - Gömülü/yerel OCSP ve CRL önceliği, tazelik ve `RevocationDataUnavailable`: `tests/ImzaKit.Revocation.Tests` (`ImzaKit.Revocation.Tests`).
 - PAdES orkestrasyonu ve geriye uyumluluk: `tests/ImzaKit.Verify.Tests`.
-- Tek paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.6.nupkg`, tam **12 DLL** ve sıfır iç `ImzaKit.*` paket bağımlılığı.
+- Tek paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.7.nupkg`, tam **12 DLL** ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - Tasarım ve uygulama bağı: `docs/superpowers/specs/2026-08-23-alpha4-offline-trust-validation-design.md` ve `docs/superpowers/plans/2026-08-23-alpha4-offline-trust-validation.md`.
 
 - `MVP = Evet` olan satırlar MVP kabulünü engeller.
+- `FR-030` eToken yazılım profilidir; fiziksel eToken kanıtı MVP çıkış kapısını kilitlemez.
 - Çevrimiçi OCSP/CRL ve uzun dönem PAdES Faz 2; bağımsız CAdES/workflow Faz 3; XAdES/ASiC Faz 4’tedir.
 - Aynı test birden çok gereksinimi kapsayabilir; test ve kabul kanıtı boş bırakılamaz.

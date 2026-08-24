@@ -8,6 +8,7 @@ Her gereksinimin tekil fazı, önceliği ve MVP engelleyici durumu [izlenebilirl
 |---|---|---|---:|---|
 | Ortak MVP çekirdeği | FR-003–006 | Zorunlu | 1 | Evet |
 | Agent/AKİS | FR-021–029 | Zorunlu | 1 | Evet |
+| Agent/eToken | FR-030 | Yüksek | 1 | Hayır |
 | PAdES B-B ve revision | FR-040–042, FR-046–051 | Zorunlu | 1 | Evet |
 | PAdES için CMS alt kümesi | FR-060–063 | Zorunlu | 1 | Evet |
 | Temel trust ve validation | FR-090–094, VAL-001–007 | Zorunlu | 1 | Evet |
@@ -36,6 +37,7 @@ Her gereksinimin tekil fazı, önceliği ve MVP engelleyici durumu [izlenebilirl
 - **FR-027:** Yanlış PIN, kilitli token, token çıkarılması, mekanizma uyumsuzluğu ve driver hataları ayrı hata kodları üretmelidir.
 - **FR-028:** İlk doğrulanmış sağlayıcı AKİS olmalı; vendor özel davranışları adaptör/quirk profiline hapsedilmelidir.
 - **FR-029:** Provider bazlı concurrency lock ve güvenli session cleanup uygulanmalıdır.
+- **FR-030:** İkinci doğrulanmış Windows PKCS#11 profili eToken olmalıdır. Modül adı yalnız `eTPKCS11.dll` kabul edilmeli; varsayılan allowlist kökleri SafeNet Authentication Client `SAC\x64` ve Thales SafeNet Authentication Client `Program Files` yolları olmalıdır. Vendor DLL paketlenmemelidir. Quirk’ler `EtokenProviderProfile` içinde tutulmalı ve AKİS ile aynı güvenli varsayılanlarla başlamalıdır. Fiziksel eToken kabulü ayrı laboratuvar kanıtıdır; MVP çıkış kapısını değiştirmez.
 
 ## 3. PAdES ve PDF
 

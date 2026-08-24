@@ -36,7 +36,7 @@
 - Windows odaklı yerel Agent; loopback güvenli iletişim
 - REST tabanlı İmzaKit API
 - Bağımsız doğrulama servisi/kütüphanesi olan İmzaKit Verify
-- PKCS#11; ilk doğrulanmış adaptör olarak AKİS
+- PKCS#11; ilk doğrulanmış adaptör olarak AKİS, ikinci doğrulanmış Windows profili olarak eToken (`eTPKCS11.dll`)
 - RSA/SHA-256 başlangıç profili; SHA-384/SHA-512 ve ECDSA genişleme noktaları
 - PAdES B-B, B-T, B-LT, B-LTA
 - CMS çekirdeği ve CAdES baseline profilleri
@@ -123,7 +123,7 @@ Belge hazırlama, imza operasyonu oluşturma, Agent bağlantısı, imzanın tama
 ## 10. Kabul edilmiş kararlar ve Faz 0 kapıları
 
 - Ürünün tamamı Apache License 2.0 altında açık kaynaktır; bağımlılık politikası [ADR-001](../kararlar/ADR-001-acik-kaynak-ve-lisans.md) ile bağlayıcıdır.
-- Birincil taban .NET 10 LTS; MVP Agent hedefleri Windows x64/arm64 ve ilk sağlayıcı AKİS’tir ([ADR-002](../kararlar/ADR-002-dotnet-platform-tabani.md)).
+- Birincil taban .NET 10 LTS; MVP Agent hedefleri Windows x64/arm64 ve ilk sağlayıcı AKİS’tir ([ADR-002](../kararlar/ADR-002-dotnet-platform-tabani.md)). İkinci doğrulanmış Windows PKCS#11 profili eToken’dır; MVP çıkış kapısını değiştirmez.
 - İlk imzalama profili RSA/SHA-256’dır; algoritma politikası sürümlenir.
 - Agent loopback HTTP, Ed25519 imzalı 120 saniyelik tek kullanımlık bilet, native onay ve mTLS callback kullanır ([ADR-003](../kararlar/ADR-003-agent-loopback-guven-modeli.md)).
 - Türkiye Trust Store işletim sistemi deposundan ayrıdır; imzalı ve sürümlü paket olarak yayımlanır ([ADR-004](../kararlar/ADR-004-turkiye-trust-store.md)).

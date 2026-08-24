@@ -21,7 +21,7 @@
 ## Faz 1 — MVP: PAdES B-B
 
 - Core, Cryptography, CMS, Certificate, Pkcs11, PAdES ve temel Validation
-- Windows Agent + AKİS + native onay/PIN
+- Windows Agent + AKİS + eToken profili + native onay/PIN
 - API state machine, Redis metadata ve belge deposu
 - PAdES B-B, görünür/görünmez imza ve temel çoklu revision
 - Türkiye NES politika iskeleti, temel trust chain
@@ -69,7 +69,7 @@
 ## Faz 5 — Sağlayıcı ve platform genişlemesi
 
 - HSM, remote/cloud signing adaptörleri
-- Ek PKCS#11 vendor profilleri
+- eToken dışında ek PKCS#11 vendor profilleri
 - macOS/Linux Agent fizibilitesi
 - Preservation scheduler ve periyodik B-LTA yenileme
 - İhtiyaca göre eIDAS doğrulama profili

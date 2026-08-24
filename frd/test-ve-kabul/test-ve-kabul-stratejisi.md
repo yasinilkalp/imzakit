@@ -4,7 +4,7 @@
 
 1. Birim: DER, ByteRange, state transition, policy ve hata eşlemeleri.
 2. Golden vector: sabit PDF/CMS/XML/ASiC girdileri ve beklenen byte/raporlar.
-3. Entegrasyon: mock PKCS#11, gerçek AKİS kartı, TSA, OCSP/CRL ve storage.
+3. Entegrasyon: mock PKCS#11, gerçek AKİS kartı, gerçek eToken (laboratuvar), TSA, OCSP/CRL ve storage.
 4. Interoperabilite: en az iki bağımsız doğrulayıcı ve mümkün olduğunda ETSI/EU DSS test araçları.
 5. Güvenlik: kötü niyetli belge corpus’u, SSRF, replay, CORS/origin, zip/XML/PDF bombaları.
 6. Dayanıklılık: token çıkarma, Agent kapanması, network timeout, Redis/storage kesintisi, duplicate callback.
@@ -32,6 +32,7 @@
 - **TST-018:** Apache-2.0 bağımlılık allowlist’i, NOTICE ve reddedilen lisanslarla release kapısı.
 - **TST-019:** İmzalı artefakt, SBOM, provenance ve kaynak commit/digest doğrulaması.
 - **TST-020:** 120 saniye/24 saat/7 gün TTL, tenant izolasyonu, audit hash-chain bozulması ve hassas veri taraması.
+- **TST-021:** eToken profil sözleşmesi, `eTPKCS11.dll` allowlist, sahte native imza; fiziksel token laboratuvar listesi CI’yi durdurmaz.
 
 ## 3. Kabul kriterleri
 

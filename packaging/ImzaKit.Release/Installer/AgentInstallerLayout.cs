@@ -6,6 +6,7 @@ public sealed record AgentInstallerPayload(
     IReadOnlyList<string> RuntimeIdentifiers,
     IReadOnlyList<string> LoopbackBindAddresses,
     IReadOnlyList<string> Pkcs11AllowlistRoots,
+    IReadOnlyList<string> EtokenPkcs11AllowlistRoots,
     IReadOnlyList<string> Files,
     bool AuthenticodeRequired,
     bool DisableDllSearchPathHijacking);
@@ -29,6 +30,10 @@ public static class AgentInstallerLayout
             runtimeIdentifiers,
             ["127.0.0.1", "::1"],
             [@"%ProgramFiles%\AKIS"],
+            [
+                @"%ProgramFiles%\SafeNet\Authentication\SAC\x64",
+                @"%ProgramFiles%\Thales\SafeNet Authentication Client"
+            ],
             [
                 "ImzaKit.Agent.dll",
                 "agent.json",

@@ -1,4 +1,5 @@
 using ImzaKit.Pkcs11.Akis;
+using ImzaKit.Pkcs11.Etoken;
 
 namespace ImzaKit.Pkcs11.Native;
 
@@ -13,6 +14,14 @@ public sealed class NativePkcs11ProviderOptions
     {
         RequiresSingleThreadedProviderAccess = AkisProviderProfile.RequiresSingleThreadedProviderAccess,
         MatchPrivateKeyByCkaIdFirst = AkisProviderProfile.MatchPrivateKeyByCkaIdFirst,
+        AllowPublicKeyFallback = true,
+        ExcludeCertificatesWithoutSignableKey = true
+    };
+
+    public static NativePkcs11ProviderOptions ForEtoken() => new()
+    {
+        RequiresSingleThreadedProviderAccess = EtokenProviderProfile.RequiresSingleThreadedProviderAccess,
+        MatchPrivateKeyByCkaIdFirst = EtokenProviderProfile.MatchPrivateKeyByCkaIdFirst,
         AllowPublicKeyFallback = true,
         ExcludeCertificatesWithoutSignableKey = true
     };

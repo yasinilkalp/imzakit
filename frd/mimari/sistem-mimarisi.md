@@ -7,7 +7,7 @@ flowchart LR
     U[İmzacı] --> W[Müşteri Web/Masaüstü Uygulaması]
     W --> API[İmzaKit API]
     W -->|loopback + operasyon bileti| A[İmzaKit Agent]
-    A --> P11[PKCS#11 / AKİS]
+    A --> P11[PKCS#11 / AKİS / eToken]
     P11 --> K[Kart / Token / HSM]
     API --> SDK[İmzaKit SDK]
     API --> V[İmzaKit Verify]

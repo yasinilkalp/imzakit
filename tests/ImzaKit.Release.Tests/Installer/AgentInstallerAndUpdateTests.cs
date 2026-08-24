@@ -20,7 +20,16 @@ public sealed class AgentInstallerAndUpdateTests
         Assert.True(payload.DisableDllSearchPathHijacking);
         Assert.All(payload.LoopbackBindAddresses, address => Assert.True(address is "127.0.0.1" or "::1"));
         Assert.Contains(@"%ProgramFiles%\AKIS", payload.Pkcs11AllowlistRoots);
+        Assert.DoesNotContain(payload.Pkcs11AllowlistRoots, root =>
+            root.Contains("SafeNet", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(
+            [
+                @"%ProgramFiles%\SafeNet\Authentication\SAC\x64",
+                @"%ProgramFiles%\Thales\SafeNet Authentication Client"
+            ],
+            payload.EtokenPkcs11AllowlistRoots);
         Assert.DoesNotContain(payload.Files, file => file.Contains("akisp11", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(payload.Files, file => file.Contains("etpkcs11", StringComparison.OrdinalIgnoreCase));
         Assert.Contains("sbom.cdx.json", payload.Files);
         Assert.Contains("provenance.json", payload.Files);
         Assert.Contains("NOTICE", payload.Files);

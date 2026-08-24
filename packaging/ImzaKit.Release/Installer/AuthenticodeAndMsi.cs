@@ -78,6 +78,8 @@ public static class AgentMsiDocument
         xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="AuthenticodeRequired" Value="{payload.AuthenticodeRequired}" />""");
         xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="LoopbackBind" Value="{string.Join(';', payload.LoopbackBindAddresses)}" />""");
         xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="RuntimeIdentifiers" Value="{string.Join(';', payload.RuntimeIdentifiers)}" />""");
+        xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="Pkcs11AllowlistRoots" Value="{string.Join(';', payload.Pkcs11AllowlistRoots)}" />""");
+        xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="EtokenPkcs11AllowlistRoots" Value="{string.Join(';', payload.EtokenPkcs11AllowlistRoots)}" />""");
         xml.AppendLine("""  </Package>""");
         xml.AppendLine("</Wix>");
         return xml.ToString();

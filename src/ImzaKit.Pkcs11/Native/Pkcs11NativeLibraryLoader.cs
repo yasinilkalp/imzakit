@@ -6,12 +6,18 @@ namespace ImzaKit.Pkcs11.Native;
 
 public static class Pkcs11NativeLibraryLoader
 {
-    public static IPkcs11NativeApi Load(string path, IReadOnlyList<string> allowedDirectoryRoots)
+    public static IPkcs11NativeApi Load(string path, IReadOnlyList<string> allowedDirectoryRoots) =>
+        Load(path, allowedDirectoryRoots, AkisProviderProfile.SupportedLibraryFileNames);
+
+    public static IPkcs11NativeApi Load(
+        string path,
+        IReadOnlyList<string> allowedDirectoryRoots,
+        IReadOnlyList<string> allowedFileNames)
     {
         string resolved = Pkcs11ModulePath.ResolveAllowed(
             path,
             allowedDirectoryRoots,
-            AkisProviderProfile.SupportedLibraryFileNames);
+            allowedFileNames);
 
         nint handle = 0;
         try
