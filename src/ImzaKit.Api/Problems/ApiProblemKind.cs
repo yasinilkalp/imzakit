@@ -1,3 +1,19 @@
 namespace ImzaKit.Api.Problems;
 
-public enum ApiProblemKind { Conflict, PayloadTooLarge, Unprocessable, RateLimited, DependencyUnavailable }
+public enum ApiProblemKind
+{
+    Unauthenticated,
+    NotFound,
+    Conflict,
+    IdempotencyConflict,
+    InvalidStateTransition,
+    PayloadTooLarge,
+    Unprocessable,
+    RateLimited,
+    DependencyUnavailable,
+    MtlsRequired,
+    DeviceUnknown,
+    DeviceRevoked,
+    DeviceExpired,
+    TicketRejected
+}

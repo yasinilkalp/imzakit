@@ -124,11 +124,20 @@ public sealed class SignatureOperationServiceTests
     }
 
     [Theory]
+    [InlineData(ApiProblemKind.Unauthenticated, 401, "IMZAKIT.CORE.UNAUTHENTICATED")]
+    [InlineData(ApiProblemKind.NotFound, 404, "IMZAKIT.CORE.NOT_FOUND")]
     [InlineData(ApiProblemKind.Conflict, 409, "IMZAKIT.CORE.CONFLICT")]
+    [InlineData(ApiProblemKind.IdempotencyConflict, 409, "IMZAKIT.CORE.IDEMPOTENCY_CONFLICT")]
+    [InlineData(ApiProblemKind.InvalidStateTransition, 409, "IMZAKIT.CORE.INVALID_STATE_TRANSITION")]
     [InlineData(ApiProblemKind.PayloadTooLarge, 413, "IMZAKIT.CORE.PAYLOAD_TOO_LARGE")]
     [InlineData(ApiProblemKind.Unprocessable, 422, "IMZAKIT.CORE.UNPROCESSABLE")]
     [InlineData(ApiProblemKind.RateLimited, 429, "IMZAKIT.CORE.RATE_LIMITED")]
     [InlineData(ApiProblemKind.DependencyUnavailable, 503, "IMZAKIT.CORE.DEPENDENCY_UNAVAILABLE")]
+    [InlineData(ApiProblemKind.MtlsRequired, 401, "IMZAKIT.AGENT.MTLS_REQUIRED")]
+    [InlineData(ApiProblemKind.DeviceUnknown, 401, "IMZAKIT.AGENT.DEVICE_UNKNOWN")]
+    [InlineData(ApiProblemKind.DeviceRevoked, 401, "IMZAKIT.AGENT.DEVICE_REVOKED")]
+    [InlineData(ApiProblemKind.DeviceExpired, 401, "IMZAKIT.AGENT.DEVICE_EXPIRED")]
+    [InlineData(ApiProblemKind.TicketRejected, 401, "IMZAKIT.AGENT.TICKET_REJECTED")]
     public void ProblemKindsHaveStableHttpAndMachineCodes(ApiProblemKind kind, int status, string code)
     {
         ApiProblemDescriptor descriptor = ApiProblemCatalog.Get(kind);

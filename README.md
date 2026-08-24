@@ -2,7 +2,7 @@
 
 ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
-> **Ön sürüm:** `1.0.0-alpha.4` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
+> **Ön sürüm:** `1.0.0-alpha.5` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
 
 ## Öne çıkan özellikler
 
@@ -25,13 +25,13 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 ## Kurulum
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.4
+dotnet add package ImzaKit --version 1.0.0-alpha.5
 ```
 
 Ya da proje dosyanıza doğrudan ekleyin:
 
 ```xml
-<PackageReference Include="ImzaKit" Version="1.0.0-alpha.4" />
+<PackageReference Include="ImzaKit" Version="1.0.0-alpha.5" />
 ```
 
 ## Paketteki modüller
@@ -83,6 +83,10 @@ services.AddImzaKitPkcs11();
 ```
 
 AKİS quirk’leri (`CKA_ID` eşlemesi, tek iş parçacığı, `CKM_SHA256_RSA_PKCS`) `NativePkcs11ProviderOptions.ForAkis()` içindedir. Fiziksel kart kabulü laboratuvar kontrol listesiyle yapılır; CI sahte native API kullanır.
+
+MVP HTTP sözleşmesi `SignatureApiRequestHandler` ile uygulanır (`/v1/signature-operations`, `/v1/validations`, `/v1/openapi.yaml`, `/v1/agent-callbacks/signature-results`). Tenant kimliği istek gövdesinden değil çağıran kimliğinden gelir; yan etkili uçlar `Idempotency-Key` ister. Agent callback mTLS istemci sertifikası, operasyon bileti ve idempotency anahtarı ister; cihaz private key’i Agent içinde kalır.
+
+Saklama varsayılanları (ADR-007): Agent bileti 120 saniye, tamamlanmamış operasyon metadata’sı 24 saat, tamamlanan çıktı ve doğrulama raporu 7 gün. Redis benzeri `IMetadataStore` belge tutmaz ve TTL’siz kayıt kabul etmez. Belgeler `IDocumentStore` altında tenant izole, AES-GCM şifreli ve süreli URL ile okunur. Audit append-only hash-chain’dir; PIN, private key, ham belge ve credential yazılmaz.
 
 ### İmzalı PDF doğrulama
 
@@ -143,6 +147,10 @@ switch (report.Status)
 }
 ```
 
+`TurkiyeNes` profili işletim sistemi kök deposunu kullanmaz. Trust Maintainer imzalı paketleri `TrustStorePackageCodec` + `TrustStoreActivationService` ile atomik etkinleştirir, rollback ve acil kaldırma yapar. Gerçek ESHS kökleri bu repoya konmaz; sentetik test paketleri CI’de kullanılır.
+
+Windows Agent installer yerleşimi (`AgentInstallerLayout`) yalnız `win-x64` ve `win-arm64`, `%ProgramFiles%\ImzaKit\Agent`, loopback bind ve PKCS#11 allowlist kökü taşır; vendor `akisp11.dll` paketlenmez. Authenticode imzası release anahtarıyla yapılır (CI’de sertifika yoktur). Her sürüm CycloneDX 1.6 SBOM, commit/digest provenance ve imzalı update manifest’i üretir; GPL/AGPL/SSPL bağımlılık release’i durdurur.
+
 `RevocationDataUnavailable`, seçilen zaman ve tazelik politikası için uygun OCSP/CRL kanıtı bulunmadığını bildirir; ağdan otomatik kanıt indirilmez.
 
 ### Sınırlamalar
@@ -179,7 +187,7 @@ ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature too
 ### Install
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.4
+dotnet add package ImzaKit --version 1.0.0-alpha.5
 ```
 
 ### Included modules

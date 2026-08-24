@@ -1,22 +1,44 @@
 using ImzaKit.Api.Idempotency;
+using ImzaKit.Api.Storage;
 
 namespace ImzaKit.Api.Operations;
 
-public sealed class SignatureOperationService(IIdempotencyStore idempotencyStore, TimeProvider? timeProvider = null)
+public sealed class SignatureOperationService(
+    IIdempotencyStore idempotencyStore,
+    TimeProvider? timeProvider = null,
+    StorageRetentionPolicy? retention = null)
 {
     private readonly Dictionary<Guid, SignatureOperation> _operations = [];
+    private readonly Dictionary<Guid, string> _tenants = [];
     private readonly Lock _gate = new();
     private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+    private readonly StorageRetentionPolicy _retention = retention ?? StorageRetentionPolicy.Default;
 
-    public SignatureOperationResult Create(string idempotencyKey, string requestHash)
+    public SignatureOperationResult Create(
+        string idempotencyKey,
+        string requestHash,
+        string documentDigest = "",
+        string? tenantId = null)
     {
         lock (_gate)
         {
+            PurgeExpired();
             SignatureOperationResult? replay = Replay(idempotencyKey, requestHash);
-            if (replay is not null) return replay;
+            if (replay is not null)
+            {
+                return replay;
+            }
 
-            SignatureOperation operation = new(Guid.NewGuid(), SignatureOperationState.Created, 0, _timeProvider.GetUtcNow());
+            DateTimeOffset now = _timeProvider.GetUtcNow();
+            SignatureOperation operation = new(
+                Guid.NewGuid(),
+                SignatureOperationState.Created,
+                0,
+                now,
+                documentDigest,
+                now.Add(_retention.IncompleteOperation));
             _operations.Add(operation.Id, operation);
+            _tenants[operation.Id] = tenantId ?? "";
             SignatureOperationResult result = new(OperationMutationStatus.Succeeded, operation);
             idempotencyStore.Store(idempotencyKey, requestHash, result);
             return result;
@@ -28,39 +50,106 @@ public sealed class SignatureOperationService(IIdempotencyStore idempotencyStore
         SignatureOperationState target,
         int expectedVersion,
         string idempotencyKey,
-        string requestHash)
+        string requestHash,
+        string? tenantId = null)
     {
         lock (_gate)
         {
+            PurgeExpired();
             SignatureOperationResult? replay = Replay(idempotencyKey, requestHash);
-            if (replay is not null) return replay;
-            if (!_operations.TryGetValue(operationId, out SignatureOperation? current))
-                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.NotFound, ProblemCode: "IMZAKIT.CORE.NOT_FOUND"));
-            if (IsTerminal(current.State))
-                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.TerminalState, current, "IMZAKIT.CORE.TERMINAL_STATE"));
-            if (current.Version != expectedVersion)
-                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.VersionConflict, current, "IMZAKIT.CORE.VERSION_CONFLICT"));
-            if (!CanTransition(current.State, target))
-                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.InvalidTransition, current, "IMZAKIT.CORE.INVALID_STATE_TRANSITION"));
+            if (replay is not null)
+            {
+                return replay;
+            }
 
-            SignatureOperation updated = current with { State = target, Version = current.Version + 1 };
+            if (!TryOwned(operationId, tenantId, out SignatureOperation? current))
+            {
+                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.NotFound, ProblemCode: "IMZAKIT.CORE.NOT_FOUND"));
+            }
+
+            if (IsTerminal(current.State))
+            {
+                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.TerminalState, current, "IMZAKIT.CORE.TERMINAL_STATE"));
+            }
+
+            if (current.Version != expectedVersion)
+            {
+                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.VersionConflict, current, "IMZAKIT.CORE.VERSION_CONFLICT"));
+            }
+
+            if (!CanTransition(current.State, target))
+            {
+                return Store(idempotencyKey, requestHash, new(OperationMutationStatus.InvalidTransition, current, "IMZAKIT.CORE.INVALID_STATE_TRANSITION"));
+            }
+
+            DateTimeOffset expiresAt = HasCompletedOutput(target)
+                ? _timeProvider.GetUtcNow().Add(_retention.CompletedArtifact)
+                : current.ExpiresAt ?? _timeProvider.GetUtcNow().Add(_retention.IncompleteOperation);
+            SignatureOperation updated = current with { State = target, Version = current.Version + 1, ExpiresAt = expiresAt };
             _operations[operationId] = updated;
             return Store(idempotencyKey, requestHash, new(OperationMutationStatus.Succeeded, updated));
         }
     }
 
-    public SignatureOperation? Get(Guid operationId)
+    public SignatureOperation? Get(Guid operationId, string? tenantId = null)
     {
-        lock (_gate) return _operations.GetValueOrDefault(operationId);
+        lock (_gate)
+        {
+            PurgeExpired();
+            return TryOwned(operationId, tenantId, out SignatureOperation? operation) ? operation : null;
+        }
+    }
+
+    public SignatureOperationResult? TryReplay(string idempotencyKey, string requestHash)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestHash);
+        lock (_gate)
+        {
+            return Replay(idempotencyKey, requestHash);
+        }
+    }
+
+    private bool TryOwned(Guid operationId, string? tenantId, out SignatureOperation operation)
+    {
+        if (!_operations.TryGetValue(operationId, out operation!))
+        {
+            return false;
+        }
+
+        if (tenantId is not null && !string.Equals(_tenants.GetValueOrDefault(operationId), tenantId, StringComparison.Ordinal))
+        {
+            operation = null!;
+            return false;
+        }
+
+        return true;
+    }
+
+    private void PurgeExpired()
+    {
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        List<Guid> expired = [.. _operations.Where(pair => pair.Value.ExpiresAt <= now).Select(pair => pair.Key)];
+        foreach (Guid id in expired)
+        {
+            _operations.Remove(id);
+            _tenants.Remove(id);
+        }
     }
 
     private SignatureOperationResult? Replay(string key, string requestHash)
     {
         IdempotencyLookup lookup = idempotencyStore.Find(key, requestHash);
         if (lookup.Status == IdempotencyLookupStatus.Conflict)
+        {
             return new(OperationMutationStatus.IdempotencyConflict, ProblemCode: "IMZAKIT.CORE.IDEMPOTENCY_CONFLICT");
+        }
+
         if (lookup.Status == IdempotencyLookupStatus.Match && lookup.Response is SignatureOperationResult result)
+        {
             return result with { Status = OperationMutationStatus.Replayed };
+        }
+
         return null;
     }
 
@@ -69,6 +158,10 @@ public sealed class SignatureOperationService(IIdempotencyStore idempotencyStore
         idempotencyStore.Store(key, hash, result);
         return result;
     }
+
+    private static bool HasCompletedOutput(SignatureOperationState state) => state is
+        SignatureOperationState.Signed or SignatureOperationState.Timestamping or
+        SignatureOperationState.Validating or SignatureOperationState.Completed;
 
     private static bool IsTerminal(SignatureOperationState state) => state is
         SignatureOperationState.Completed or SignatureOperationState.Failed or

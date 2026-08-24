@@ -9,7 +9,8 @@ public sealed class TrustAnchor
     public TrustAnchor(
         CertificateDescriptor certificate,
         IEnumerable<ValidationProfile> profiles,
-        string? provenance = null)
+        string? provenance = null,
+        TrustAnchorRole role = TrustAnchorRole.Root)
     {
         ArgumentNullException.ThrowIfNull(certificate);
         ArgumentNullException.ThrowIfNull(profiles);
@@ -22,6 +23,7 @@ public sealed class TrustAnchor
         Certificate = certificate;
         _profiles = Array.AsReadOnly(copiedProfiles);
         Provenance = string.IsNullOrWhiteSpace(provenance) ? null : provenance.Trim();
+        Role = role;
     }
 
     public CertificateDescriptor Certificate { get; }
@@ -29,4 +31,6 @@ public sealed class TrustAnchor
     public IReadOnlyList<ValidationProfile> Profiles => _profiles;
 
     public string? Provenance { get; }
+
+    public TrustAnchorRole Role { get; }
 }

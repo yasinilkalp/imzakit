@@ -3,4 +3,8 @@
     <Description>Idempotent signature-operation services and API problem mapping for ImzaKit.</Description>
     <PackageId>ImzaKit.Api</PackageId>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Agent\ImzaKit.Agent.csproj" />
+    <EmbeddedResource Include="..\..\frd\api-ve-akislar\openapi.yaml" LogicalName="ImzaKit.Api.openapi.yaml" />
+  </ItemGroup>
 </Project>

@@ -6,6 +6,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ImzaKit" Version="1.0.0-alpha.4" />
+    <PackageReference Include="ImzaKit" Version="1.0.0-alpha.5" />
   </ItemGroup>
 </Project>

@@ -15,6 +15,7 @@
   </Folder>
   <Folder Name="/packaging/">
     <Project Path="packaging/ImzaKit/ImzaKit.csproj" />
+    <Project Path="packaging/ImzaKit.Release/ImzaKit.Release.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ImzaKit.Agent.Tests/ImzaKit.Agent.Tests.csproj" />
@@ -28,6 +29,7 @@
     <Project Path="tests/ImzaKit.Revocation.Tests/ImzaKit.Revocation.Tests.csproj" />
     <Project Path="tests/ImzaKit.Trust.Tests/ImzaKit.Trust.Tests.csproj" />
     <Project Path="tests/ImzaKit.Verify.Tests/ImzaKit.Verify.Tests.csproj" />
+    <Project Path="tests/ImzaKit.Release.Tests/ImzaKit.Release.Tests.csproj" />
     <Project Path="tests/ImzaKit.Testing/ImzaKit.Testing.csproj" />
   </Folder>
 </Solution>

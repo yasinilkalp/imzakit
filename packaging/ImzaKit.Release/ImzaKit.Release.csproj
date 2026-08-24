@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Release SBOM, provenance, and Windows Agent installer layout for ImzaKit.</Description>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

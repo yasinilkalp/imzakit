@@ -1,6 +1,10 @@
 using ImzaKit.Agent.Security;
+using ImzaKit.Api.Audit;
+using ImzaKit.Api.Hosting;
 using ImzaKit.Api.Idempotency;
+using ImzaKit.Api.Mtls;
 using ImzaKit.Api.Operations;
+using ImzaKit.Api.Storage;
 using ImzaKit.Cms.Preparation;
 using ImzaKit.Certificate.Building;
 using ImzaKit.Certificate.Validation;
@@ -33,12 +37,33 @@ public static class ImzaKitServiceCollectionExtensions
         services.AddSingleton<CmsSignaturePreparer>();
         services.AddSingleton<PadesSignaturePreparer>();
         services.AddSingleton<IIdempotencyStore, InMemoryIdempotencyStore>();
+        services.AddSingleton<IMetadataStore, InMemoryMetadataStore>();
+        services.AddSingleton<IBlobStore, MemoryBlobStore>();
+        services.AddSingleton<IDocumentStore>(static services =>
+            new EncryptedDocumentStore(
+                services.GetRequiredService<IBlobStore>(),
+                System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)));
+        services.AddSingleton<HashChainAuditLog>();
+        services.AddSingleton<RetentionMaintenance>();
         services.AddSingleton<SignatureOperationService>();
         services.AddSingleton<INonceStore, InMemoryNonceStore>();
         services.AddSingleton(serviceProvider => new AgentTicketValidator(
             publicKey, serviceProvider.GetRequiredService<INonceStore>()));
         services.AddTransient<InProcessPadesSigningOrchestrator>();
         services.AddTransient<IPadesValidationService, PadesValidationService>();
+        return services;
+    }
+
+    public static IServiceCollection AddImzaKitApiHost(
+        this IServiceCollection services,
+        ReadOnlySpan<byte> agentTicketPrivateKey)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        byte[] key = agentTicketPrivateKey.ToArray();
+        services.AddSingleton(new AgentTicketIssuer(key));
+        services.AddSingleton<DeviceEnrollmentAuthority>();
+        services.AddSingleton<ISignatureWorkflow, InMemorySignatureWorkflow>();
+        services.AddSingleton<SignatureApiRequestHandler>();
         return services;
     }
 
