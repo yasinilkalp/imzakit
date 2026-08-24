@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "ImzaKit.Cryptography.Tests/1.0.0-alpha.4": {
+      "ImzaKit.Cryptography.Tests/1.0.0-alpha.6": {
         "dependencies": {
-          "ImzaKit.Cryptography": "1.0.0-alpha.4",
+          "ImzaKit.Cryptography": "1.0.0-alpha.6",
           "Microsoft.NET.Test.Sdk": "17.14.1",
           "xunit": "2.9.3"
         },
@@ -331,7 +331,7 @@
           }
         }
       },
-      "ImzaKit.Core/1.0.0-alpha.4": {
+      "ImzaKit.Core/1.0.0-alpha.6": {
         "runtime": {
           "ImzaKit.Core.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -339,9 +339,9 @@
           }
         }
       },
-      "ImzaKit.Cryptography/1.0.0-alpha.4": {
+      "ImzaKit.Cryptography/1.0.0-alpha.6": {
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.4"
+          "ImzaKit.Core": "1.0.0-alpha.6"
         },
         "runtime": {
           "ImzaKit.Cryptography.dll": {
@@ -353,7 +353,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Cryptography.Tests/1.0.0-alpha.4": {
+    "ImzaKit.Cryptography.Tests/1.0.0-alpha.6": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -435,12 +435,12 @@
       "path": "xunit.extensibility.execution/2.9.3",
       "hashPath": "xunit.extensibility.execution.2.9.3.nupkg.sha512"
     },
-    "ImzaKit.Core/1.0.0-alpha.4": {
+    "ImzaKit.Core/1.0.0-alpha.6": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ImzaKit.Cryptography/1.0.0-alpha.4": {
+    "ImzaKit.Cryptography/1.0.0-alpha.6": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

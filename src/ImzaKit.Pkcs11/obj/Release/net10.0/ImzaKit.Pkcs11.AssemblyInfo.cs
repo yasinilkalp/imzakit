@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright 2026 ImzaKit contributors")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("PKCS#11 provider contracts, models, and signing orchestration for ImzaKit.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.4+7aab42ef2907b577797a8cd5976d8887bb24276b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.6+4a0a29eabfaf6dbb5843d08b79cb74fee9e1f112")]
 [assembly: System.Reflection.AssemblyProductAttribute("ImzaKit.Pkcs11")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ImzaKit.Pkcs11")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

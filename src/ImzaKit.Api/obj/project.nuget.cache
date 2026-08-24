@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "T22LlqPqpxE=",
+  "dgSpecHash": "IIPVKrZkh04=",
   "success": true,
   "projectFilePath": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Api\\ImzaKit.Api.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\yasin\\.nuget\\packages\\bouncycastle.cryptography\\2.7.0\\bouncycastle.cryptography.2.7.0.nupkg.sha512"
+  ],
   "logs": []
 }

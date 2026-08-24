@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright 2026 ImzaKit contributors")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.4+7aab42ef2907b577797a8cd5976d8887bb24276b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.6+4a0a29eabfaf6dbb5843d08b79cb74fee9e1f112")]
 [assembly: System.Reflection.AssemblyProductAttribute("ImzaKit.Verify.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ImzaKit.Verify.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

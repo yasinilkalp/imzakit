@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright 2026 ImzaKit contributors")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("CMS and PAdES signature validation reports for ImzaKit.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.4+99bac6af37acf89c8f9e70d52c5175d9f05a0e8f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.4+c1af4b671816290e0201ebb9be842a75821ae914")]
 [assembly: System.Reflection.AssemblyProductAttribute("ImzaKit.Verify")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ImzaKit.Verify")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

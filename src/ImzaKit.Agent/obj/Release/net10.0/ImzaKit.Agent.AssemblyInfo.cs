@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Secure loopback-agent configuration and authorization ticket primitives for ImzaK" +
     "it."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.4+7aab42ef2907b577797a8cd5976d8887bb24276b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0-alpha.6+4a0a29eabfaf6dbb5843d08b79cb74fee9e1f112")]
 [assembly: System.Reflection.AssemblyProductAttribute("ImzaKit.Agent")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ImzaKit.Agent")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

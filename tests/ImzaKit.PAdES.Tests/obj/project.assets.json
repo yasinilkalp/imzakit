@@ -572,12 +572,12 @@
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
       },
-      "ImzaKit.Cms/1.0.0-alpha.4": {
+      "ImzaKit.Cms/1.0.0-alpha.6": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.4",
-          "ImzaKit.Cryptography": "1.0.0-alpha.4"
+          "ImzaKit.Core": "1.0.0-alpha.6",
+          "ImzaKit.Cryptography": "1.0.0-alpha.6"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Cms.dll": {}
@@ -586,7 +586,7 @@
           "bin/placeholder/ImzaKit.Cms.dll": {}
         }
       },
-      "ImzaKit.Core/1.0.0-alpha.4": {
+      "ImzaKit.Core/1.0.0-alpha.6": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "compile": {
@@ -596,11 +596,11 @@
           "bin/placeholder/ImzaKit.Core.dll": {}
         }
       },
-      "ImzaKit.Cryptography/1.0.0-alpha.4": {
+      "ImzaKit.Cryptography/1.0.0-alpha.6": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Core": "1.0.0-alpha.4"
+          "ImzaKit.Core": "1.0.0-alpha.6"
         },
         "compile": {
           "bin/placeholder/ImzaKit.Cryptography.dll": {}
@@ -609,12 +609,12 @@
           "bin/placeholder/ImzaKit.Cryptography.dll": {}
         }
       },
-      "ImzaKit.PAdES/1.0.0-alpha.4": {
+      "ImzaKit.PAdES/1.0.0-alpha.6": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "ImzaKit.Cms": "1.0.0-alpha.4",
-          "ImzaKit.Core": "1.0.0-alpha.4"
+          "ImzaKit.Cms": "1.0.0-alpha.6",
+          "ImzaKit.Core": "1.0.0-alpha.6"
         },
         "compile": {
           "bin/placeholder/ImzaKit.PAdES.dll": {}
@@ -1459,22 +1459,22 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
-    "ImzaKit.Cms/1.0.0-alpha.4": {
+    "ImzaKit.Cms/1.0.0-alpha.6": {
       "type": "project",
       "path": "../../src/ImzaKit.Cms/ImzaKit.Cms.csproj",
       "msbuildProject": "../../src/ImzaKit.Cms/ImzaKit.Cms.csproj"
     },
-    "ImzaKit.Core/1.0.0-alpha.4": {
+    "ImzaKit.Core/1.0.0-alpha.6": {
       "type": "project",
       "path": "../../src/ImzaKit.Core/ImzaKit.Core.csproj",
       "msbuildProject": "../../src/ImzaKit.Core/ImzaKit.Core.csproj"
     },
-    "ImzaKit.Cryptography/1.0.0-alpha.4": {
+    "ImzaKit.Cryptography/1.0.0-alpha.6": {
       "type": "project",
       "path": "../../src/ImzaKit.Cryptography/ImzaKit.Cryptography.csproj",
       "msbuildProject": "../../src/ImzaKit.Cryptography/ImzaKit.Cryptography.csproj"
     },
-    "ImzaKit.PAdES/1.0.0-alpha.4": {
+    "ImzaKit.PAdES/1.0.0-alpha.6": {
       "type": "project",
       "path": "../../src/ImzaKit.PAdES/ImzaKit.PAdES.csproj",
       "msbuildProject": "../../src/ImzaKit.PAdES/ImzaKit.PAdES.csproj"
@@ -1483,7 +1483,7 @@
   "projectFileDependencyGroups": {
     "net10.0": [
       "BouncyCastle.Cryptography >= 2.7.0",
-      "ImzaKit.PAdES >= 1.0.0-alpha.4",
+      "ImzaKit.PAdES >= 1.0.0-alpha.6",
       "Microsoft.NET.Test.Sdk >= 17.14.1",
       "PDFsharp >= 6.2.4",
       "PdfPig >= 0.1.15",
@@ -1497,7 +1497,7 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0-alpha.4",
+    "version": "1.0.0-alpha.6",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.PAdES.Tests\\ImzaKit.PAdES.Tests.csproj",
       "projectName": "ImzaKit.PAdES.Tests",

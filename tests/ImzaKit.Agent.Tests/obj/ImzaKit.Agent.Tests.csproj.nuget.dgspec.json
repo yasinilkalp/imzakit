@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Agent\\ImzaKit.Agent.csproj": {
-      "version": "1.0.0-alpha.4",
+      "version": "1.0.0-alpha.6",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Agent\\ImzaKit.Agent.csproj",
         "projectName": "ImzaKit.Agent",
@@ -367,7 +367,7 @@
       }
     },
     "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Agent.Tests\\ImzaKit.Agent.Tests.csproj": {
-      "version": "1.0.0-alpha.4",
+      "version": "1.0.0-alpha.6",
       "restore": {
         "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\tests\\ImzaKit.Agent.Tests\\ImzaKit.Agent.Tests.csproj",
         "projectName": "ImzaKit.Agent.Tests",

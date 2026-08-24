@@ -2,7 +2,7 @@
   "version": 4,
   "targets": {
     "net10.0": {
-      "ImzaKit.Core/1.0.0-alpha.4": {
+      "ImzaKit.Core/1.0.0-alpha.6": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "compile": {
@@ -15,7 +15,7 @@
     }
   },
   "libraries": {
-    "ImzaKit.Core/1.0.0-alpha.4": {
+    "ImzaKit.Core/1.0.0-alpha.6": {
       "type": "project",
       "path": "../ImzaKit.Core/ImzaKit.Core.csproj",
       "msbuildProject": "../ImzaKit.Core/ImzaKit.Core.csproj"
@@ -23,7 +23,7 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "ImzaKit.Core >= 1.0.0-alpha.4"
+      "ImzaKit.Core >= 1.0.0-alpha.6"
     ]
   },
   "packageFolders": {
@@ -31,7 +31,7 @@
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
-    "version": "1.0.0-alpha.4",
+    "version": "1.0.0-alpha.6",
     "restore": {
       "projectUniqueName": "C:\\Users\\yasin\\source\\repos\\imzakit\\src\\ImzaKit.Cryptography\\ImzaKit.Cryptography.csproj",
       "projectName": "ImzaKit.Cryptography",
