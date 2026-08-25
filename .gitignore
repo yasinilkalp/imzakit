@@ -1,9 +1,43 @@
+# Visual Studio / Rider
 .vs/
+.idea/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Build outputs
 **/bin/
 **/obj/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
 artifacts/
-*.user
-*.suo
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Test / coverage
 TestResults/
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
 coverage/
+*.coverage
+*.coveragexml
+
+# Local tooling
 .superpowers/
