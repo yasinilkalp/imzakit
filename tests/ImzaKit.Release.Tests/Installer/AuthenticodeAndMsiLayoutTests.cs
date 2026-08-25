@@ -25,7 +25,7 @@ public sealed class AuthenticodeAndMsiLayoutTests
     [Fact]
     public void WixSourceInstallsToProgramFilesExcludesVendorDllAndRequiresAuthenticode()
     {
-        AgentInstallerPayload payload = AgentInstallerLayout.Create("1.0.0-alpha.7", ["win-x64", "win-arm64"]);
+        AgentInstallerPayload payload = AgentInstallerLayout.Create("1.0.0-alpha.8", ["win-x64", "win-arm64"]);
         string wxs = AgentMsiDocument.CreateWixSource(payload);
 
         Assert.Contains(@"ProgramFiles64Folder", wxs, StringComparison.Ordinal);

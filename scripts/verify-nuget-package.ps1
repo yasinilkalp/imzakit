@@ -1,6 +1,6 @@
 param(
     [string]$PackageDirectory = (Join-Path (Split-Path -Parent $PSScriptRoot) 'artifacts\packages'),
-    [string]$Version = '1.0.0-alpha.7'
+    [string]$Version = '1.0.0-alpha.8'
 )
 
 $ErrorActionPreference = 'Stop'

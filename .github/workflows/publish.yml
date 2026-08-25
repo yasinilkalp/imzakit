@@ -51,7 +51,7 @@ jobs:
       - name: Publish to NuGet.org
         shell: bash
         run: |
-          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.7.nupkg \
+          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.8.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --symbol-source https://api.nuget.org/v3/index.json

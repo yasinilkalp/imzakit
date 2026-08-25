@@ -33,7 +33,7 @@ foreach ($needle in @(
     'ImzaKit.Trust.Tests',
     'ImzaKit.Revocation.Tests',
     'verify-nuget-package.ps1',
-    '1.0.0-alpha.7',
+    '1.0.0-alpha.8',
     '12 DLL'
 )) {
     if ($matrixText.IndexOf($needle, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
