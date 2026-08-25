@@ -39,12 +39,31 @@ public sealed class NativePkcs11ProviderTests
     }
 
     [Fact]
-    public void FindCertificatesReturnsOnlyX509WithSignablePrivateKey()
+    public void FindCertificatesWithoutLoginReturnsPublicX509Certificates()
+    {
+        FakePkcs11NativeApi api = FakePkcs11NativeApi.CreateAkisFixture();
+        api.PrivateKeyFindFailure = Pkcs11ErrorCode.DriverError;
+        using NativePkcs11Provider provider = new(api);
+        provider.Initialize();
+        ulong session = provider.OpenSession(7);
+
+        IReadOnlyList<Pkcs11Certificate> certificates = provider.FindCertificates(session);
+
+        Assert.Equal(2, certificates.Count);
+        Assert.Equal([1, 2], certificates[0].CkaId);
+        Assert.Equal("NES", certificates[0].Label);
+        Assert.Equal("Auth", certificates[1].Label);
+        Assert.False(api.PrivateKeyValueWasRead);
+    }
+
+    [Fact]
+    public void FindCertificatesAfterLoginReturnsOnlyX509WithSignablePrivateKey()
     {
         FakePkcs11NativeApi api = FakePkcs11NativeApi.CreateAkisFixture();
         using NativePkcs11Provider provider = new(api);
         provider.Initialize();
         ulong session = provider.OpenSession(7);
+        provider.Login(session, "1234".AsSpan());
 
         IReadOnlyList<Pkcs11Certificate> certificates = provider.FindCertificates(session);
 
@@ -82,6 +101,7 @@ public sealed class NativePkcs11ProviderTests
         using NativePkcs11Provider provider = new(api);
         provider.Initialize();
         ulong session = provider.OpenSession(7);
+        provider.Login(session, "1234".AsSpan());
 
         IReadOnlyList<Pkcs11Certificate> certificates = provider.FindCertificates(session);
         ulong? handle = provider.FindPrivateKey(session, certificates[0].CkaId);

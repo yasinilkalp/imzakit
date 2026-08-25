@@ -19,6 +19,7 @@ internal sealed class FakePkcs11NativeApi : IPkcs11NativeApi
     public TimeSpan CallDelay { get; set; }
     public Pkcs11ErrorCode? LoginFailure { get; set; }
     public Pkcs11ErrorCode? SignFailure { get; set; }
+    public Pkcs11ErrorCode? PrivateKeyFindFailure { get; set; }
     public byte[]? LastLoginPinBuffer { get; private set; }
     public ulong LastSignMechanism { get; private set; }
     public bool PrivateKeyValueWasRead { get; private set; }
@@ -93,6 +94,11 @@ internal sealed class FakePkcs11NativeApi : IPkcs11NativeApi
         params (ulong Type, byte[] Value)[] additional) =>
         Track("FindObjects", () =>
         {
+            if (objectClass == Pkcs11NativeConstants.CkoPrivateKey && PrivateKeyFindFailure is not null)
+            {
+                throw new Pkcs11ProviderException(PrivateKeyFindFailure.Value, "PKCS#11 find objects init failed.");
+            }
+
             List<ulong> matches = [];
             foreach (FakeObject item in _objects)
             {

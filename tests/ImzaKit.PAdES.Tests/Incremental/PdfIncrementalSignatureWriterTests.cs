@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text;
+using ImzaKit.PAdES.Appearance;
 using ImzaKit.PAdES.Incremental;
 
 namespace ImzaKit.PAdES.Tests.Incremental;
@@ -86,6 +88,53 @@ public sealed class PdfIncrementalSignatureWriterTests
         byte[] signableBytes = result.GetSignableBytes();
 
         Assert.Equal(expected, signableBytes);
+    }
+
+    [Fact]
+    public void PrepareVisibleSignatureReadsNestedPdfACatalogAndPageDictionaries()
+    {
+        PadesSignatureAppearance appearance = PadesSignatureAppearance.Visible(
+            1, 72, 680, 240, 740, "E-Imzali");
+
+        PdfSignaturePlaceholder result = PdfIncrementalSignatureWriter.Prepare(
+            CreatePdfALikeOnePagePdf(),
+            cmsCapacity: 8,
+            appearance);
+
+        string document = Encoding.ASCII.GetString(result.DocumentBytes);
+        Assert.Contains("/Pages 2 0 R", document, StringComparison.Ordinal);
+        Assert.Contains("/Annots [7 0 R]", document, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /Widget", document, StringComparison.Ordinal);
+        Assert.Contains("(E-Imzali)", document, StringComparison.Ordinal);
+    }
+
+    private static byte[] CreatePdfALikeOnePagePdf()
+    {
+        StringBuilder builder = new("%PDF-1.4\n");
+        int catalogOffset = builder.Length;
+        builder.Append(
+            "1 0 obj\n" +
+            "<< /Type /Catalog /OutputIntents [<< /Type /OutputIntent /S /GTS_PDFA1 /DestOutputProfile 4 0 R >>] " +
+            "/Pages 2 0 R /ViewerPreferences << /DisplayDocTitle true >> >>\nendobj\n");
+        int pagesOffset = builder.Length;
+        builder.Append("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+        int pageOffset = builder.Length;
+        builder.Append(
+            "3 0 obj\n" +
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] " +
+            "/Resources << /ProcSet [/PDF] /ExtGState << /G4 4 0 R >> >> >>\nendobj\n");
+        int extStateOffset = builder.Length;
+        builder.Append("4 0 obj\n<< /Type /ExtGState /CA 1 >>\nendobj\n");
+        int xrefOffset = builder.Length;
+        builder.Append("xref\n0 5\n0000000000 65535 f \n")
+            .Append(catalogOffset.ToString("D10", CultureInfo.InvariantCulture)).Append(" 00000 n \n")
+            .Append(pagesOffset.ToString("D10", CultureInfo.InvariantCulture)).Append(" 00000 n \n")
+            .Append(pageOffset.ToString("D10", CultureInfo.InvariantCulture)).Append(" 00000 n \n")
+            .Append(extStateOffset.ToString("D10", CultureInfo.InvariantCulture)).Append(" 00000 n \n")
+            .Append("trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n")
+            .Append(xrefOffset.ToString(CultureInfo.InvariantCulture))
+            .Append("\n%%EOF\n");
+        return Encoding.ASCII.GetBytes(builder.ToString());
     }
 
     private static byte[] CreateMinimalPdf() => Encoding.ASCII.GetBytes(

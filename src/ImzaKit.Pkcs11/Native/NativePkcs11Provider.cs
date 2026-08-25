@@ -12,6 +12,7 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
     private readonly NativePkcs11ProviderOptions _options;
     private readonly object _gate = new();
     private readonly HashSet<ulong> _sessions = [];
+    private readonly HashSet<ulong> _loggedInSessions = [];
     private readonly Dictionary<(ulong Session, string CkaIdHex), ulong> _privateKeysByCertificateId = [];
     private bool _initialized;
     private bool _disposed;
@@ -70,6 +71,7 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
             {
                 EnsureInitialized();
                 _api.LoginUser(session, utf8Pin);
+                _loggedInSessions.Add(session);
             });
         }
         finally
@@ -97,10 +99,14 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
                 continue;
             }
 
-            ulong? keyHandle = FindSignablePrivateKey(session, ckaId, der);
-            if (_options.ExcludeCertificatesWithoutSignableKey && keyHandle is null)
+            ulong? keyHandle = null;
+            if (_loggedInSessions.Contains(session))
             {
-                continue;
+                keyHandle = TryFindSignablePrivateKey(session, ckaId, der);
+                if (_options.ExcludeCertificatesWithoutSignableKey && keyHandle is null)
+                {
+                    continue;
+                }
             }
 
             if (keyHandle is not null)
@@ -152,6 +158,7 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
     {
         EnsureInitialized();
         _api.Logout(session);
+        _loggedInSessions.Remove(session);
     });
 
     public void CloseSession(ulong session) => Execute(() =>
@@ -180,6 +187,7 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
 
         _api.FinalizeCryptoki();
         _initialized = false;
+        _loggedInSessions.Clear();
         _privateKeysByCertificateId.Clear();
     });
 
@@ -203,6 +211,18 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
 
         _api.Dispose();
         _disposed = true;
+    }
+
+    private ulong? TryFindSignablePrivateKey(ulong session, byte[] certificateCkaId, byte[] certificateDer)
+    {
+        try
+        {
+            return FindSignablePrivateKey(session, certificateCkaId, certificateDer);
+        }
+        catch (Pkcs11ProviderException)
+        {
+            return null;
+        }
     }
 
     private ulong? FindSignablePrivateKey(ulong session, byte[] certificateCkaId, byte[] certificateDer)
@@ -293,6 +313,7 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
     {
         _api.CloseSession(session);
         _sessions.Remove(session);
+        _loggedInSessions.Remove(session);
         foreach ((ulong Session, string CkaIdHex) key in _privateKeysByCertificateId.Keys
             .Where(item => item.Session == session)
             .ToArray())

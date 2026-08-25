@@ -352,20 +352,117 @@ public static class PdfIncrementalSignatureWriter
 
     private static string ReadObjectDictionary(string source, int objectNumber)
     {
-        string objectHeader = $"{objectNumber} 0 obj";
-        int objectIndex = source.IndexOf(objectHeader, StringComparison.Ordinal);
+        int objectIndex = IndexOfGenerationZeroObject(source, objectNumber);
         if (objectIndex < 0)
         {
             throw new NotSupportedException($"PDF object {objectNumber} must be an uncompressed generation-zero object.");
         }
 
-        int dictionaryStart = source.IndexOf("<<", objectIndex + objectHeader.Length, StringComparison.Ordinal);
-        int dictionaryEnd = source.IndexOf(">>", dictionaryStart + 2, StringComparison.Ordinal);
+        int headerLength = $"{objectNumber} 0 obj".Length;
+        int dictionaryStart = source.IndexOf("<<", objectIndex + headerLength, StringComparison.Ordinal);
+        int dictionaryEnd = dictionaryStart < 0 ? -1 : FindMatchingDictionaryEnd(source, dictionaryStart);
         if (dictionaryStart < 0 || dictionaryEnd < 0)
         {
             throw new NotSupportedException($"PDF object {objectNumber} dictionary could not be read.");
         }
 
         return source[dictionaryStart..(dictionaryEnd + 2)];
+    }
+
+    private static int IndexOfGenerationZeroObject(string source, int objectNumber)
+    {
+        string objectHeader = $"{objectNumber} 0 obj";
+        int start = 0;
+        while (start < source.Length)
+        {
+            int index = source.IndexOf(objectHeader, start, StringComparison.Ordinal);
+            if (index < 0)
+            {
+                return -1;
+            }
+
+            if (index == 0 || !char.IsAsciiDigit(source[index - 1]))
+            {
+                return index;
+            }
+
+            start = index + 1;
+        }
+
+        return -1;
+    }
+
+    private static int FindMatchingDictionaryEnd(string source, int dictionaryStart)
+    {
+        int depth = 0;
+        int index = dictionaryStart;
+        while (index < source.Length - 1)
+        {
+            char current = source[index];
+            if (current == '%')
+            {
+                int newline = source.IndexOf('\n', index);
+                index = newline < 0 ? source.Length : newline + 1;
+                continue;
+            }
+
+            if (current == '(')
+            {
+                index = SkipLiteralString(source, index);
+                continue;
+            }
+
+            if (current == '<' && source[index + 1] == '<')
+            {
+                depth++;
+                index += 2;
+                continue;
+            }
+
+            if (current == '>' && source[index + 1] == '>')
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    return index;
+                }
+
+                index += 2;
+                continue;
+            }
+
+            index++;
+        }
+
+        return -1;
+    }
+
+    private static int SkipLiteralString(string source, int openParen)
+    {
+        int depth = 0;
+        for (int index = openParen; index < source.Length; index++)
+        {
+            char current = source[index];
+            if (current == '\\')
+            {
+                index++;
+                continue;
+            }
+
+            if (current == '(')
+            {
+                depth++;
+            }
+            else if (current == ')')
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    return index + 1;
+                }
+            }
+        }
+
+        return source.Length;
     }
 }
