@@ -16,6 +16,16 @@ public static class Pkcs11NativeConstants
     public const uint CkfRwSession = 0x00000002;
     public const uint CkfSerialSession = 0x00000004;
     public const uint CkuUser = 1;
+
+    public static int PackedUlongSize(bool windowsUlong) => windowsUlong ? 4 : 8;
+
+    public static int PackedAttributeSize(bool windowsUlong) =>
+        PackedUlongSize(windowsUlong) + System.IntPtr.Size + PackedUlongSize(windowsUlong);
+
+    public static int PackedAttributePointerOffset(bool windowsUlong) => PackedUlongSize(windowsUlong);
+
+    public static int PackedAttributeLengthOffset(bool windowsUlong) =>
+        PackedUlongSize(windowsUlong) + System.IntPtr.Size;
 }
 
 public static class Pkcs11Rv

@@ -391,7 +391,8 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
         public static AttributeBlock Create(bool windowsUlong, ulong objectClass, (ulong Type, byte[] Value)[] additional)
         {
             int count = 1 + additional.Length;
-            AttributeBlock block = new(new byte[count * 24], windowsUlong) { Count = count };
+            int stride = Pkcs11NativeConstants.PackedAttributeSize(windowsUlong);
+            AttributeBlock block = new(new byte[count * stride], windowsUlong) { Count = count };
             block.Write(0, Pkcs11NativeConstants.CkaClass, EncodeUlong(windowsUlong, objectClass));
             for (int index = 0; index < additional.Length; index++)
             {
@@ -403,13 +404,17 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
 
         public static AttributeBlock ForRead(bool windowsUlong, ulong type, IntPtr value, ulong length)
         {
-            AttributeBlock block = new(new byte[24], windowsUlong) { Count = 1 };
+            int stride = Pkcs11NativeConstants.PackedAttributeSize(windowsUlong);
+            AttributeBlock block = new(new byte[stride], windowsUlong) { Count = 1 };
             block.WriteHeader(0, type, value, length);
             return block;
         }
 
-        public ulong ReadLength() =>
-            _windowsUlong ? BitConverter.ToUInt32(_template, 16) : BitConverter.ToUInt64(_template, 16);
+        public ulong ReadLength()
+        {
+            int offset = Pkcs11NativeConstants.PackedAttributeLengthOffset(_windowsUlong);
+            return _windowsUlong ? BitConverter.ToUInt32(_template, offset) : BitConverter.ToUInt64(_template, offset);
+        }
 
         private void Write(int index, ulong type, byte[] value)
         {
@@ -420,18 +425,21 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
 
         private void WriteHeader(int index, ulong type, IntPtr value, ulong length)
         {
-            int offset = index * 24;
+            int stride = Pkcs11NativeConstants.PackedAttributeSize(_windowsUlong);
+            int offset = index * stride;
+            int pointerOffset = offset + Pkcs11NativeConstants.PackedAttributePointerOffset(_windowsUlong);
+            int lengthOffset = offset + Pkcs11NativeConstants.PackedAttributeLengthOffset(_windowsUlong);
             if (_windowsUlong)
             {
                 BitConverter.TryWriteBytes(_template.AsSpan(offset), (uint)type);
-                WritePointer(_template.AsSpan(offset + 8), value);
-                BitConverter.TryWriteBytes(_template.AsSpan(offset + 16), (uint)length);
+                WritePointer(_template.AsSpan(pointerOffset), value);
+                BitConverter.TryWriteBytes(_template.AsSpan(lengthOffset), (uint)length);
             }
             else
             {
                 BitConverter.TryWriteBytes(_template.AsSpan(offset), type);
-                WritePointer(_template.AsSpan(offset + 8), value);
-                BitConverter.TryWriteBytes(_template.AsSpan(offset + 16), length);
+                WritePointer(_template.AsSpan(pointerOffset), value);
+                BitConverter.TryWriteBytes(_template.AsSpan(lengthOffset), length);
             }
         }
 
@@ -477,7 +485,7 @@ internal sealed class Pkcs11NativeLibraryApi : IPkcs11NativeApi
 
         public static MechanismBlock Create(bool windowsUlong, ulong mechanismType)
         {
-            byte[] buffer = new byte[24];
+            byte[] buffer = new byte[Pkcs11NativeConstants.PackedAttributeSize(windowsUlong)];
             if (windowsUlong)
             {
                 BitConverter.TryWriteBytes(buffer.AsSpan(0), (uint)mechanismType);
