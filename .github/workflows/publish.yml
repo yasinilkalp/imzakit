@@ -5,10 +5,16 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      publish_nuget_org:
+        description: Publish to NuGet.org
+        type: boolean
+        default: true
 
 permissions:
   contents: read
   id-token: write
+  packages: write
 
 concurrency:
   group: nuget-publish
@@ -42,13 +48,22 @@ jobs:
         shell: pwsh
         run: ./scripts/verify-nuget-package.ps1
 
+      - name: Publish to GitHub Packages
+        shell: bash
+        run: |
+          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.8.nupkg \
+            --api-key "${{ secrets.GITHUB_TOKEN }}" \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
       - name: Sign in to NuGet.org with OIDC
+        if: github.event_name == 'push' || inputs.publish_nuget_org
         uses: NuGet/login@v1
         id: login
         with:
           user: Kodekibi
 
       - name: Publish to NuGet.org
+        if: github.event_name == 'push' || inputs.publish_nuget_org
         shell: bash
         run: |
           dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.8.nupkg \

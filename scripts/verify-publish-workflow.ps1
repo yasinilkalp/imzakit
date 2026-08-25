@@ -17,9 +17,12 @@ $requiredPatterns = [ordered]@{
     'single package build' = 'dotnet pack packaging/ImzaKit/ImzaKit\.csproj -c Release --no-build --output artifacts/packages'
     'package contract' = 'scripts/verify-nuget-package\.ps1'
     'OIDC permission' = '(?m)^\s+id-token:\s*write\s*$'
+    'packages write permission' = '(?m)^\s+packages:\s+write\s*$'
     'NuGet OIDC login' = 'uses:\s*NuGet/login@v1'
     'NuGet profile' = '(?m)^\s+user:\s*Kodekibi\s*$'
     'temporary API key output' = 'steps\.login\.outputs\.NUGET_API_KEY'
+    'GitHub Packages token' = 'secrets\.GITHUB_TOKEN'
+    'GitHub Packages source' = 'nuget\.pkg\.github\.com'
     'alpha.8 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.8\.nupkg'
     'NuGet.org source' = 'https://api\.nuget\.org/v3/index\.json'
 }

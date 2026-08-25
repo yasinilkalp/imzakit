@@ -34,6 +34,8 @@ Ya da proje dosyanıza doğrudan ekleyin:
 <PackageReference Include="ImzaKit" Version="1.0.0-alpha.8" />
 ```
 
+Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuget/ImzaKit) üzerinde görünür; kurulum kaynağı nuget.org’dur.
+
 ## Paketteki modüller
 
 | Modül | Sorumluluk |
