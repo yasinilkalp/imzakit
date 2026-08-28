@@ -7,12 +7,15 @@ using ImzaKit.Api.Mtls;
 using ImzaKit.Api.Operations;
 using ImzaKit.Api.Storage;
 using ImzaKit.Cms.Preparation;
+using ImzaKit.Core.Net;
+using ImzaKit.Timestamp.Rfc3161;
 using ImzaKit.Certificate.Building;
 using ImzaKit.Certificate.Validation;
 using ImzaKit.Cryptography.Digests;
 using ImzaKit.PAdES.Preparation;
 using ImzaKit.Pkcs11.Signing;
 using ImzaKit.Revocation.Evaluation;
+using ImzaKit.Revocation.Online;
 using ImzaKit.Revocation.Parsing;
 using ImzaKit.Trust.Evaluation;
 using ImzaKit.Verify.Validation;
@@ -28,12 +31,17 @@ public static class ImzaKitServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         byte[] publicKey = agentTicketPublicKey.IsEmpty ? new byte[32] : agentTicketPublicKey.ToArray();
+        services.AddSingleton<IExternalResourceFetcher, SsrfExternalResourceFetcher>();
+        services.AddSingleton<Rfc3161TimeStampClient>();
         services.AddSingleton<IDigestCalculator, DefaultDigestCalculator>();
         services.AddSingleton<ICertificateChainBuilder, CertificateChainBuilder>();
         services.AddSingleton<ICertificateChainValidator, CertificateChainValidator>();
         services.AddSingleton<ITrustPolicyEvaluator, TrustPolicyEvaluator>();
         services.AddSingleton<IRevocationEvidenceParser, BouncyCastleRevocationEvidenceParser>();
+        services.AddSingleton<IRevocationEvidenceCache, MemoryRevocationEvidenceCache>();
+        services.AddSingleton<OnlineRevocationClient>();
         services.AddSingleton<IOfflineRevocationEvaluator, OfflineRevocationEvaluator>();
+        services.AddSingleton<IRevocationEvaluator, RevocationEvaluator>();
         services.AddSingleton<ValidationDecisionEngine>();
         services.AddSingleton<CmsSignaturePreparer>();
         services.AddSingleton<PadesSignaturePreparer>();
@@ -52,6 +60,7 @@ public static class ImzaKitServiceCollectionExtensions
             publicKey, serviceProvider.GetRequiredService<INonceStore>()));
         services.AddTransient<InProcessPadesSigningOrchestrator>();
         services.AddTransient<IPadesValidationService, PadesValidationService>();
+        services.AddSingleton<ISignatureExtensionWorkflow, PadesDocumentExtensionWorkflow>();
         return services;
     }
 

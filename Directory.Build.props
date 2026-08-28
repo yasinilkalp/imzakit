@@ -13,13 +13,13 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <IsPackable>false</IsPackable>
-    <Version>1.0.0-alpha.9</Version>
+    <Version>1.0.0-alpha.10</Version>
     <PackageProjectUrl>https://github.com/yasinilkalp/imzakit</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yasinilkalp/imzakit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>electronic-signature;digital-signature;pades;cms;pkcs11;pdf</PackageTags>
+    <PackageTags>electronic-signature;digital-signature;pades;cms;pkcs11;pdf;rfc3161</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>

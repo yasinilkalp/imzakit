@@ -26,6 +26,7 @@ public sealed class PadesValidatorTests
         Assert.Equal(ValidationStatus.Indeterminate, report.TrustStatus);
         Assert.Matches("^[0-9A-F]{64}$", report.SignerCertificateSha256!);
         Assert.Contains(report.Findings, finding => finding.Code == "TrustNotEvaluated");
+        Assert.Equal(PadesBaselineLevel.BB, report.SignatureLevel);
     }
 
     [Fact]

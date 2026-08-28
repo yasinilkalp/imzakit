@@ -120,6 +120,26 @@ paths:
       responses:
         '200': { description: Report, content: { application/json: { schema: { $ref: '#/components/schemas/ValidationReport' } } } }
         '404': { $ref: '#/components/responses/NotFound' }
+  /signatures/extend:
+    post:
+      operationId: extendSignature
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExtendSignatureRequest' }
+      responses:
+        '200':
+          description: Extended
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureExtension' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '503': { $ref: '#/components/responses/ServerError' }
   /agent-callbacks/signature-results:
     post:
       operationId: submitAgentSignatureResult
@@ -239,6 +259,41 @@ components:
       properties:
         document: { $ref: '#/components/schemas/DocumentReference' }
         validationProfile: { type: string, enum: [TurkiyeNes, GenelX509] }
+    ExtendSignatureRequest:
+      type: object
+      additionalProperties: false
+      required: [document, targetLevel, validationProfile]
+      properties:
+        document: { $ref: '#/components/schemas/DocumentReference' }
+        targetLevel: { type: string, enum: [B-T, B-LT, B-LTA] }
+        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509] }
+        timeStampAuthorities:
+          type: array
+          items: { $ref: '#/components/schemas/TimeStampAuthority' }
+        certificatesDerBase64:
+          type: array
+          items: { type: string, contentEncoding: base64 }
+        ocspResponsesBase64:
+          type: array
+          items: { type: string, contentEncoding: base64 }
+        certificateRevocationListsBase64:
+          type: array
+          items: { type: string, contentEncoding: base64 }
+    TimeStampAuthority:
+      type: object
+      additionalProperties: false
+      required: [name, url]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 128 }
+        url: { type: string, format: uri }
+    SignatureExtension:
+      type: object
+      required: [extensionId, fromLevel, toLevel, result]
+      properties:
+        extensionId: { type: string, format: uuid }
+        fromLevel: { type: string, enum: [B-B, B-T, B-LT, B-LTA] }
+        toLevel: { type: string, enum: [B-T, B-LT, B-LTA] }
+        result: { $ref: '#/components/schemas/DocumentReference' }
     ValidationReport:
       type: object
       required: [validationId, outcome, onlineRevocationChecked, signatures]

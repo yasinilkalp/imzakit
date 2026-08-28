@@ -30,6 +30,7 @@ public sealed class PadesValidationServiceTests
         Assert.Equal(RevocationStatus.Good, report.RevocationStatus);
         Assert.Equal("trust-test-v1", report.TrustStoreVersion);
         Assert.Equal("policy-test-v1", report.PolicyCatalogVersion);
+        Assert.Equal(PadesBaselineLevel.BB, report.SignatureLevel);
     }
 
     [Fact]

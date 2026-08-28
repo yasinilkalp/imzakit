@@ -23,7 +23,7 @@ foreach ($path in $required) {
 $checks = [ordered]@{
     'CONTRIBUTING.md' = @('dotnet restore', 'dotnet test', 'pull request')
     'CODE_OF_CONDUCT.md' = @('Contributor Covenant', 'enforcement')
-    'SECURITY.md' = @('1.0.0-alpha.9', 'Security advisory', 'public issue')
+    'SECURITY.md' = @('1.0.0-alpha.10', 'Security advisory', 'public issue')
     '.github/ISSUE_TEMPLATE/bug_report.yml' = @('name:', 'description:', 'reproduction', 'environment')
     '.github/ISSUE_TEMPLATE/feature_request.yml' = @('name:', 'description:', 'use case', 'scope')
     '.github/ISSUE_TEMPLATE/config.yml' = @('blank_issues_enabled: false', 'Security advisory')

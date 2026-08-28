@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>RFC 3161 timestamp request, failover, and TSA token validation for ImzaKit.</Description>
+    <PackageId>ImzaKit.Timestamp</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+  </ItemGroup>
+</Project>

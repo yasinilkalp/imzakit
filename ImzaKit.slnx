@@ -9,6 +9,7 @@
     <Project Path="src/ImzaKit.PAdES/ImzaKit.PAdES.csproj" />
     <Project Path="src/ImzaKit.Pkcs11/ImzaKit.Pkcs11.csproj" />
     <Project Path="src/ImzaKit.Revocation/ImzaKit.Revocation.csproj" />
+    <Project Path="src/ImzaKit.Timestamp/ImzaKit.Timestamp.csproj" />
     <Project Path="src/ImzaKit.Trust/ImzaKit.Trust.csproj" />
     <Project Path="src/ImzaKit.DependencyInjection/ImzaKit.DependencyInjection.csproj" />
     <Project Path="src/ImzaKit.Verify/ImzaKit.Verify.csproj" />
@@ -28,6 +29,7 @@
     <Project Path="tests/ImzaKit.PAdES.Tests/ImzaKit.PAdES.Tests.csproj" />
     <Project Path="tests/ImzaKit.Pkcs11.Tests/ImzaKit.Pkcs11.Tests.csproj" />
     <Project Path="tests/ImzaKit.Revocation.Tests/ImzaKit.Revocation.Tests.csproj" />
+    <Project Path="tests/ImzaKit.Timestamp.Tests/ImzaKit.Timestamp.Tests.csproj" />
     <Project Path="tests/ImzaKit.Trust.Tests/ImzaKit.Trust.Tests.csproj" />
     <Project Path="tests/ImzaKit.Verify.Tests/ImzaKit.Verify.Tests.csproj" />
     <Project Path="tests/ImzaKit.Release.Tests/ImzaKit.Release.Tests.csproj" />

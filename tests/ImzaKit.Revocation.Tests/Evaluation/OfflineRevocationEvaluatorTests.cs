@@ -44,6 +44,23 @@ public sealed class OfflineRevocationEvaluatorTests
     }
 
     [Fact]
+    public void OnlineOcspWinsOverEmbeddedCrl()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create();
+        RevocationEvidence[] evidence = [
+            Evidence(RevocationEvidenceType.Crl, RevocationEvidenceSource.Embedded,
+                RevocationEvidenceFixture.CreateCrl(pki, CrlReason.KeyCompromise)),
+            Evidence(RevocationEvidenceType.Ocsp, RevocationEvidenceSource.Online,
+                RevocationEvidenceFixture.CreateOcsp(pki))];
+
+        OfflineRevocationResult result = Evaluate(pki, evidence);
+
+        Assert.Equal(RevocationStatus.Good, result.Status);
+        Assert.Equal(RevocationEvidenceSource.Online, result.Certificates[0].EvidenceSource);
+        Assert.Equal(RevocationEvidenceType.Ocsp, result.Certificates[0].EvidenceType);
+    }
+
+    [Fact]
     public void EvaluateReturnsStaleWhenNextUpdatePrecedesValidationTime()
     {
         using TestCertificateAuthority pki = TestCertificateAuthority.Create();

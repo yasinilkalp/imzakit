@@ -29,4 +29,8 @@ public sealed record PadesValidationReport(
 
     public IReadOnlyList<RevocationEvidenceSource> EvidenceSources { get; init; } =
         Array.Empty<RevocationEvidenceSource>();
+
+    public string? SignatureLevel { get; init; }
+
+    public ValidationStatus ModificationPolicyStatus { get; init; } = ValidationStatus.Indeterminate;
 }

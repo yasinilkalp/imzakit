@@ -14,9 +14,10 @@ $html = Get-Content -LiteralPath $resolvedGuidePath -Raw
 $requiredPatterns = [ordered]@{
     'HTML5 doctype' = '<!doctype html>'
     'Turkish document language' = 'lang="tr"'
-    'Published package version' = 'ImzaKit 1.0.0-alpha.9'
-    'NuGet install command' = 'dotnet add package ImzaKit --version 1.0.0-alpha.9'
-    'Twelve-module inventory' = '12 modül'
+    'Published package version' = 'ImzaKit 1.0.0-alpha.10'
+    'NuGet install command' = 'dotnet add package ImzaKit --version 1.0.0-alpha.10'
+    'Thirteen-module inventory' = '13 modül'
+    'Timestamp module' = 'ImzaKit.Timestamp'
     'Core module' = 'ImzaKit.Core'
     'Cryptography module' = 'ImzaKit.Cryptography'
     'CMS module' = 'ImzaKit.Cms'

@@ -134,6 +134,23 @@ public sealed class BouncyCastleRevocationEvidenceParserTests
         Assert.False(result.TargetMatches);
     }
 
+    [Fact]
+    public void ParseRejectsCrlWhenAuthorityKeyIdentifierDoesNotMatchIssuer()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create();
+        RevocationEvidence evidence = new(
+            RevocationEvidenceType.Crl,
+            RevocationEvidenceSource.Local,
+            RevocationEvidenceFixture.CreateCrl(pki, mismatchedAuthorityKey: true));
+
+        ParsedRevocationEvidence result = Parse(evidence, pki);
+
+        Assert.Equal(RevocationStatus.Invalid, result.Status);
+        Assert.True(result.TargetMatches);
+        Assert.True(result.SignatureValid);
+        Assert.False(result.ResponderAuthorized);
+    }
+
     private static ParsedRevocationEvidence Parse(RevocationEvidence evidence, TestCertificateAuthority pki) =>
         new BouncyCastleRevocationEvidenceParser().Parse(
             evidence,

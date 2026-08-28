@@ -6,5 +6,6 @@
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" />
     <ProjectReference Include="..\ImzaKit.Certificate\ImzaKit.Certificate.csproj" />
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
   </ItemGroup>
 </Project>

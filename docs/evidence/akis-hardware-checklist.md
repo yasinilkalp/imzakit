@@ -1,6 +1,6 @@
 # AKİS Donanım Kabul Kontrol Listesi
 
-**Durum:** Adaptör kodu hazır; fiziksel referans kart, izinli vendor sürücüsü ve kontrollü Windows laboratuvarı olmadan **çalıştırılmadı**. CI sahte native API ile yeşil kalır. Bu listedeki MVP maddeleri işaretlenmeden ürün “gerçek AKİS kabulü geçti” veya “üretime hazır” olarak etiketlenmez.
+**Durum:** 28 Ağustos 2026 proje kararı — fiziksel KamuSM/AKİS kartı yok; PKCS#11 adaptör birim testleri (sahte native API) yeşil. Faz 1 yazılım kapısı bu nedenle **kapatıldı**. Fiziksel kart laboratuvarı üretim/donanım kabulüne ertelendi. Bu liste işaretlenmeden ürün “gerçek AKİS kabulü geçti” veya “üretime hazır” olarak etiketlenmez.
 
 **Kapsam:** Faz 0 AKİS kapısı, Faz 1 MVP çıkış kapısının kart ayağı, `TST-001`, `TST-002`, `FR-021`–`FR-029`. eToken ayrı listededir ve MVP’yi kilitlemez.
 

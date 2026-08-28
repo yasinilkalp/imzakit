@@ -11,13 +11,17 @@ public static class CmsSignedDataCompleter
     private const string SignedDataContentTypeOid = "1.2.840.113549.1.7.2";
     private const string Sha256AlgorithmOid = "2.16.840.1.101.3.4.2.1";
     private const string RsaEncryptionAlgorithmOid = "1.2.840.113549.1.1.1";
+    private const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
     private static readonly Asn1Tag ContextSpecificZero =
         new(TagClass.ContextSpecific, 0, isConstructed: true);
+    private static readonly Asn1Tag ContextSpecificOne =
+        new(TagClass.ContextSpecific, 1, isConstructed: true);
 
     public static byte[] CompleteDetached(
         SignaturePreparation preparation,
         SignatureCompletion completion,
-        ReadOnlySpan<byte> signingCertificateDer)
+        ReadOnlySpan<byte> signingCertificateDer,
+        ReadOnlySpan<byte> signatureTimeStampToken = default)
     {
         ArgumentNullException.ThrowIfNull(preparation);
         ArgumentNullException.ThrowIfNull(completion);
@@ -40,8 +44,269 @@ public static class CmsSignedDataCompleter
                 WriteDigestAlgorithms(writer);
                 WriteDetachedContentInfo(writer);
                 WriteCertificates(writer, signingCertificateDer);
-                WriteSignerInfos(writer, certificate, implicitSignedAttributes, completion.SignatureValue.Span);
+                WriteSignerInfos(
+                    writer,
+                    certificate,
+                    implicitSignedAttributes,
+                    completion.SignatureValue.Span,
+                    signatureTimeStampToken);
             }
+        }
+
+        return writer.Encode();
+    }
+
+    public static byte[] AddSignatureTimeStamp(
+        ReadOnlySpan<byte> cms,
+        ReadOnlySpan<byte> signatureTimeStampToken)
+    {
+        if (cms.IsEmpty)
+        {
+            throw new ArgumentException("CMS container is empty.", nameof(cms));
+        }
+
+        if (signatureTimeStampToken.IsEmpty)
+        {
+            throw new ArgumentException("Signature timestamp token is empty.", nameof(signatureTimeStampToken));
+        }
+
+        AsnReader root = new(cms.ToArray(), AsnEncodingRules.DER);
+        AsnReader contentInfo = root.ReadSequence();
+        if (contentInfo.ReadObjectIdentifier() != SignedDataContentTypeOid)
+        {
+            throw new ArgumentException("CMS content type must be signedData.", nameof(cms));
+        }
+
+        AsnReader explicitSignedData = contentInfo.ReadSequence(ContextSpecificZero);
+        AsnReader signedData = explicitSignedData.ReadSequence();
+        if (root.HasData || contentInfo.HasData || explicitSignedData.HasData)
+        {
+            throw new ArgumentException("CMS container has trailing data.", nameof(cms));
+        }
+
+        System.Numerics.BigInteger version = signedData.ReadInteger();
+        ReadOnlyMemory<byte> digestAlgorithms = signedData.ReadEncodedValue();
+        ReadOnlyMemory<byte> encapContentInfo = signedData.ReadEncodedValue();
+        ReadOnlyMemory<byte>? certificates = null;
+        ReadOnlyMemory<byte>? crls = null;
+        if (signedData.HasData && signedData.PeekTag().HasSameClassAndValue(ContextSpecificZero))
+        {
+            certificates = signedData.ReadEncodedValue();
+        }
+
+        if (signedData.HasData && signedData.PeekTag().HasSameClassAndValue(ContextSpecificOne))
+        {
+            crls = signedData.ReadEncodedValue();
+        }
+
+        AsnReader signerInfos = signedData.ReadSetOf();
+        ReadOnlyMemory<byte> signerInfo = signerInfos.ReadEncodedValue();
+        if (signerInfos.HasData)
+        {
+            throw new NotSupportedException("Only a single signerInfo is supported when adding a signature timestamp.");
+        }
+
+        if (signedData.HasData)
+        {
+            throw new ArgumentException("Unexpected SignedData fields.", nameof(cms));
+        }
+
+        byte[] extendedSigner = AppendUnsignedTimeStamp(signerInfo.Span, signatureTimeStampToken);
+        AsnWriter writer = new(AsnEncodingRules.DER);
+        using (writer.PushSequence())
+        {
+            writer.WriteObjectIdentifier(SignedDataContentTypeOid);
+            using (writer.PushSequence(ContextSpecificZero))
+            using (writer.PushSequence())
+            {
+                writer.WriteInteger(version);
+                writer.WriteEncodedValue(digestAlgorithms.Span);
+                writer.WriteEncodedValue(encapContentInfo.Span);
+                if (certificates is not null)
+                {
+                    writer.WriteEncodedValue(certificates.Value.Span);
+                }
+
+                if (crls is not null)
+                {
+                    writer.WriteEncodedValue(crls.Value.Span);
+                }
+
+                using (writer.PushSetOf())
+                {
+                    writer.WriteEncodedValue(extendedSigner);
+                }
+            }
+        }
+
+        return writer.Encode();
+    }
+
+    public static byte[] ReadSignatureValue(ReadOnlySpan<byte> cms)
+    {
+        if (cms.IsEmpty)
+        {
+            throw new ArgumentException("CMS container is empty.", nameof(cms));
+        }
+
+        AsnReader signerInfo = OpenFirstSignerInfo(cms);
+        signerInfo.ReadInteger();
+        signerInfo.ReadEncodedValue();
+        signerInfo.ReadEncodedValue();
+        if (signerInfo.HasData && signerInfo.PeekTag().HasSameClassAndValue(ContextSpecificZero))
+        {
+            signerInfo.ReadEncodedValue();
+        }
+
+        signerInfo.ReadEncodedValue();
+        return signerInfo.ReadOctetString();
+    }
+
+    public static bool HasSignatureTimeStamp(ReadOnlySpan<byte> cms)
+    {
+        AsnReader signerInfo = OpenFirstSignerInfo(cms);
+        signerInfo.ReadInteger();
+        signerInfo.ReadEncodedValue();
+        signerInfo.ReadEncodedValue();
+        if (signerInfo.HasData && signerInfo.PeekTag().HasSameClassAndValue(ContextSpecificZero))
+        {
+            signerInfo.ReadEncodedValue();
+        }
+
+        signerInfo.ReadEncodedValue();
+        signerInfo.ReadOctetString();
+        if (!signerInfo.HasData)
+        {
+            return false;
+        }
+
+        AsnReader unsignedAttributes = signerInfo.ReadSetOf(ContextSpecificOne);
+        while (unsignedAttributes.HasData)
+        {
+            AsnReader attribute = unsignedAttributes.ReadSequence();
+            if (attribute.ReadObjectIdentifier() == SignatureTimeStampTokenOid)
+            {
+                return true;
+            }
+
+            if (attribute.HasData)
+            {
+                attribute.ReadSetOf();
+            }
+        }
+
+        return false;
+    }
+
+    public static List<byte[]> ReadCertificates(ReadOnlySpan<byte> cms)
+    {
+        AsnReader signedData = OpenSignedData(cms);
+        signedData.ReadInteger();
+        signedData.ReadEncodedValue();
+        signedData.ReadEncodedValue();
+        List<byte[]> certificates = [];
+        if (signedData.HasData && signedData.PeekTag().HasSameClassAndValue(ContextSpecificZero))
+        {
+            AsnReader set = signedData.ReadSetOf(ContextSpecificZero);
+            while (set.HasData)
+            {
+                certificates.Add(set.ReadEncodedValue().ToArray());
+            }
+        }
+
+        return certificates;
+    }
+
+    public static byte[]? ReadSignatureTimeStampToken(ReadOnlySpan<byte> cms)
+    {
+        AsnReader signerInfo = OpenFirstSignerInfo(cms);
+        signerInfo.ReadInteger();
+        signerInfo.ReadEncodedValue();
+        signerInfo.ReadEncodedValue();
+        if (signerInfo.HasData && signerInfo.PeekTag().HasSameClassAndValue(ContextSpecificZero))
+        {
+            signerInfo.ReadEncodedValue();
+        }
+
+        signerInfo.ReadEncodedValue();
+        signerInfo.ReadOctetString();
+        if (!signerInfo.HasData)
+        {
+            return null;
+        }
+
+        AsnReader unsignedAttributes = signerInfo.ReadSetOf(ContextSpecificOne);
+        while (unsignedAttributes.HasData)
+        {
+            AsnReader attribute = unsignedAttributes.ReadSequence();
+            if (attribute.ReadObjectIdentifier() == SignatureTimeStampTokenOid)
+            {
+                return attribute.ReadSetOf().ReadEncodedValue().ToArray();
+            }
+
+            if (attribute.HasData)
+            {
+                attribute.ReadSetOf();
+            }
+        }
+
+        return null;
+    }
+
+    private static AsnReader OpenSignedData(ReadOnlySpan<byte> cms)
+    {
+        AsnReader contentInfo = new AsnReader(cms.ToArray(), AsnEncodingRules.DER).ReadSequence();
+        if (contentInfo.ReadObjectIdentifier() != SignedDataContentTypeOid)
+        {
+            throw new ArgumentException("CMS content type must be signedData.", nameof(cms));
+        }
+
+        return contentInfo.ReadSequence(ContextSpecificZero).ReadSequence();
+    }
+
+    private static AsnReader OpenFirstSignerInfo(ReadOnlySpan<byte> cms)
+    {
+        AsnReader signedData = OpenSignedData(cms);
+        signedData.ReadInteger();
+        signedData.ReadEncodedValue();
+        signedData.ReadEncodedValue();
+        if (signedData.HasData && signedData.PeekTag().HasSameClassAndValue(ContextSpecificZero))
+        {
+            signedData.ReadEncodedValue();
+        }
+
+        if (signedData.HasData && signedData.PeekTag().HasSameClassAndValue(ContextSpecificOne))
+        {
+            signedData.ReadEncodedValue();
+        }
+
+        return signedData.ReadSetOf().ReadSequence();
+    }
+
+    private static byte[] AppendUnsignedTimeStamp(
+        ReadOnlySpan<byte> signerInfo,
+        ReadOnlySpan<byte> signatureTimeStampToken)
+    {
+        AsnReader reader = new AsnReader(signerInfo.ToArray(), AsnEncodingRules.DER).ReadSequence();
+        AsnWriter writer = new(AsnEncodingRules.DER);
+        using (writer.PushSequence())
+        {
+            writer.WriteInteger(reader.ReadInteger());
+            writer.WriteEncodedValue(reader.ReadEncodedValue().Span);
+            writer.WriteEncodedValue(reader.ReadEncodedValue().Span);
+            if (reader.HasData && reader.PeekTag().HasSameClassAndValue(ContextSpecificZero))
+            {
+                writer.WriteEncodedValue(reader.ReadEncodedValue().Span);
+            }
+
+            writer.WriteEncodedValue(reader.ReadEncodedValue().Span);
+            writer.WriteOctetString(reader.ReadOctetString());
+            if (reader.HasData)
+            {
+                throw new InvalidOperationException("The CMS already contains unsigned attributes.");
+            }
+
+            WriteSignatureTimeStampUnsignedAttributes(writer, signatureTimeStampToken);
         }
 
         return writer.Encode();
@@ -76,7 +341,8 @@ public static class CmsSignedDataCompleter
         AsnWriter writer,
         X509Certificate2 certificate,
         ReadOnlySpan<byte> implicitSignedAttributes,
-        ReadOnlySpan<byte> signatureValue)
+        ReadOnlySpan<byte> signatureValue,
+        ReadOnlySpan<byte> signatureTimeStampToken)
     {
         using (writer.PushSetOf())
         using (writer.PushSequence())
@@ -96,6 +362,25 @@ public static class CmsSignedDataCompleter
             }
 
             writer.WriteOctetString(signatureValue);
+            if (!signatureTimeStampToken.IsEmpty)
+            {
+                WriteSignatureTimeStampUnsignedAttributes(writer, signatureTimeStampToken);
+            }
+        }
+    }
+
+    private static void WriteSignatureTimeStampUnsignedAttributes(
+        AsnWriter writer,
+        ReadOnlySpan<byte> signatureTimeStampToken)
+    {
+        using (writer.PushSetOf(ContextSpecificOne))
+        using (writer.PushSequence())
+        {
+            writer.WriteObjectIdentifier(SignatureTimeStampTokenOid);
+            using (writer.PushSetOf())
+            {
+                writer.WriteEncodedValue(signatureTimeStampToken);
+            }
         }
     }
 

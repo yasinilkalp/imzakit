@@ -1,3 +1,4 @@
+using ImzaKit.Api.Hosting;
 using ImzaKit.Certificate.Building;
 using ImzaKit.Certificate.Validation;
 using ImzaKit.DependencyInjection;
@@ -22,5 +23,6 @@ public sealed class ValidationServiceRegistrationTests
         Assert.IsType<TrustPolicyEvaluator>(provider.GetRequiredService<ITrustPolicyEvaluator>());
         Assert.IsType<OfflineRevocationEvaluator>(provider.GetRequiredService<IOfflineRevocationEvaluator>());
         Assert.IsType<PadesValidationService>(provider.GetRequiredService<IPadesValidationService>());
+        Assert.IsType<PadesDocumentExtensionWorkflow>(provider.GetRequiredService<ISignatureExtensionWorkflow>());
     }
 }

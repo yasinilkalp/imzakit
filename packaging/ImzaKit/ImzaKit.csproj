@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\ImzaKit.PAdES\ImzaKit.PAdES.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Pkcs11\ImzaKit.Pkcs11.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Revocation\ImzaKit.Revocation.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\ImzaKit.Timestamp\ImzaKit.Timestamp.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Trust\ImzaKit.Trust.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Verify\ImzaKit.Verify.csproj" PrivateAssets="all" />
     <PackageReference Include="BouncyCastle.Cryptography" />
@@ -36,6 +37,7 @@
       <_ModuleAssembly Include="..\..\src\ImzaKit.PAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.PAdES.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Pkcs11\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Pkcs11.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Revocation\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Revocation.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.Timestamp\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Timestamp.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Trust\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Trust.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Verify\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Verify.dll" />
       <BuildOutputInPackage Include="@(_ModuleAssembly)" TargetPath="%(Filename)%(Extension)" FinalOutputPath="%(FullPath)" />
@@ -55,6 +57,7 @@
       <_ModuleSymbol Include="..\..\src\ImzaKit.PAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.PAdES.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Pkcs11\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Pkcs11.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Revocation\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Revocation.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.Timestamp\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Timestamp.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Trust\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Trust.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Verify\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Verify.pdb" />
       <TfmSpecificDebugSymbolsFile Include="@(_ModuleSymbol)"

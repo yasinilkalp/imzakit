@@ -21,7 +21,8 @@ public sealed class SignatureApiRequestHandlerTests
         Assert.Contains("operationId: createSignatureOperation", yaml, StringComparison.Ordinal);
         Assert.Contains("operationId: createAgentTicket", yaml, StringComparison.Ordinal);
         Assert.Contains("operationId: createValidation", yaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("/signatures/extend", yaml, StringComparison.Ordinal);
+        Assert.Contains("operationId: extendSignature", yaml, StringComparison.Ordinal);
+        Assert.Contains("/signatures/extend", yaml, StringComparison.Ordinal);
     }
 
     [Fact]

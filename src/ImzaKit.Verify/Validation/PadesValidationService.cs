@@ -1,7 +1,5 @@
-using System.Globalization;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using ImzaKit.Certificate.Building;
 using ImzaKit.Certificate.Models;
 using ImzaKit.Certificate.Validation;
@@ -13,7 +11,6 @@ namespace ImzaKit.Verify.Validation;
 
 public sealed class PadesValidationService : IPadesValidationService
 {
-    private const string ByteRangeMarker = "/ByteRange [";
     private readonly ICertificateChainBuilder _chainBuilder;
     private readonly ICertificateChainValidator _chainValidator;
     private readonly ITrustPolicyEvaluator _trustPolicyEvaluator;
@@ -183,6 +180,11 @@ public sealed class PadesValidationService : IPadesValidationService
             trustStatus,
             policyStatus,
             revocationStatus));
+        if (integrity.ModificationPolicyStatus == ValidationStatus.Failed)
+        {
+            status = ValidationStatus.Failed;
+        }
+
         return new(
             status,
             integrity.ByteRangeStatus,
@@ -199,7 +201,9 @@ public sealed class PadesValidationService : IPadesValidationService
             ValidationProfile = context.Profile,
             TrustStoreVersion = context.TrustStore.Version,
             PolicyCatalogVersion = context.PolicyCatalog.Version,
-            EvidenceSources = evidenceSources
+            EvidenceSources = evidenceSources,
+            SignatureLevel = integrity.SignatureLevel,
+            ModificationPolicyStatus = integrity.ModificationPolicyStatus
         };
     }
 
@@ -237,72 +241,14 @@ public sealed class PadesValidationService : IPadesValidationService
     private static bool TryExtractCms(ReadOnlySpan<byte> pdf, out SignedCms? cms)
     {
         cms = null;
-        string text = Encoding.ASCII.GetString(pdf);
-        int markerIndex = text.LastIndexOf(ByteRangeMarker, StringComparison.Ordinal);
-        if (markerIndex < 0
-            || !TryReadByteRange(text, markerIndex + ByteRangeMarker.Length, out long[] range))
+        if (PdfCadesSignatureReader.TryRead(pdf, out _, out byte[] cmsDer, out byte[] signedBytes)
+            != PdfCadesReadStatus.Success)
         {
             return false;
         }
 
-        int firstLength = (int)range[1];
-        int secondOffset = (int)range[2];
-        int secondLength = (int)range[3];
-        ReadOnlySpan<byte> contents = pdf.Slice(firstLength, secondOffset - firstLength);
-        byte[] paddedCms = Convert.FromHexString(Encoding.ASCII.GetString(contents[1..^1]));
-        if (!TryReadDerLength(paddedCms, out int cmsLength))
-        {
-            return false;
-        }
-
-        byte[] signedBytes = new byte[firstLength + secondLength];
-        pdf[..firstLength].CopyTo(signedBytes);
-        pdf.Slice(secondOffset, secondLength).CopyTo(signedBytes.AsSpan(firstLength));
         cms = new SignedCms(new ContentInfo(signedBytes), detached: true);
-        cms.Decode(paddedCms.AsSpan(0, cmsLength));
+        cms.Decode(cmsDer);
         return true;
-    }
-
-    private static bool TryReadByteRange(string text, int start, out long[] values)
-    {
-        values = new long[4];
-        int index = start;
-        for (int item = 0; item < values.Length; item++)
-        {
-            while (index < text.Length && char.IsWhiteSpace(text[index])) index++;
-            int numberStart = index;
-            while (index < text.Length && char.IsAsciiDigit(text[index])) index++;
-            if (numberStart == index
-                || !long.TryParse(text.AsSpan(numberStart, index - numberStart), NumberStyles.None,
-                    CultureInfo.InvariantCulture, out values[item]))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static bool TryReadDerLength(ReadOnlySpan<byte> encoded, out int totalLength)
-    {
-        totalLength = 0;
-        if (encoded.Length < 2 || encoded[0] != 0x30) return false;
-        int firstLengthByte = encoded[1];
-        if ((firstLengthByte & 0x80) == 0)
-        {
-            totalLength = 2 + firstLengthByte;
-            return totalLength <= encoded.Length;
-        }
-
-        int lengthByteCount = firstLengthByte & 0x7f;
-        if (lengthByteCount is 0 or > 4 || encoded.Length < 2 + lengthByteCount) return false;
-        int contentLength = 0;
-        for (int index = 0; index < lengthByteCount; index++)
-        {
-            contentLength = (contentLength << 8) | encoded[2 + index];
-        }
-
-        totalLength = 2 + lengthByteCount + contentLength;
-        return totalLength <= encoded.Length;
     }
 }

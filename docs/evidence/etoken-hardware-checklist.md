@@ -1,6 +1,6 @@
 # eToken Donanım Kabul Kontrol Listesi
 
-**Durum:** PIN’siz keşif ve CredUI PIN laboratuvarı (28 Ağustos 2026) operatör teyidiyle geçti. CI sahte native API ile yeşil kalır. **MVP çıkış kapısı AKİS kartına bağlı kalır.**
+**Durum:** PIN’siz keşif ve CredUI PIN laboratuvarı (28 Ağustos 2026) operatör teyidiyle geçti. CI sahte native API ile yeşil kalır. Faz 1 yazılım kapısı (28 Ağustos 2026) testlerle kapatıldı; fiziksel AKİS üretim kabulüne ertelendi.
 
 **PIN adımı:** `scripts/run-etoken-pin-lab.ps1` — CredUI penceresi açılır. PIN’i terminale yazmayın.
 

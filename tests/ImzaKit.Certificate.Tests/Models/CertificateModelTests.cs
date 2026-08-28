@@ -28,4 +28,34 @@ public sealed class CertificateModelTests
         Assert.Equal(pki.Leaf.Subject, descriptor.Subject);
         Assert.Equal(pki.Leaf.Issuer, descriptor.Issuer);
     }
+
+    [Fact]
+    public void CertificateDescriptorReadsHttpOcspAndCrlDistributionUris()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(
+            ocspUri: "https://ocsp.example/status",
+            crlDistributionUri: "https://crl.example/ca.crl");
+
+        CertificateDescriptor descriptor = CertificateDescriptor.FromDer(
+            pki.Leaf.Export(X509ContentType.Cert),
+            CertificateSource.Embedded);
+
+        Assert.Equal(new Uri("https://ocsp.example/status"), Assert.Single(descriptor.OcspUris));
+        Assert.Equal(new Uri("https://crl.example/ca.crl"), Assert.Single(descriptor.CrlDistributionUris));
+    }
+
+    [Fact]
+    public void CertificateDescriptorIgnoresNonHttpRevocationUris()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(
+            ocspUri: "ldap://ocsp.example/cn=ocsp",
+            crlDistributionUri: "ldap://crl.example/cn=crl");
+
+        CertificateDescriptor descriptor = CertificateDescriptor.FromDer(
+            pki.Leaf.Export(X509ContentType.Cert),
+            CertificateSource.Embedded);
+
+        Assert.Empty(descriptor.OcspUris);
+        Assert.Empty(descriptor.CrlDistributionUris);
+    }
 }

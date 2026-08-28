@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject></PropertyGroup>
   <ItemGroup><PackageReference Include="BouncyCastle.Cryptography" /><PackageReference Include="Microsoft.NET.Test.Sdk" /><PackageReference Include="PdfPig" /><PackageReference Include="PDFsharp" /><PackageReference Include="System.Security.Cryptography.Pkcs" /><PackageReference Include="xunit" /><PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="..\..\src\ImzaKit.PAdES\ImzaKit.PAdES.csproj" /><Using Include="Xunit" /></ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\ImzaKit.PAdES\ImzaKit.PAdES.csproj" />
+      <ProjectReference Include="..\..\src\ImzaKit.Revocation\ImzaKit.Revocation.csproj" />
+      <ProjectReference Include="..\..\src\ImzaKit.Timestamp\ImzaKit.Timestamp.csproj" />
+      <ProjectReference Include="..\ImzaKit.Testing\ImzaKit.Testing.csproj" />
+      <Using Include="Xunit" />
+    </ItemGroup>
 </Project>

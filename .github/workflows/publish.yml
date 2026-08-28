@@ -49,9 +49,9 @@ jobs:
           IMZAKIT_RELEASE_ECDSA_KEY: ${{ secrets.IMZAKIT_RELEASE_ECDSA_KEY }}
         run: >
           dotnet run --file scripts/emit-release-bundle.cs --
-          --package artifacts/packages/ImzaKit.1.0.0-alpha.9.nupkg
+          --package artifacts/packages/ImzaKit.1.0.0-alpha.10.nupkg
           --output artifacts/packages
-          --version 1.0.0-alpha.9
+          --version 1.0.0-alpha.10
           --commit "${{ github.sha }}"
 
       - name: Verify package contract
@@ -67,7 +67,7 @@ jobs:
       - name: Publish to GitHub Packages
         shell: bash
         run: |
-          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.9.nupkg \
+          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.10.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
@@ -82,7 +82,7 @@ jobs:
         if: github.event_name == 'push' || inputs.publish_nuget_org
         shell: bash
         run: |
-          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.9.nupkg \
+          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.10.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --symbol-source https://api.nuget.org/v3/index.json

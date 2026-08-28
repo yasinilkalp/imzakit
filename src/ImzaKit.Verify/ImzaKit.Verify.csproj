@@ -6,6 +6,7 @@
   <ItemGroup><PackageReference Include="System.Security.Cryptography.Pkcs" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ImzaKit.Certificate\ImzaKit.Certificate.csproj" />
+    <ProjectReference Include="..\ImzaKit.PAdES\ImzaKit.PAdES.csproj" />
     <ProjectReference Include="..\ImzaKit.Revocation\ImzaKit.Revocation.csproj" />
     <ProjectReference Include="..\ImzaKit.Trust\ImzaKit.Trust.csproj" />
   </ItemGroup>

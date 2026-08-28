@@ -113,14 +113,34 @@ public sealed class BouncyCastleRevocationEvidenceParser : IRevocationEvidencePa
             _ when reasonCode == CrlReason.CertificateHold => RevocationStatus.Suspended,
             _ => RevocationStatus.Revoked
         };
+        bool akiMatches = CrlAuthorityKeyMatchesIssuer(crl, issuer);
+        bool authorized = signatureValid && akiMatches;
         return new(
-            signatureValid ? status : RevocationStatus.Invalid,
+            authorized ? status : RevocationStatus.Invalid,
             true,
             signatureValid,
-            signatureValid,
+            authorized,
             AsUtc(crl.ThisUpdate),
             crl.NextUpdate is DateTime nextUpdate ? AsUtc(nextUpdate) : null,
             reasonCode is int value ? ReasonName(value) : null);
+    }
+
+    private static bool CrlAuthorityKeyMatchesIssuer(X509Crl crl, CertificateDescriptor issuer)
+    {
+        Asn1OctetString? extension = crl.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
+        if (extension is null || issuer.SubjectKeyIdentifier is not string issuerSki)
+        {
+            return true;
+        }
+
+        AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.GetInstance(
+            Asn1Object.FromByteArray(extension.GetOctets()));
+        Asn1OctetString? keyIdentifier = aki.KeyIdentifier;
+        return keyIdentifier is null
+            || string.Equals(
+                Convert.ToHexString(keyIdentifier.GetOctets()),
+                issuerSki,
+                StringComparison.OrdinalIgnoreCase);
     }
 
     private static ParsedRevocationEvidence Invalid() =>

@@ -67,6 +67,173 @@ public sealed class CmsSignedDataCompleterTests
     }
 
     [Fact]
+    public void ReadCertificatesAndTimeStampTokenRoundTrip()
+    {
+        using X509Certificate2 certificate = CreateCertificate();
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        string fingerprint = Convert.ToHexString(SHA256.HashData(certificateDer));
+        CmsSignaturePreparer preparer = new(new DefaultDigestCalculator());
+        SignaturePreparation preparation = preparer.PrepareDetached(
+            Guid.NewGuid(),
+            new string('A', 64),
+            [0x10, 0x20],
+            certificateDer,
+            fingerprint,
+            prepareVersion: 1);
+        byte[] encoded = CmsSignedDataCompleter.CompleteDetached(
+            preparation,
+            SignatureCompletion.Create(
+                preparation.OperationId,
+                preparation.PrepareVersion,
+                fingerprint,
+                Enumerable.Repeat((byte)0x5A, 256).ToArray()),
+            certificateDer,
+            CreateMinimalContentInfo());
+
+        List<byte[]> certificates = CmsSignedDataCompleter.ReadCertificates(encoded);
+        Assert.Single(certificates);
+        Assert.Equal(certificateDer, certificates[0]);
+        Assert.Equal(CreateMinimalContentInfo(), CmsSignedDataCompleter.ReadSignatureTimeStampToken(encoded));
+    }
+
+    [Fact]
+    public void CompleteDetachedWritesSignatureTimeStampTokenAsUnsignedAttribute()
+    {
+        using X509Certificate2 certificate = CreateCertificate();
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        string fingerprint = Convert.ToHexString(SHA256.HashData(certificateDer));
+        CmsSignaturePreparer preparer = new(new DefaultDigestCalculator());
+        SignaturePreparation preparation = preparer.PrepareDetached(
+            Guid.NewGuid(),
+            new string('A', 64),
+            [0x10, 0x20],
+            certificateDer,
+            fingerprint,
+            prepareVersion: 1);
+        byte[] signatureValue = Enumerable.Repeat((byte)0x5A, 256).ToArray();
+        SignatureCompletion completion = SignatureCompletion.Create(
+            preparation.OperationId,
+            preparation.PrepareVersion,
+            preparation.CertificateFingerprintSha256,
+            signatureValue);
+        byte[] timeStampToken = CreateMinimalContentInfo();
+
+        byte[] encoded = CmsSignedDataCompleter.CompleteDetached(
+            preparation,
+            completion,
+            certificateDer,
+            timeStampToken);
+
+        AsnReader reader = new(encoded, AsnEncodingRules.DER);
+        AsnReader contentInfo = reader.ReadSequence();
+        contentInfo.ReadObjectIdentifier();
+        AsnReader explicitContent = contentInfo.ReadSequence(ContextSpecificZero);
+        AsnReader signedData = explicitContent.ReadSequence();
+        signedData.ReadInteger();
+        signedData.ReadSetOf().ReadEncodedValue();
+        signedData.ReadSequence();
+        signedData.ReadSetOf(ContextSpecificZero).ReadEncodedValue();
+        AsnReader signerInfo = signedData.ReadSetOf().ReadSequence();
+        signerInfo.ReadInteger();
+        signerInfo.ReadSequence();
+        signerInfo.ReadSequence();
+        signerInfo.ReadSetOf(ContextSpecificZero);
+        signerInfo.ReadSequence();
+        Assert.Equal(signatureValue, signerInfo.ReadOctetString());
+        Asn1Tag unsignedTag = new(TagClass.ContextSpecific, 1, isConstructed: true);
+        Assert.True(signerInfo.PeekTag().HasSameClassAndValue(unsignedTag));
+        AsnReader unsignedAttributes = signerInfo.ReadSetOf(unsignedTag);
+        AsnReader attribute = unsignedAttributes.ReadSequence();
+        Assert.Equal("1.2.840.113549.1.9.16.2.14", attribute.ReadObjectIdentifier());
+        Assert.Equal(timeStampToken, attribute.ReadSetOf().ReadEncodedValue().ToArray());
+        Assert.False(attribute.HasData);
+        Assert.False(unsignedAttributes.HasData);
+        Assert.False(signerInfo.HasData);
+    }
+
+    [Fact]
+    public void AddSignatureTimeStampAppendsUnsignedAttributeToCompletedCms()
+    {
+        using X509Certificate2 certificate = CreateCertificate();
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        string fingerprint = Convert.ToHexString(SHA256.HashData(certificateDer));
+        CmsSignaturePreparer preparer = new(new DefaultDigestCalculator());
+        SignaturePreparation preparation = preparer.PrepareDetached(
+            Guid.NewGuid(),
+            new string('A', 64),
+            [0x10, 0x20],
+            certificateDer,
+            fingerprint,
+            prepareVersion: 1);
+        byte[] signatureValue = Enumerable.Repeat((byte)0x5A, 256).ToArray();
+        SignatureCompletion completion = SignatureCompletion.Create(
+            preparation.OperationId,
+            preparation.PrepareVersion,
+            preparation.CertificateFingerprintSha256,
+            signatureValue);
+        byte[] baseline = CmsSignedDataCompleter.CompleteDetached(preparation, completion, certificateDer);
+        byte[] timeStampToken = CreateMinimalContentInfo();
+
+        byte[] encoded = CmsSignedDataCompleter.AddSignatureTimeStamp(baseline, timeStampToken);
+
+        Assert.Equal(signatureValue, CmsSignedDataCompleter.ReadSignatureValue(encoded));
+        Assert.True(CmsSignedDataCompleter.HasSignatureTimeStamp(encoded));
+        Assert.False(CmsSignedDataCompleter.HasSignatureTimeStamp(baseline));
+        AsnReader reader = new(encoded, AsnEncodingRules.DER);
+        AsnReader contentInfo = reader.ReadSequence();
+        contentInfo.ReadObjectIdentifier();
+        AsnReader explicitContent = contentInfo.ReadSequence(ContextSpecificZero);
+        AsnReader signedData = explicitContent.ReadSequence();
+        signedData.ReadInteger();
+        signedData.ReadSetOf().ReadEncodedValue();
+        signedData.ReadSequence();
+        signedData.ReadSetOf(ContextSpecificZero).ReadEncodedValue();
+        AsnReader signerInfo = signedData.ReadSetOf().ReadSequence();
+        signerInfo.ReadInteger();
+        signerInfo.ReadSequence();
+        signerInfo.ReadSequence();
+        signerInfo.ReadSetOf(ContextSpecificZero);
+        signerInfo.ReadSequence();
+        Assert.Equal(signatureValue, signerInfo.ReadOctetString());
+        Asn1Tag unsignedTag = new(TagClass.ContextSpecific, 1, isConstructed: true);
+        Assert.True(signerInfo.PeekTag().HasSameClassAndValue(unsignedTag));
+        AsnReader unsignedAttributes = signerInfo.ReadSetOf(unsignedTag);
+        AsnReader attribute = unsignedAttributes.ReadSequence();
+        Assert.Equal("1.2.840.113549.1.9.16.2.14", attribute.ReadObjectIdentifier());
+        Assert.Equal(timeStampToken, attribute.ReadSetOf().ReadEncodedValue().ToArray());
+    }
+
+    [Fact]
+    public void AddSignatureTimeStampRejectsCmsThatAlreadyHasUnsignedAttributes()
+    {
+        using X509Certificate2 certificate = CreateCertificate();
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        string fingerprint = Convert.ToHexString(SHA256.HashData(certificateDer));
+        CmsSignaturePreparer preparer = new(new DefaultDigestCalculator());
+        SignaturePreparation preparation = preparer.PrepareDetached(
+            Guid.NewGuid(),
+            new string('A', 64),
+            [0x10, 0x20],
+            certificateDer,
+            fingerprint,
+            prepareVersion: 1);
+        byte[] encoded = CmsSignedDataCompleter.CompleteDetached(
+            preparation,
+            SignatureCompletion.Create(
+                preparation.OperationId,
+                preparation.PrepareVersion,
+                fingerprint,
+                Enumerable.Repeat((byte)0x5A, 256).ToArray()),
+            certificateDer,
+            CreateMinimalContentInfo());
+
+        InvalidOperationException error = Assert.Throws<InvalidOperationException>(
+            () => CmsSignedDataCompleter.AddSignatureTimeStamp(encoded, CreateMinimalContentInfo()));
+
+        Assert.Contains("unsigned", error.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void CompleteDetachedRejectsDifferentPrepareVersion()
     {
         SignaturePreparation preparation = SignaturePreparation.Create(
@@ -184,6 +351,17 @@ public sealed class CmsSignedDataCompleterTests
         modifiedCms.Decode(encoded);
         Assert.Throws<CryptographicException>(() =>
             modifiedCms.CheckSignature(verifySignatureOnly: true));
+    }
+
+    private static byte[] CreateMinimalContentInfo()
+    {
+        AsnWriter writer = new(AsnEncodingRules.DER);
+        using (writer.PushSequence())
+        {
+            writer.WriteObjectIdentifier("1.2.840.113549.1.7.2");
+        }
+
+        return writer.Encode();
     }
 
     private static X509Certificate2 CreateCertificate()

@@ -124,6 +124,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - Gömülü/yerel OCSP ve CRL önceliği, tazelik ve `RevocationDataUnavailable`: `tests/ImzaKit.Revocation.Tests` (`ImzaKit.Revocation.Tests`).
 - PAdES orkestrasyonu ve geriye uyumluluk: `tests/ImzaKit.Verify.Tests`.
 - Tek paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.9.nupkg`, tam **12 DLL** ve sıfır iç `ImzaKit.*` paket bağımlılığı.
+- Faz 2 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.10.nupkg`, tam **13 DLL** (`ImzaKit.Timestamp` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - Tasarım ve uygulama bağı: `docs/superpowers/specs/2026-08-23-alpha4-offline-trust-validation-design.md` ve `docs/superpowers/plans/2026-08-23-alpha4-offline-trust-validation.md`.
 
 - `MVP = Evet` olan satırlar MVP kabulünü engeller.

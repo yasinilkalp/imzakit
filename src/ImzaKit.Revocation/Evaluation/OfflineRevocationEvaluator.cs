@@ -120,8 +120,10 @@ public sealed class OfflineRevocationEvaluator : IOfflineRevocationEvaluator
         {
             (RevocationEvidenceType.Ocsp, RevocationEvidenceSource.Embedded) => 0,
             (RevocationEvidenceType.Ocsp, RevocationEvidenceSource.Local) => 1,
-            (RevocationEvidenceType.Crl, RevocationEvidenceSource.Embedded) => 2,
-            (RevocationEvidenceType.Crl, RevocationEvidenceSource.Local) => 3,
+            (RevocationEvidenceType.Ocsp, RevocationEvidenceSource.Online) => 2,
+            (RevocationEvidenceType.Crl, RevocationEvidenceSource.Embedded) => 3,
+            (RevocationEvidenceType.Crl, RevocationEvidenceSource.Local) => 4,
+            (RevocationEvidenceType.Crl, RevocationEvidenceSource.Online) => 5,
             _ => int.MaxValue
         };
 

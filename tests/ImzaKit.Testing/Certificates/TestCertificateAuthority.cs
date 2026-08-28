@@ -47,7 +47,9 @@ public sealed class TestCertificateAuthority : IDisposable
         bool intermediateIsCa = true,
         bool intermediateHasKeyCertSign = true,
         bool leafHasDigitalSignature = true,
-        bool useSha1Signatures = false)
+        bool useSha1Signatures = false,
+        string? ocspUri = null,
+        string? crlDistributionUri = null)
     {
         DateTimeOffset now = new(2026, 8, 23, 12, 0, 0, TimeSpan.Zero);
         if (useSha1Signatures)
@@ -86,6 +88,18 @@ public sealed class TestCertificateAuthority : IDisposable
             true));
         leafRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(leafRequest.PublicKey, false));
         leafRequest.CertificateExtensions.Add(CreateCertificatePoliciesExtension(leafPolicyOid));
+        if (ocspUri is not null)
+        {
+            leafRequest.CertificateExtensions.Add(new X509AuthorityInformationAccessExtension(
+                ocspUris: [ocspUri],
+                caIssuersUris: null,
+                critical: false));
+        }
+
+        if (crlDistributionUri is not null)
+        {
+            leafRequest.CertificateExtensions.Add(CreateCrlDistributionPointExtension(crlDistributionUri));
+        }
         X509SignatureGenerator intermediateSigner = X509SignatureGenerator.CreateForRSA(
             intermediateKey,
             RSASignaturePadding.Pkcs1);
@@ -144,6 +158,25 @@ public sealed class TestCertificateAuthority : IDisposable
         writer.PopSequence();
         writer.PopSequence();
         return writer.Encode();
+    }
+
+    private static System.Security.Cryptography.X509Certificates.X509Extension CreateCrlDistributionPointExtension(string uri)
+    {
+        System.Formats.Asn1.AsnWriter writer = new(System.Formats.Asn1.AsnEncodingRules.DER);
+        using (writer.PushSequence())
+        using (writer.PushSequence())
+        using (writer.PushSequence(new System.Formats.Asn1.Asn1Tag(
+            System.Formats.Asn1.TagClass.ContextSpecific, 0, isConstructed: true)))
+        using (writer.PushSequence(new System.Formats.Asn1.Asn1Tag(
+            System.Formats.Asn1.TagClass.ContextSpecific, 0, isConstructed: true)))
+        {
+            writer.WriteCharacterString(
+                System.Formats.Asn1.UniversalTagNumber.IA5String,
+                uri,
+                new System.Formats.Asn1.Asn1Tag(System.Formats.Asn1.TagClass.ContextSpecific, 6));
+        }
+
+        return new System.Security.Cryptography.X509Certificates.X509Extension("2.5.29.31", writer.Encode(), critical: false);
     }
 
     private static TestCertificateAuthority CreateLegacySha1(DateTimeOffset now)

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using ImzaKit.Agent.Security;
+using ImzaKit.Api.Idempotency;
 using ImzaKit.Api.Mtls;
 using ImzaKit.Api.Operations;
 using ImzaKit.Api.Problems;
@@ -23,8 +24,10 @@ public sealed partial class SignatureApiRequestHandler
     private readonly IApiCallerResolver _callers;
     private readonly AgentTicketIssuer _tickets;
     private readonly ISignatureWorkflow _workflow;
+    private readonly ISignatureExtensionWorkflow _extensions;
     private readonly DeviceEnrollmentAuthority _devices;
     private readonly AgentTicketValidator _callbackTickets;
+    private readonly InMemoryIdempotencyStore _extendIdempotency = new();
     private readonly Dictionary<Guid, OperationSidecar> _sidecars = [];
     private readonly Dictionary<Guid, StoredValidationReport> _validations = [];
 
@@ -33,7 +36,8 @@ public sealed partial class SignatureApiRequestHandler
         IApiCallerResolver callers,
         AgentTicketIssuer tickets,
         ISignatureWorkflow? workflow = null,
-        DeviceEnrollmentAuthority? devices = null)
+        DeviceEnrollmentAuthority? devices = null,
+        ISignatureExtensionWorkflow? extensions = null)
     {
         ArgumentNullException.ThrowIfNull(operations);
         ArgumentNullException.ThrowIfNull(callers);
@@ -43,6 +47,7 @@ public sealed partial class SignatureApiRequestHandler
         _tickets = tickets;
         _workflow = workflow ?? new InMemorySignatureWorkflow();
         _devices = devices ?? new DeviceEnrollmentAuthority();
+        _extensions = extensions ?? new UnavailableSignatureExtensionWorkflow();
         _callbackTickets = new AgentTicketValidator(tickets.PublicKey, new InMemoryNonceStore());
     }
 
@@ -82,6 +87,12 @@ public sealed partial class SignatureApiRequestHandler
             string.Equals(request.Method, "POST", StringComparison.OrdinalIgnoreCase))
         {
             return CreateValidation(request, correlationId);
+        }
+
+        if (TryMatch(request.Path, "/v1/signatures/extend", out _) &&
+            string.Equals(request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+        {
+            return ExtendSignature(request, caller, correlationId);
         }
 
         if (TryMatch(request.Path, "/v1/validations/", out string validationTail) &&
