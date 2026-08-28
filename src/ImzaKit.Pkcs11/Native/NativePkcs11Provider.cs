@@ -41,7 +41,16 @@ public sealed class NativePkcs11Provider : IPkcs11Provider, IDisposable
         List<Pkcs11Token> tokens = [];
         foreach (ulong slotId in _api.GetSlotsWithPresentTokens())
         {
-            Pkcs11NativeTokenInfo info = _api.GetTokenInfo(slotId);
+            Pkcs11NativeTokenInfo info;
+            try
+            {
+                info = _api.GetTokenInfo(slotId);
+            }
+            catch (Pkcs11ProviderException)
+            {
+                continue;
+            }
+
             tokens.Add(new Pkcs11Token(
                 slotId,
                 info.Label,

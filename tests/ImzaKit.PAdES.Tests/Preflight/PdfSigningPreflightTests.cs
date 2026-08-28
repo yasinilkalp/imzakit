@@ -61,6 +61,35 @@ public sealed class PdfSigningPreflightTests
     }
 
     [Fact]
+    public void ValidateAcceptsExistingSignatureOnlyAcroForm()
+    {
+        PdfSigningPreflight.Validate(
+            Pdf(
+                "%PDF-1.4\n" +
+                "1 0 obj << /Type /Catalog /AcroForm 3 0 R >> endobj\n" +
+                "3 0 obj << /Fields [4 0 R] /SigFlags 3 >> endobj\n" +
+                "4 0 obj << /FT /Sig /T (Signature1) >> endobj\n" +
+                "trailer << /Size 5 /Root 1 0 R >>\nstartxref\n10\n%%EOF"),
+            PdfPreflightLimits.Default);
+    }
+
+    [Fact]
+    public void ValidateRejectsAcroFormWithNonSignatureField()
+    {
+        PdfPreflightException exception = Assert.Throws<PdfPreflightException>(
+            () => PdfSigningPreflight.Validate(
+                Pdf(
+                    "%PDF-1.4\n" +
+                    "1 0 obj << /Type /Catalog /AcroForm 3 0 R >> endobj\n" +
+                    "3 0 obj << /Fields [4 0 R] >> endobj\n" +
+                    "4 0 obj << /FT /Tx /T (Name) >> endobj\n" +
+                    "trailer << /Size 5 /Root 1 0 R >>\nstartxref\n10\n%%EOF"),
+                PdfPreflightLimits.Default));
+
+        Assert.Equal(PdfPreflightErrorCode.ExistingAcroForm, exception.Code);
+    }
+
+    [Fact]
     public void ValidateRejectsDocMdpNoChangesPolicy()
     {
         byte[] pdf = Pdf("%PDF-1.7\n/TransformMethod /DocMDP /TransformParams << /P 1 >>");

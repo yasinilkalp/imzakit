@@ -22,18 +22,38 @@ public static class PdfIncrementalSignatureWriter
 
         string source = Encoding.ASCII.GetString(originalPdf);
         int previousXref = ReadIntegerAfterLastToken(source, "startxref");
-        int signatureObjectNumber = ReadIntegerAfterLastToken(source, "/Size");
+        int nextObjectNumber = ReadIntegerAfterLastToken(source, "/Size");
         int rootObjectNumber = ReadIntegerAfterLastToken(source, "/Root");
-        int acroFormObjectNumber = signatureObjectNumber + 1;
-        int signatureFieldObjectNumber = signatureObjectNumber + 2;
+        string catalogDictionary = ReadObjectDictionary(source, rootObjectNumber);
+        bool catalogHasAcroForm = catalogDictionary.Contains("/AcroForm", StringComparison.Ordinal);
+        string fieldName = PdfSigningPreflight.NextSignatureFieldName(source);
+        int signatureObjectNumber = nextObjectNumber;
+        int acroFormObjectNumber;
+        int signatureFieldObjectNumber;
+        string? updatedCatalogDictionary = null;
+        string acroFormDictionary;
+        if (catalogHasAcroForm)
+        {
+            acroFormObjectNumber = ReadReferenceNumber(catalogDictionary, "/AcroForm");
+            signatureFieldObjectNumber = signatureObjectNumber + 1;
+            acroFormDictionary = AppendFieldReference(
+                ReadObjectDictionary(source, acroFormObjectNumber),
+                signatureFieldObjectNumber);
+        }
+        else
+        {
+            acroFormObjectNumber = signatureObjectNumber + 1;
+            signatureFieldObjectNumber = acroFormObjectNumber + 1;
+            updatedCatalogDictionary = catalogDictionary.Insert(
+                catalogDictionary.Length - 2,
+                $" /AcroForm {acroFormObjectNumber} 0 R ");
+            acroFormDictionary = $"<< /Fields [{signatureFieldObjectNumber} 0 R] /SigFlags 3 >>";
+        }
+
         int appearanceObjectNumber = signatureFieldObjectNumber + 1;
         int fontObjectNumber = appearanceObjectNumber + 1;
         int imageObjectNumber = fontObjectNumber + 1;
         bool hasImage = appearance.IsVisible && appearance.ImageBytes is { Length: > 0 };
-        string catalogDictionary = ReadCatalogDictionary(source, rootObjectNumber);
-        string updatedCatalogDictionary = catalogDictionary.Insert(
-            catalogDictionary.Length - 2,
-            $" /AcroForm {acroFormObjectNumber} 0 R ");
 
         int? pageObjectNumber = null;
         string? updatedPageDictionary = null;
@@ -55,9 +75,13 @@ public static class PdfIncrementalSignatureWriter
         string contents = $"<{new string('0', checked(cmsCapacity * 2))}>";
         using MemoryStream revision = new();
         List<(int Number, long Offset)> xrefEntries = [];
+        WriteAscii(revision, "\n");
 
-        WriteAscii(revision, $"\n{rootObjectNumber} 0 obj\n{updatedCatalogDictionary}\nendobj\n");
-        xrefEntries.Add((rootObjectNumber, originalPdf.Length + 1));
+        if (updatedCatalogDictionary is not null)
+        {
+            xrefEntries.Add((rootObjectNumber, originalPdf.Length + revision.Length));
+            WriteAscii(revision, $"{rootObjectNumber} 0 obj\n{updatedCatalogDictionary}\nendobj\n");
+        }
 
         if (pageObjectNumber is int pageNumber && updatedPageDictionary is not null)
         {
@@ -77,13 +101,13 @@ public static class PdfIncrementalSignatureWriter
         xrefEntries.Add((acroFormObjectNumber, originalPdf.Length + revision.Length));
         WriteAscii(
             revision,
-            $"{acroFormObjectNumber} 0 obj\n" +
-            $"<< /Fields [{signatureFieldObjectNumber} 0 R] /SigFlags 3 >>\nendobj\n");
+            $"{acroFormObjectNumber} 0 obj\n{acroFormDictionary}\nendobj\n");
 
         xrefEntries.Add((signatureFieldObjectNumber, originalPdf.Length + revision.Length));
         WriteAscii(revision, BuildSignatureFieldObject(
             signatureFieldObjectNumber,
             signatureObjectNumber,
+            fieldName,
             appearance,
             pageObjectNumber,
             appearanceObjectNumber));
@@ -153,6 +177,7 @@ public static class PdfIncrementalSignatureWriter
     private static string BuildSignatureFieldObject(
         int fieldObjectNumber,
         int signatureObjectNumber,
+        string fieldName,
         PadesSignatureAppearance appearance,
         int? pageObjectNumber,
         int appearanceObjectNumber)
@@ -160,14 +185,14 @@ public static class PdfIncrementalSignatureWriter
         if (!appearance.IsVisible)
         {
             return $"{fieldObjectNumber} 0 obj\n" +
-                $"<< /FT /Sig /T (Signature1) /V {signatureObjectNumber} 0 R >>\nendobj\n";
+                $"<< /FT /Sig /T ({fieldName}) /V {signatureObjectNumber} 0 R >>\nendobj\n";
         }
 
         return $"{fieldObjectNumber} 0 obj\n" +
             "<< /FT /Sig /Type /Annot /Subtype /Widget /F 4 " +
             $"/P {pageObjectNumber} 0 R " +
             $"/Rect [{PdfNumber(appearance.LowerLeftX)} {PdfNumber(appearance.LowerLeftY)} {PdfNumber(appearance.UpperRightX)} {PdfNumber(appearance.UpperRightY)}] " +
-            $"/T (Signature1) /V {signatureObjectNumber} 0 R " +
+            $"/T ({fieldName}) /V {signatureObjectNumber} 0 R " +
             $"/AP << /N {appearanceObjectNumber} 0 R >> >>\nendobj\n";
     }
 
@@ -339,17 +364,6 @@ public static class PdfIncrementalSignatureWriter
         return value;
     }
 
-    private static string ReadCatalogDictionary(string source, int objectNumber)
-    {
-        string dictionary = ReadObjectDictionary(source, objectNumber);
-        if (dictionary.Contains("/AcroForm", StringComparison.Ordinal))
-        {
-            throw new NotSupportedException("PDF documents with an existing AcroForm are not supported yet.");
-        }
-
-        return dictionary;
-    }
-
     private static string ReadObjectDictionary(string source, int objectNumber)
     {
         int objectIndex = IndexOfGenerationZeroObject(source, objectNumber);
@@ -372,24 +386,54 @@ public static class PdfIncrementalSignatureWriter
     private static int IndexOfGenerationZeroObject(string source, int objectNumber)
     {
         string objectHeader = $"{objectNumber} 0 obj";
+        int last = -1;
         int start = 0;
         while (start < source.Length)
         {
             int index = source.IndexOf(objectHeader, start, StringComparison.Ordinal);
             if (index < 0)
             {
-                return -1;
+                return last;
             }
 
             if (index == 0 || !char.IsAsciiDigit(source[index - 1]))
             {
-                return index;
+                last = index;
             }
 
             start = index + 1;
         }
 
-        return -1;
+        return last;
+    }
+
+    private static int ReadReferenceNumber(string dictionary, string token)
+    {
+        Match match = Regex.Match(dictionary, $@"{Regex.Escape(token)}\s+(\d+)\s+0\s+R");
+        if (!match.Success)
+        {
+            throw new NotSupportedException($"PDF dictionary does not contain {token}.");
+        }
+
+        return int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+    }
+
+    private static string AppendFieldReference(string acroFormDictionary, int fieldObjectNumber)
+    {
+        Match fields = Regex.Match(acroFormDictionary, @"/Fields\s*\[(.*?)\]", RegexOptions.Singleline);
+        if (!fields.Success)
+        {
+            throw new NotSupportedException("Existing AcroForm does not contain a Fields array.");
+        }
+
+        string existing = fields.Groups[1].Value.Trim();
+        string updated = string.IsNullOrEmpty(existing)
+            ? $"{fieldObjectNumber} 0 R"
+            : $"{existing} {fieldObjectNumber} 0 R";
+        return string.Concat(
+            acroFormDictionary.AsSpan(0, fields.Index),
+            $"/Fields [{updated}]",
+            acroFormDictionary.AsSpan(fields.Index + fields.Length));
     }
 
     private static int FindMatchingDictionaryEnd(string source, int dictionaryStart)

@@ -19,7 +19,7 @@ public sealed class WindowsNativePinPrompt(ISecurePinDialog dialog) : INativePin
         ArgumentNullException.ThrowIfNull(dialog);
         PinDialogRequest request = new(
             "İmzaKit kart PIN",
-            "Kart PIN'ini yalnızca bu yerel pencerede girin. PIN tarayıcıya veya API'ye gönderilmez.");
+            "Kullanıcı adı: imza (hesap adı değil).\r\nŞifre: kart/token PIN.\r\nPIN tarayıcıya veya API'ye gönderilmez.");
         if (!dialog.TryReadPin(request, out char[] pinChars))
         {
             Clear(pinChars);

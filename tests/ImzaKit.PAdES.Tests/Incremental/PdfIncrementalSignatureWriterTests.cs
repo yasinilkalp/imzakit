@@ -91,6 +91,22 @@ public sealed class PdfIncrementalSignatureWriterTests
     }
 
     [Fact]
+    public void PrepareAppendsSecondSignatureRevisionWithoutRewritingFirstSignatureBytes()
+    {
+        byte[] original = CreateMinimalPdf();
+        PdfSignaturePlaceholder first = PdfIncrementalSignatureWriter.Prepare(original, cmsCapacity: 8);
+        byte[] onceSigned = first.EmbedSignature([0x01, 0xAB]);
+
+        PdfSignaturePlaceholder second = PdfIncrementalSignatureWriter.Prepare(onceSigned, cmsCapacity: 8);
+
+        Assert.Equal(onceSigned, second.DocumentBytes[..onceSigned.Length]);
+        string document = Encoding.ASCII.GetString(second.DocumentBytes);
+        Assert.Contains("/T (Signature1)", document, StringComparison.Ordinal);
+        Assert.Contains("/T (Signature2)", document, StringComparison.Ordinal);
+        Assert.Contains("/Fields [4 0 R 6 0 R]", document, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PrepareVisibleSignatureReadsNestedPdfACatalogAndPageDictionaries()
     {
         PadesSignatureAppearance appearance = PadesSignatureAppearance.Visible(

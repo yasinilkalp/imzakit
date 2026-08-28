@@ -39,20 +39,20 @@ public static class KestrelSignatureApiAdapter
 
 public sealed class HeaderApiCallerResolver : IApiCallerResolver
 {
+    private readonly JwtBearerApiCallerResolver? _jwt;
+
+    public HeaderApiCallerResolver()
+    {
+        JwtBearerCallerOptions? jwt = JwtBearerCallerOptions.FromEnvironment();
+        _jwt = jwt is not null ? new JwtBearerApiCallerResolver(jwt) : null;
+    }
+
     public ApiCallerIdentity Resolve(ApiHttpRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Headers.TryGetValue("Authorization", out string? authorization) &&
-            authorization.StartsWith("Bearer ", StringComparison.Ordinal) &&
-            request.Headers.TryGetValue("X-ImzaKit-Tenant", out string? tenant) &&
-            request.Headers.TryGetValue("X-ImzaKit-Application", out string? application) &&
-            !string.IsNullOrWhiteSpace(tenant) &&
-            !string.IsNullOrWhiteSpace(application))
-        {
-            return new ApiCallerIdentity(true, tenant, application);
-        }
-
-        return new ApiCallerIdentity(false, "", "");
+        return _jwt is not null
+            ? _jwt.Resolve(request)
+            : new ApiCallerIdentity(false, "", "");
     }
 }
 

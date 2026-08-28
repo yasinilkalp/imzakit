@@ -27,6 +27,20 @@ public sealed class NativePkcs11ProviderTests
     }
 
     [Fact]
+    public void DiscoverTokensSkipsSlotsWhoseTokenInfoCannotBeRead()
+    {
+        FakePkcs11NativeApi api = FakePkcs11NativeApi.CreateAkisFixture();
+        api.PresentSlots = [1UL, 7UL];
+        api.UnreadableSlotId = 1UL;
+        using NativePkcs11Provider provider = new(api);
+        provider.Initialize();
+
+        Pkcs11Token token = Assert.Single(provider.DiscoverTokens());
+
+        Assert.Equal(7UL, token.SlotId);
+    }
+
+    [Fact]
     public void InitializeIsIdempotentAtProviderLevel()
     {
         FakePkcs11NativeApi api = FakePkcs11NativeApi.CreateAkisFixture();

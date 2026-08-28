@@ -50,29 +50,59 @@ public sealed class CredUiSecurePinDialog : ISecurePinDialog
             int userLength = 256;
             int domainLength = 256;
             int passwordLength = 256;
-            Span<char> user = stackalloc char[userLength];
-            Span<char> domain = stackalloc char[domainLength];
-            Span<char> password = stackalloc char[passwordLength];
-            if (!CredUnPackAuthenticationBufferW(
-                    0x1, // CRED_PACK_PROTECTED_CREDENTIALS
-                    outAuthBuffer,
-                    outAuthBufferSize,
-                    user,
-                    ref userLength,
-                    domain,
-                    ref domainLength,
-                    password,
-                    ref passwordLength))
+            char[] user = new char[userLength];
+            char[] domain = new char[domainLength];
+            char[] password = new char[passwordLength];
+            try
             {
-                return false;
-            }
+                bool unpacked = CredUnPackAuthenticationBufferW(
+                        0x1,
+                        outAuthBuffer,
+                        outAuthBufferSize,
+                        user,
+                        ref userLength,
+                        domain,
+                        ref domainLength,
+                        password,
+                        ref passwordLength);
+                if (!unpacked)
+                {
+                    userLength = user.Length;
+                    domainLength = domain.Length;
+                    passwordLength = password.Length;
+                    Array.Clear(user);
+                    Array.Clear(domain);
+                    Array.Clear(password);
+                    unpacked = CredUnPackAuthenticationBufferW(
+                        0x4,
+                        outAuthBuffer,
+                        outAuthBufferSize,
+                        user,
+                        ref userLength,
+                        domain,
+                        ref domainLength,
+                        password,
+                        ref passwordLength);
+                }
 
-            int pinLength = passwordLength > 0 && password[passwordLength - 1] == '\0'
-                ? passwordLength - 1
-                : passwordLength;
-            pinChars = password[..Math.Max(pinLength, 0)].ToArray();
-            password.Clear();
-            return pinChars.Length > 0;
+                if (!unpacked)
+                {
+                    return false;
+                }
+
+                int pinLength = passwordLength > 0 && password[passwordLength - 1] == '\0'
+                    ? passwordLength - 1
+                    : passwordLength;
+                pinLength = Math.Clamp(pinLength, 0, password.Length);
+                pinChars = password.AsSpan(0, pinLength).ToArray();
+                return pinChars.Length > 0;
+            }
+            finally
+            {
+                Array.Clear(user);
+                Array.Clear(domain);
+                Array.Clear(password);
+            }
         }
         finally
         {
@@ -107,11 +137,11 @@ public sealed class CredUiSecurePinDialog : ISecurePinDialog
         uint dwFlags,
         nint pAuth,
         uint cbAuth,
-        Span<char> pszUserName,
+        [Out] char[] pszUserName,
         ref int pcchMaxUserName,
-        Span<char> pszDomainName,
+        [Out] char[] pszDomainName,
         ref int pcchMaxDomainName,
-        Span<char> pszPassword,
+        [Out] char[] pszPassword,
         ref int pcchMaxPassword);
 }
 

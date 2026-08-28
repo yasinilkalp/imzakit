@@ -24,6 +24,8 @@ internal sealed class FakePkcs11NativeApi : IPkcs11NativeApi
     public ulong LastSignMechanism { get; private set; }
     public bool PrivateKeyValueWasRead { get; private set; }
     public List<string> Calls { get; } = [];
+    public IReadOnlyList<ulong> PresentSlots { get; set; } = [7UL];
+    public ulong? UnreadableSlotId { get; set; }
     public byte[] SignableCertificateDer { get; } = [0x30, 0x03, 0x01, 0x02, 0x03];
     public Pkcs11NativeTokenInfo Token { get; } = new("AKIS", "KamuSM", "Model", "1234567890");
 
@@ -57,10 +59,18 @@ internal sealed class FakePkcs11NativeApi : IPkcs11NativeApi
     });
 
     public IReadOnlyList<ulong> GetSlotsWithPresentTokens() =>
-        Track("GetSlots", () => (IReadOnlyList<ulong>)[7UL]);
+        Track("GetSlots", () => PresentSlots);
 
     public Pkcs11NativeTokenInfo GetTokenInfo(ulong slotId) =>
-        Track("GetTokenInfo", () => Token);
+        Track("GetTokenInfo", () =>
+        {
+            if (UnreadableSlotId == slotId)
+            {
+                throw new Pkcs11ProviderException(Pkcs11ErrorCode.DriverError, "PKCS#11 get token info failed.");
+            }
+
+            return Token;
+        });
 
     public ulong OpenSession(ulong slotId) => Track("OpenSession", () =>
     {

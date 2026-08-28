@@ -23,6 +23,6 @@ public static class Pkcs11RvMapper
             return;
         }
 
-        throw new Pkcs11ProviderException(Map(rv), $"PKCS#11 {operation} failed.");
+        throw new Pkcs11ProviderException(Map(rv), $"PKCS#11 {operation} failed (0x{rv:X8}).");
     }
 }

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using ImzaKit.PAdES.Policy;
 
 namespace ImzaKit.PAdES.Preflight;
@@ -36,9 +37,10 @@ public static class PdfSigningPreflight
         Reject(policy.CertificationPermission == PdfCertificationChangeLevel.NoChanges,
             PdfPreflightErrorCode.CertificationForbidsChanges,
             "The DocMDP certification policy forbids document changes.");
-        Reject(IsFieldLocked(policy, "Signature1"), PdfPreflightErrorCode.TargetFieldLocked,
+        string nextSignatureField = NextSignatureFieldName(source);
+        Reject(IsFieldLocked(policy, nextSignatureField), PdfPreflightErrorCode.TargetFieldLocked,
             "The FieldMDP policy locks the target signature field.");
-        Reject(source.Contains("/AcroForm", StringComparison.Ordinal), PdfPreflightErrorCode.ExistingAcroForm,
+        Reject(HasUnsupportedAcroForm(source), PdfPreflightErrorCode.ExistingAcroForm,
             "PDF documents with an existing AcroForm are not supported.");
 
         int declaredObjects = ReadLargestIntegerAfterToken(source, "/Size");
@@ -85,6 +87,35 @@ public static class PdfSigningPreflight
         }
 
         return count;
+    }
+
+    private static bool HasUnsupportedAcroForm(string source)
+    {
+        if (!source.Contains("/AcroForm", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        bool hasSignatureField = source.Contains("/FT /Sig", StringComparison.Ordinal);
+        bool hasInteractiveField =
+            source.Contains("/FT /Tx", StringComparison.Ordinal) ||
+            source.Contains("/FT /Btn", StringComparison.Ordinal) ||
+            source.Contains("/FT /Ch", StringComparison.Ordinal);
+        return !hasSignatureField || hasInteractiveField;
+    }
+
+    internal static string NextSignatureFieldName(string source)
+    {
+        int highest = 0;
+        foreach (Match match in Regex.Matches(source, @"/T\s*\(Signature(\d+)\)"))
+        {
+            if (int.TryParse(match.Groups[1].Value, NumberStyles.None, CultureInfo.InvariantCulture, out int value))
+            {
+                highest = Math.Max(highest, value);
+            }
+        }
+
+        return $"Signature{highest + 1}";
     }
 
     private static bool IsFieldLocked(PdfModificationPolicy policy, string targetFieldName)
