@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using ImzaKit.Release.Licensing;
 
 namespace ImzaKit.Release.Sbom;
@@ -56,21 +58,52 @@ public static class CycloneDxSbomGenerator
     public static string Serialize(CycloneDxSbom sbom)
     {
         ArgumentNullException.ThrowIfNull(sbom);
-        var payload = new
+        using MemoryStream stream = new();
+        using (Utf8JsonWriter writer = new(stream))
         {
-            bomFormat = sbom.BomFormat,
-            specVersion = sbom.SpecVersion,
-            serialNumber = sbom.SerialNumber,
-            version = 1,
-            metadata = new { component = new { name = sbom.Name, version = sbom.Version, licenses = new[] { new { license = new { id = "Apache-2.0" } } } } },
-            components = sbom.Components.Select(component => new
+            writer.WriteStartObject();
+            writer.WriteString("bomFormat", sbom.BomFormat);
+            writer.WriteString("specVersion", sbom.SpecVersion);
+            writer.WriteString("serialNumber", sbom.SerialNumber);
+            writer.WriteNumber("version", 1);
+            writer.WritePropertyName("metadata");
+            writer.WriteStartObject();
+            writer.WritePropertyName("component");
+            writer.WriteStartObject();
+            writer.WriteString("name", sbom.Name);
+            writer.WriteString("version", sbom.Version);
+            WriteLicenseArray(writer, "Apache-2.0");
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+            writer.WritePropertyName("components");
+            writer.WriteStartArray();
+            foreach (SoftwareComponent component in sbom.Components)
             {
-                name = component.Name,
-                version = component.Version,
-                purl = component.PackageUrl,
-                licenses = new[] { new { license = new { id = component.License } } }
-            })
-        };
-        return System.Text.Json.JsonSerializer.Serialize(payload);
+                writer.WriteStartObject();
+                writer.WriteString("name", component.Name);
+                writer.WriteString("version", component.Version);
+                writer.WriteString("purl", component.PackageUrl);
+                WriteLicenseArray(writer, component.License);
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    private static void WriteLicenseArray(Utf8JsonWriter writer, string spdx)
+    {
+        writer.WritePropertyName("licenses");
+        writer.WriteStartArray();
+        writer.WriteStartObject();
+        writer.WritePropertyName("license");
+        writer.WriteStartObject();
+        writer.WriteString("id", spdx);
+        writer.WriteEndObject();
+        writer.WriteEndObject();
+        writer.WriteEndArray();
     }
 }

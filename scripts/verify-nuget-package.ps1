@@ -1,6 +1,6 @@
 param(
     [string]$PackageDirectory = (Join-Path (Split-Path -Parent $PSScriptRoot) 'artifacts\packages'),
-    [string]$Version = '1.0.0-alpha.8'
+    [string]$Version = '1.0.0-alpha.9'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,7 +27,7 @@ if ($symbols.Count -ne 1) { throw "Expected one snupkg, found $($symbols.Count).
 function Read-Nuspec([System.IO.Compression.ZipArchive]$archive) {
     $entry = $archive.Entries | Where-Object FullName -Like '*.nuspec' | Select-Object -First 1
     if (-not $entry) { throw 'Package nuspec is missing.' }
-    $reader = [System.IO.StreamReader]::new($entry.Open())
+    $reader = [System.IO.StreamReader]::new($entry.Open(), [System.Text.Encoding]::UTF8)
     try { return [xml]$reader.ReadToEnd() } finally { $reader.Dispose() }
 }
 
@@ -41,7 +41,7 @@ try {
     if ($metadata.repository.url -ne 'https://github.com/yasinilkalp/imzakit') { throw 'Repository URL is invalid.' }
     if ($metadata.readme -ne 'README.md' -or -not ($packageArchive.Entries.FullName -contains 'README.md')) { throw 'README is missing.' }
     $readmeEntry = $packageArchive.GetEntry('README.md')
-    $readmeReader = [System.IO.StreamReader]::new($readmeEntry.Open())
+    $readmeReader = [System.IO.StreamReader]::new($readmeEntry.Open(), [System.Text.Encoding]::UTF8)
     try { $readmeText = $readmeReader.ReadToEnd() } finally { $readmeReader.Dispose() }
     if (-not $readmeText.Contains('## Öne çıkan özellikler')) { throw 'Turkish README content is missing.' }
     if (-not $readmeText.Contains('## English summary')) { throw 'English README summary is missing.' }
@@ -75,5 +75,17 @@ try {
     $expectedPdbs = @($expectedModules | Sort-Object)
     if (Compare-Object $expectedPdbs $actualPdbs) { throw "Module PDB set is invalid: $($actualPdbs -join ', ')" }
 } finally { $symbolArchive.Dispose() }
+
+$sbomPath = Join-Path $PackageDirectory 'sbom.cdx.json'
+if (-not (Test-Path -LiteralPath $sbomPath -PathType Leaf)) {
+    throw 'Release SBOM is missing: sbom.cdx.json'
+}
+$sbom = Get-Content -LiteralPath $sbomPath -Raw
+if ($sbom -notmatch 'CycloneDX' -or $sbom -notmatch '1\.6') {
+    throw 'Release SBOM is not CycloneDX 1.6.'
+}
+if ($sbom -notmatch 'BouncyCastle.Cryptography') {
+    throw 'Release SBOM is missing runtime components.'
+}
 
 Write-Output "NuGet package verification passed: ImzaKit $Version"

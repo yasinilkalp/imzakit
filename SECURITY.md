@@ -2,7 +2,7 @@
 
 ## Desteklenen sürüm
 
-ImzaKit halen ön sürümdür. Güvenlik düzeltmeleri aktif NuGet ön sürümü `1.0.0-alpha.8` ve gerektiğinde onu izleyen en güncel ön sürüm için değerlendirilir. Önceki alpha paketleri desteklenmez.
+ImzaKit halen ön sürümdür. Güvenlik düzeltmeleri aktif NuGet ön sürümü `1.0.0-alpha.9` ve gerektiğinde onu izleyen en güncel ön sürüm için değerlendirilir. Önceki alpha paketleri desteklenmez.
 
 ## Güvenlik açığı bildirme
 

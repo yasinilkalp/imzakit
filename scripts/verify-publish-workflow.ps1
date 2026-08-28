@@ -15,6 +15,9 @@ $requiredPatterns = [ordered]@{
     'Release build' = 'dotnet build ImzaKit\.slnx -c Release'
     'test suite' = 'dotnet test ImzaKit\.slnx -c Release --no-build'
     'single package build' = 'dotnet pack packaging/ImzaKit/ImzaKit\.csproj -c Release --no-build --output artifacts/packages'
+    'release bundle emit' = 'scripts/emit-release-bundle\.cs'
+    'sbom artifact' = 'artifacts/packages/sbom\.cdx\.json'
+    'provenance key env' = 'IMZAKIT_RELEASE_ECDSA_KEY'
     'package contract' = 'scripts/verify-nuget-package\.ps1'
     'OIDC permission' = '(?m)^\s+id-token:\s*write\s*$'
     'packages write permission' = '(?m)^\s+packages:\s+write\s*$'
@@ -23,7 +26,7 @@ $requiredPatterns = [ordered]@{
     'temporary API key output' = 'steps\.login\.outputs\.NUGET_API_KEY'
     'GitHub Packages token' = 'secrets\.GITHUB_TOKEN'
     'GitHub Packages source' = 'nuget\.pkg\.github\.com'
-    'alpha.8 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.8\.nupkg'
+    'alpha.9 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.9\.nupkg'
     'NuGet.org source' = 'https://api\.nuget\.org/v3/index\.json'
 }
 

@@ -44,14 +44,30 @@ jobs:
       - name: Pack single ImzaKit package
         run: dotnet pack packaging/ImzaKit/ImzaKit.csproj -c Release --no-build --output artifacts/packages
 
+      - name: Emit SBOM and provenance
+        env:
+          IMZAKIT_RELEASE_ECDSA_KEY: ${{ secrets.IMZAKIT_RELEASE_ECDSA_KEY }}
+        run: >
+          dotnet run --file scripts/emit-release-bundle.cs --
+          --package artifacts/packages/ImzaKit.1.0.0-alpha.9.nupkg
+          --output artifacts/packages
+          --version 1.0.0-alpha.9
+          --commit "${{ github.sha }}"
+
       - name: Verify package contract
         shell: pwsh
         run: ./scripts/verify-nuget-package.ps1
 
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-sbom
+          path: artifacts/packages/sbom.cdx.json
+
       - name: Publish to GitHub Packages
         shell: bash
         run: |
-          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.8.nupkg \
+          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.9.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
@@ -66,7 +82,7 @@ jobs:
         if: github.event_name == 'push' || inputs.publish_nuget_org
         shell: bash
         run: |
-          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.8.nupkg \
+          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.9.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --symbol-source https://api.nuget.org/v3/index.json
