@@ -4,6 +4,7 @@
     <PackageId>ImzaKit.Trust</PackageId>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
     <ProjectReference Include="..\ImzaKit.Certificate\ImzaKit.Certificate.csproj" />
   </ItemGroup>
 </Project>

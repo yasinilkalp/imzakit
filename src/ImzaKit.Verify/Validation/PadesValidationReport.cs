@@ -33,4 +33,7 @@ public sealed record PadesValidationReport(
     public string? SignatureLevel { get; init; }
 
     public ValidationStatus ModificationPolicyStatus { get; init; } = ValidationStatus.Indeterminate;
+
+    public IReadOnlyList<PadesSignatureRevisionReport> Signatures { get; init; } =
+        Array.Empty<PadesSignatureRevisionReport>();
 }

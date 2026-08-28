@@ -23,6 +23,7 @@ public sealed class TrustStoreActivationService
 {
     private readonly ECDsa _releasePublicKey;
     private readonly List<Activation> _history = [];
+    private readonly HashSet<string> _tombstones = new(StringComparer.OrdinalIgnoreCase);
     private readonly Lock _gate = new();
 
     public TrustStoreActivationService(ECDsa releasePublicKey)
@@ -34,6 +35,17 @@ public sealed class TrustStoreActivationService
     public TrustStoreSnapshot? Current { get; private set; }
 
     public CertificatePolicyCatalog? CurrentCatalog { get; private set; }
+
+    public IReadOnlyCollection<string> Tombstones
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return [.. _tombstones];
+            }
+        }
+    }
 
     public TrustStoreActivationResult Activate(ReadOnlySpan<byte> package)
     {
@@ -56,9 +68,17 @@ public sealed class TrustStoreActivationService
                 return new(TrustStoreActivationStatus.Rejected, reason, Current, CurrentCatalog);
             }
 
+            if (snapshot.Anchors.Any(anchor => _tombstones.Contains(anchor.Certificate.Sha256Thumbprint)))
+            {
+                return new(TrustStoreActivationStatus.Rejected, "IMZAKIT.TRUST.TOMBSTONED_ANCHOR", Current, CurrentCatalog);
+            }
+
             _history.Add(new Activation(manifest, snapshot, catalog));
             Current = snapshot;
             CurrentCatalog = catalog;
+            _tombstones.RemoveWhere(thumbprint =>
+                snapshot.Anchors.All(anchor =>
+                    !string.Equals(anchor.Certificate.Sha256Thumbprint, thumbprint, StringComparison.OrdinalIgnoreCase)));
             return new(TrustStoreActivationStatus.Activated, Snapshot: snapshot, Catalog: catalog);
         }
     }
@@ -74,7 +94,7 @@ public sealed class TrustStoreActivationService
 
             _history.RemoveAt(_history.Count - 1);
             Activation previous = _history[^1];
-            Current = previous.Snapshot;
+            Current = ApplyTombstones(previous.Snapshot);
             CurrentCatalog = previous.Catalog;
             return new(TrustStoreActivationStatus.RolledBack, Snapshot: Current, Catalog: CurrentCatalog);
         }
@@ -91,11 +111,17 @@ public sealed class TrustStoreActivationService
                 return new(TrustStoreActivationStatus.Rejected, "IMZAKIT.TRUST.NO_ACTIVE_PACKAGE");
             }
 
+            _tombstones.Add(certificateSha256.Trim());
             TrustAnchor[] remaining = [.. Current.Anchors.Where(anchor =>
                 !string.Equals(anchor.Certificate.Sha256Thumbprint, certificateSha256, StringComparison.OrdinalIgnoreCase))];
             string version = $"{_history[^1].Manifest.Version}-removed-{certificateSha256[..Math.Min(8, certificateSha256.Length)]}";
             TrustStoreSnapshot snapshot = new(version, remaining);
             Current = snapshot;
+            if (CurrentCatalog is not null)
+            {
+                CurrentCatalog = new CertificatePolicyCatalog(version + "-policy", CurrentCatalog.Entries);
+            }
+
             return new(TrustStoreActivationStatus.Removed, Snapshot: snapshot, Catalog: CurrentCatalog, ChangeRationale: rationale);
         }
     }
@@ -149,6 +175,15 @@ public sealed class TrustStoreActivationService
         {
             return false;
         }
+    }
+
+    private TrustStoreSnapshot ApplyTombstones(TrustStoreSnapshot snapshot)
+    {
+        TrustAnchor[] remaining = [.. snapshot.Anchors.Where(anchor =>
+            !_tombstones.Contains(anchor.Certificate.Sha256Thumbprint))];
+        return remaining.Length == snapshot.Anchors.Count
+            ? snapshot
+            : new TrustStoreSnapshot(snapshot.Version, remaining);
     }
 
     private sealed record Activation(

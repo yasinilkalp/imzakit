@@ -8,7 +8,8 @@ public sealed record ExternalResourceFetchRequest(
     IReadOnlyList<string> AllowedResponseContentTypes,
     int MaxResponseBytes,
     TimeSpan Timeout,
-    int MaxRedirects);
+    int MaxRedirects,
+    IReadOnlyDictionary<string, string>? Headers = null);
 
 public sealed record ExternalResourceFetchResult(byte[] Body, string ContentType);
 

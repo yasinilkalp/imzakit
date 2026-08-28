@@ -32,6 +32,7 @@ public static class ImzaKitServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         byte[] publicKey = agentTicketPublicKey.IsEmpty ? new byte[32] : agentTicketPublicKey.ToArray();
         services.AddSingleton<IExternalResourceFetcher, SsrfExternalResourceFetcher>();
+        services.AddSingleton<ITsaCredentialStore, EnvironmentTsaCredentialStore>();
         services.AddSingleton<Rfc3161TimeStampClient>();
         services.AddSingleton<IDigestCalculator, DefaultDigestCalculator>();
         services.AddSingleton<ICertificateChainBuilder, CertificateChainBuilder>();

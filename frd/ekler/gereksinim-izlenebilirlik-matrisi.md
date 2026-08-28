@@ -50,13 +50,13 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 | FR-081 | Kaynak gereksinim metni | Yüksek | 2 | Timestamp | — | TST-004 | RFC 3161 vector | Hayır |
 | FR-082 | Kaynak gereksinim metni | Yüksek | 2 | Timestamp | — | TST-004 | RFC 3161 vector | Hayır |
 | FR-083 | Kaynak gereksinim metni | Yüksek | 2 | Timestamp | — | TST-004 | RFC 3161 vector | Hayır |
-| FR-084 | Kaynak gereksinim metni | Yüksek | 2 | Timestamp | — | TST-004 | RFC 3161 vector | Hayır |
+| FR-084 | Kaynak gereksinim metni | Yüksek | 2 | Timestamp | — | TST-004 | RFC 3161 vector | Evet |
 | FR-090 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
 | FR-091 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
 | FR-092 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
 | FR-093 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
 | FR-094 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
-| FR-095 | Kaynak gereksinim metni | Orta | 3 | Trust | ADR-004/ADR-006 | TST-019 | İmzalı update/rollback | Hayır |
+| FR-095 | Kaynak gereksinim metni | Orta | 3 | Trust | ADR-004/ADR-006 | TST-019 | İmzalı update/rollback | Evet |
 | FR-096 | Kaynak gereksinim metni | Yüksek | 2 | Revocation | ADR-004/ADR-006 | TST-008 | OCSP/CRL vector | Hayır |
 | FR-097 | Kaynak gereksinim metni | Yüksek | 2 | Revocation | ADR-004/ADR-006 | TST-008 | OCSP/CRL vector | Hayır |
 | FR-098 | Kaynak gereksinim metni | Yüksek | 2 | Revocation | ADR-004/ADR-006 | TST-008 | OCSP/CRL vector | Hayır |
@@ -125,6 +125,9 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - PAdES orkestrasyonu ve geriye uyumluluk: `tests/ImzaKit.Verify.Tests`.
 - Tek paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.9.nupkg`, tam **12 DLL** ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - Faz 2 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.10.nupkg`, tam **13 DLL** (`ImzaKit.Timestamp` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
+- Trust Store imzalı güncelleme: `tests/ImzaKit.Trust.Tests` (`TrustStorePackageActivationTests`, `TrustStoreUpdateChannelTests`). Release key doğrulanmadan etkinleşmez; acil kaldırma tombstone’u rollback ve kanal paketinde kökü geri getirmez.
+- TSA secret store: `tests/ImzaKit.Timestamp.Tests` (`TsaCredentialStoreTests`, `Rfc3161TimeStampClientTests`). Credential `ITsaCredentialStore` üzerinden gelir; `TimeStampAuthority` ve extend isteği parola taşımaz.
+- PAdES revision raporu: `tests/ImzaKit.Verify.Tests` (`PadesRevisionReportTests`). Her imza `CoveredRevision` / `SubsequentByteCount` ile ayrı raporlanır.
 - Tasarım ve uygulama bağı: `docs/superpowers/specs/2026-08-23-alpha4-offline-trust-validation-design.md` ve `docs/superpowers/plans/2026-08-23-alpha4-offline-trust-validation.md`.
 
 - `MVP = Evet` olan satırlar MVP kabulünü engeller.

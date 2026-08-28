@@ -105,8 +105,57 @@ public sealed class Rfc3161TimeStampClientTests
         Assert.Equal("IMZAKIT.TS.INVALID_TOKEN", error.Message);
     }
 
-    private sealed class ScriptedFetcher(Func<Uri, byte[], byte[]> respond) : IExternalResourceFetcher
+    [Fact]
+    public async Task RequestAttachesAuthorizationFromCredentialStoreNotAuthority()
     {
+        using TestTsaResponder tsa = new();
+        TsaCredential credential = TsaCredential.Basic("tsa-user", "tsa-secret");
+        ScriptedFetcher fetcher = new((_, _) => tsa.Grant(SHA256.HashData("ignored"u8)));
+        fetcher.Respond = (request, body) =>
+        {
+            Assert.Equal("Basic " + Convert.ToBase64String("tsa-user:tsa-secret"u8), request.Headers!["Authorization"]);
+            Assert.DoesNotContain("tsa-secret", request.Uri.ToString(), StringComparison.Ordinal);
+            return tsa.Grant(body);
+        };
+
+        Rfc3161TimeStampResult result = await new Rfc3161TimeStampClient(fetcher, new StaticStore(credential))
+            .RequestAsync(
+                SHA256.HashData("pades-signature-value"u8),
+                [new TimeStampAuthority("primary", new Uri("https://tsa.example/rfc3161"))],
+                CancellationToken.None);
+
+        Assert.NotEmpty(result.TokenDer);
+        Assert.Equal(1, fetcher.Calls);
+    }
+
+    [Fact]
+    public async Task RequestOmitsAuthorizationWhenStoreHasNoCredential()
+    {
+        using TestTsaResponder tsa = new();
+        ScriptedFetcher fetcher = new((_, _) => tsa.Grant(SHA256.HashData("ignored"u8)));
+        fetcher.Respond = (request, body) =>
+        {
+            Assert.True(request.Headers is null || request.Headers.Count == 0);
+            return tsa.Grant(body);
+        };
+
+        await new Rfc3161TimeStampClient(fetcher, new StaticStore(null)).RequestAsync(
+            SHA256.HashData("pades-signature-value"u8),
+            [new TimeStampAuthority("primary", new Uri("https://tsa.example/rfc3161"))],
+            CancellationToken.None);
+
+        Assert.Equal(1, fetcher.Calls);
+    }
+
+    private sealed class ScriptedFetcher : IExternalResourceFetcher
+    {
+        public ScriptedFetcher(Func<Uri, byte[], byte[]> respond)
+        {
+            Respond = (request, body) => respond(request.Uri, body);
+        }
+
+        public Func<ExternalResourceFetchRequest, byte[], byte[]> Respond { get; set; }
+
         public int Calls { get; private set; }
 
         public Task<ExternalResourceFetchResult> FetchAsync(
@@ -114,8 +163,14 @@ public sealed class Rfc3161TimeStampClientTests
             CancellationToken cancellationToken)
         {
             Calls++;
-            byte[] body = respond(request.Uri, request.Body);
+            byte[] body = Respond(request, request.Body);
             return Task.FromResult(new ExternalResourceFetchResult(body, "application/timestamp-reply"));
         }
+    }
+
+    private sealed class StaticStore(TsaCredential? credential) : ITsaCredentialStore
+    {
+        public ValueTask<TsaCredential?> GetAsync(string authorityName, CancellationToken cancellationToken) =>
+            ValueTask.FromResult(credential);
     }
 }

@@ -203,7 +203,8 @@ public sealed class PadesValidationService : IPadesValidationService
             PolicyCatalogVersion = context.PolicyCatalog.Version,
             EvidenceSources = evidenceSources,
             SignatureLevel = integrity.SignatureLevel,
-            ModificationPolicyStatus = integrity.ModificationPolicyStatus
+            ModificationPolicyStatus = integrity.ModificationPolicyStatus,
+            Signatures = integrity.Signatures
         };
     }
 

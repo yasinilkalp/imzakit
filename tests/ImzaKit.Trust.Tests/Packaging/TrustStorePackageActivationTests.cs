@@ -87,6 +87,77 @@ public sealed class TrustStorePackageActivationTests
         Assert.Empty(service.Current!.Anchors);
         Assert.Equal("compromised-test-root", removed.ChangeRationale);
         Assert.StartsWith("2026.08.1-removed-", service.Current.Version, StringComparison.Ordinal);
+        Assert.Equal(service.Current.Version + "-policy", service.CurrentCatalog!.Version);
+        Assert.Contains(thumbprint, service.Tombstones, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void RollbackAfterEmergencyRemovalDoesNotRestoreTombstonedAnchor()
+    {
+        using TestCertificateAuthority firstPki = TestCertificateAuthority.Create();
+        using TestCertificateAuthority secondPki = TestCertificateAuthority.Create();
+        using ECDsa releaseKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        TrustStoreActivationService service = new(releaseKey);
+        service.Activate(TrustStorePackageCodec.Sign(CreateManifest(1, "2026.08.1", firstPki.Root, removed: false), releaseKey));
+        service.Activate(TrustStorePackageCodec.Sign(CreateManifest(2, "2026.08.2", secondPki.Root, removed: false), releaseKey));
+        string compromised = Convert.ToHexString(SHA256.HashData(secondPki.Root.Export(X509ContentType.Cert)));
+        service.EmergencyRemove(compromised, "compromised-second-root");
+
+        TrustStoreActivationResult rollback = service.Rollback();
+
+        Assert.Equal(TrustStoreActivationStatus.RolledBack, rollback.Status);
+        Assert.Equal("2026.08.1", service.Current!.Version);
+        Assert.DoesNotContain(
+            service.Current.Anchors,
+            anchor => string.Equals(anchor.Certificate.Sha256Thumbprint, compromised, StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(
+            Convert.ToHexString(SHA256.HashData(firstPki.Root.Export(X509ContentType.Cert))),
+            Assert.Single(service.Current.Anchors).Certificate.Sha256Thumbprint);
+    }
+
+    [Fact]
+    public void SignedRotationOmittingTombstoneActivatesAndClearsTombstone()
+    {
+        using TestCertificateAuthority compromisedPki = TestCertificateAuthority.Create();
+        using TestCertificateAuthority replacementPki = TestCertificateAuthority.Create();
+        using ECDsa releaseKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        TrustStoreActivationService service = new(releaseKey);
+        service.Activate(TrustStorePackageCodec.Sign(CreateManifest(1, "2026.08.1", compromisedPki.Root, removed: false), releaseKey));
+        string compromised = Convert.ToHexString(SHA256.HashData(compromisedPki.Root.Export(X509ContentType.Cert)));
+        service.EmergencyRemove(compromised, "compromised-test-root");
+
+        TrustStoreActivationResult stale = service.Activate(
+            TrustStorePackageCodec.Sign(CreateManifest(2, "2026.08.2", compromisedPki.Root, removed: false), releaseKey));
+
+        Assert.Equal(TrustStoreActivationStatus.Rejected, stale.Status);
+        Assert.Equal("IMZAKIT.TRUST.TOMBSTONED_ANCHOR", stale.Reason);
+        Assert.Empty(service.Current!.Anchors);
+
+        TrustStoreActivationResult rotated = service.Activate(
+            TrustStorePackageCodec.Sign(CreateManifest(2, "2026.08.2", replacementPki.Root, removed: false), releaseKey));
+
+        Assert.Equal(TrustStoreActivationStatus.Activated, rotated.Status);
+        Assert.Equal("2026.08.2", service.Current.Version);
+        Assert.Equal(
+            Convert.ToHexString(SHA256.HashData(replacementPki.Root.Export(X509ContentType.Cert))),
+            Assert.Single(service.Current.Anchors).Certificate.Sha256Thumbprint);
+        Assert.Empty(service.Tombstones);
+    }
+
+    [Fact]
+    public void SignedPackageWithRemovedEntryRotatesAnchorOut()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create();
+        using ECDsa releaseKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        TrustStoreActivationService service = new(releaseKey);
+        service.Activate(TrustStorePackageCodec.Sign(CreateManifest(1, "2026.08.1", pki.Root, removed: false), releaseKey));
+
+        TrustStoreActivationResult rotated = service.Activate(
+            TrustStorePackageCodec.Sign(CreateManifest(2, "2026.08.2", pki.Root, removed: true), releaseKey));
+
+        Assert.Equal(TrustStoreActivationStatus.Activated, rotated.Status);
+        Assert.Empty(service.Current!.Anchors);
+        Assert.Equal("2026.08.2", service.Current.Version);
     }
 
     [Fact]

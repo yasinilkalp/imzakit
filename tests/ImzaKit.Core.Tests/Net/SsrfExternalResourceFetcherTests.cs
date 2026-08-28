@@ -45,8 +45,44 @@ public sealed class SsrfExternalResourceFetcherTests
         Assert.Equal(1, handler.Calls);
         Assert.Equal("POST", handler.LastMethod);
         Assert.Equal(new byte[] { 0x30, 0x01 }, handler.LastBody);
+        Assert.Null(handler.LastAuthorization);
         Assert.Equal(new byte[] { 0x30, 0x03 }, result.Body);
         Assert.Equal("application/timestamp-reply", result.ContentType);
+    }
+
+    [Fact]
+    public async Task FetchForwardsAuthorizationAndRejectsOtherHeaders()
+    {
+        RecordingHandler handler = new(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new ByteArrayContent([0x30, 0x03])
+            {
+                Headers = { ContentType = new("application/timestamp-reply") }
+            }
+        });
+        SsrfExternalResourceFetcher fetcher = new(handler);
+        ExternalResourceFetchRequest authorized = Get(
+            new Uri("https://tsa.example/rfc3161"),
+            headers: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Authorization"] = "Basic abc"
+            });
+
+        ExternalResourceFetchResult result = await fetcher.FetchAsync(authorized, CancellationToken.None);
+        InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fetcher.FetchAsync(
+                Get(
+                    new Uri("https://tsa.example/rfc3161"),
+                    headers: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["Host"] = "169.254.169.254"
+                    }),
+                CancellationToken.None));
+
+        Assert.Equal("Basic abc", handler.LastAuthorization);
+        Assert.Equal([0x30, 0x03], result.Body);
+        Assert.Equal("IMZAKIT.NET.HEADER_NOT_ALLOWED", error.Message);
+        Assert.Equal(1, handler.Calls);
     }
 
     [Fact]
@@ -87,7 +123,8 @@ public sealed class SsrfExternalResourceFetcherTests
     private static ExternalResourceFetchRequest Get(
         Uri uri,
         IReadOnlyList<string>? allowed = null,
-        int maxBytes = 1024) =>
+        int maxBytes = 1024,
+        IReadOnlyDictionary<string, string>? headers = null) =>
         new(
             uri,
             "GET",
@@ -96,7 +133,8 @@ public sealed class SsrfExternalResourceFetcherTests
             AllowedResponseContentTypes: allowed ?? ["application/timestamp-reply"],
             maxBytes,
             TimeSpan.FromSeconds(5),
-            MaxRedirects: 0);
+            MaxRedirects: 0,
+            Headers: headers);
 
     private sealed class RecordingHandler(HttpResponseMessage response) : HttpMessageHandler
     {
@@ -106,12 +144,15 @@ public sealed class SsrfExternalResourceFetcherTests
 
         public byte[]? LastBody { get; private set; }
 
+        public string? LastAuthorization { get; private set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             Calls++;
             LastMethod = request.Method.Method;
+            LastAuthorization = request.Headers.Authorization?.ToString();
             LastBody = request.Content is null
                 ? null
                 : await request.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);

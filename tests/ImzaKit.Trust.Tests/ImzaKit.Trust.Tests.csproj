@@ -10,6 +10,7 @@
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\ImzaKit.Core\ImzaKit.Core.csproj" />
     <ProjectReference Include="..\..\src\ImzaKit.Trust\ImzaKit.Trust.csproj" />
     <ProjectReference Include="..\ImzaKit.Testing\ImzaKit.Testing.csproj" />
     <Using Include="Xunit" />

@@ -7,7 +7,9 @@ using Org.BouncyCastle.X509;
 
 namespace ImzaKit.Timestamp.Rfc3161;
 
-public sealed class Rfc3161TimeStampClient(IExternalResourceFetcher fetcher)
+public sealed class Rfc3161TimeStampClient(
+    IExternalResourceFetcher fetcher,
+    ITsaCredentialStore? credentials = null)
 {
     private const string TimeStampingEku = "1.3.6.1.5.5.7.3.8";
     private const int Granted = 0;
@@ -44,6 +46,8 @@ public sealed class Rfc3161TimeStampClient(IExternalResourceFetcher fetcher)
         {
             TimeStampAuthority authority = authorities[index];
             ArgumentNullException.ThrowIfNull(authority);
+            Dictionary<string, string>? headers = await ResolveAuthorizationAsync(authority.Name, cancellationToken)
+                .ConfigureAwait(false);
             try
             {
                 ExternalResourceFetchResult fetched = await fetcher.FetchAsync(
@@ -55,7 +59,8 @@ public sealed class Rfc3161TimeStampClient(IExternalResourceFetcher fetcher)
                         ["application/timestamp-reply"],
                         MaxResponseBytes: 65536,
                         Timeout: TimeSpan.FromSeconds(15),
-                        MaxRedirects: 0),
+                        MaxRedirects: 0,
+                        Headers: headers),
                     cancellationToken).ConfigureAwait(false);
                 return ReadGrantedToken(request, fetched.Body, nonce);
             }
@@ -73,6 +78,24 @@ public sealed class Rfc3161TimeStampClient(IExternalResourceFetcher fetcher)
         throw lastTransient is null
             ? new InvalidOperationException("IMZAKIT.TS.AUTHORITY_UNAVAILABLE")
             : new InvalidOperationException("IMZAKIT.TS.AUTHORITY_UNAVAILABLE", lastTransient);
+    }
+
+    private async Task<Dictionary<string, string>?> ResolveAuthorizationAsync(
+        string authorityName,
+        CancellationToken cancellationToken)
+    {
+        if (credentials is null)
+        {
+            return null;
+        }
+
+        TsaCredential? credential = await credentials.GetAsync(authorityName, cancellationToken).ConfigureAwait(false);
+        return credential is null
+            ? null
+            : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Authorization"] = credential.AuthorizationHeader
+            };
     }
 
     private static Rfc3161TimeStampResult ReadGrantedToken(TimeStampRequest request, byte[] responseDer, byte[] nonce)

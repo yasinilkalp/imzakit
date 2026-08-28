@@ -13,6 +13,14 @@ internal enum PdfCadesReadStatus
     Success
 }
 
+internal sealed record PdfCadesLocatedSignature(
+    PdfCadesReadStatus Status,
+    long[] ByteRange,
+    byte[] Cms,
+    byte[] SignedBytes,
+    int CoveredLength,
+    string? FieldName);
+
 internal static class PdfCadesSignatureReader
 {
     private const string CadesSubFilter = "/SubFilter /ETSI.CAdES.detached";
@@ -25,56 +33,57 @@ internal static class PdfCadesSignatureReader
         out byte[] cms,
         out byte[] signedBytes)
     {
-        byteRange = [];
-        cms = [];
-        signedBytes = [];
-        string text = Encoding.ASCII.GetString(pdf);
-        int subFilter = text.LastIndexOf(CadesSubFilter, StringComparison.Ordinal);
-        if (subFilter < 0)
+        IReadOnlyList<PdfCadesLocatedSignature> signatures = ReadAll(pdf);
+        if (signatures.Count == 0)
         {
+            byteRange = [];
+            cms = [];
+            signedBytes = [];
             return PdfCadesReadStatus.NotFound;
         }
 
-        int dictionaryStart = text.LastIndexOf("<<", subFilter, StringComparison.Ordinal);
-        int markerIndex = dictionaryStart < 0
-            ? -1
-            : text.IndexOf(ByteRangeMarker, dictionaryStart, StringComparison.Ordinal);
-        if (markerIndex < 0
-            || !TryReadByteRange(text, markerIndex + ByteRangeMarker.Length, out byteRange)
-            || !TryValidateByteRange(pdf.Length, byteRange, out int firstLength, out int secondOffset, out int secondLength))
+        PdfCadesLocatedSignature last = signatures[^1];
+        byteRange = last.ByteRange;
+        cms = last.Cms;
+        signedBytes = last.SignedBytes;
+        return last.Status;
+    }
+
+    internal static IReadOnlyList<PdfCadesLocatedSignature> ReadAll(ReadOnlySpan<byte> pdf)
+    {
+        string text = Encoding.ASCII.GetString(pdf);
+        List<PdfCadesLocatedSignature> signatures = [];
+        int search = 0;
+        while (true)
         {
-            return PdfCadesReadStatus.InvalidByteRange;
+            int subFilter = text.IndexOf(CadesSubFilter, search, StringComparison.Ordinal);
+            if (subFilter < 0)
+            {
+                break;
+            }
+
+            search = subFilter + CadesSubFilter.Length;
+            signatures.Add(ReadOne(pdf, text, subFilter));
         }
 
-        int contentsLength = secondOffset - firstLength;
-        if (contentsLength < 4
-            || pdf[firstLength] != (byte)'<'
-            || pdf[secondOffset - 1] != (byte)'>')
+        return [.. signatures.OrderBy(signature => signature.CoveredLength)
+            .ThenBy(signature => signature.FieldName, StringComparer.Ordinal)];
+    }
+
+    internal static int CountCoveredRevisions(ReadOnlySpan<byte> pdf, int coveredLength)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(coveredLength);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(coveredLength, pdf.Length);
+        string text = Encoding.ASCII.GetString(pdf[..coveredLength]);
+        int count = 0;
+        int index = 0;
+        while ((index = text.IndexOf("%%EOF", index, StringComparison.Ordinal)) >= 0)
         {
-            return PdfCadesReadStatus.InvalidByteRange;
+            count++;
+            index += 5;
         }
 
-        byte[] paddedCms;
-        try
-        {
-            paddedCms = Convert.FromHexString(
-                Encoding.ASCII.GetString(pdf.Slice(firstLength + 1, contentsLength - 2)));
-        }
-        catch (FormatException)
-        {
-            return PdfCadesReadStatus.InvalidByteRange;
-        }
-
-        if (!TryReadDerLength(paddedCms, out int cmsLength))
-        {
-            return PdfCadesReadStatus.InvalidCms;
-        }
-
-        cms = paddedCms[..cmsLength];
-        signedBytes = new byte[firstLength + secondLength];
-        pdf[..firstLength].CopyTo(signedBytes);
-        pdf.Slice(secondOffset, secondLength).CopyTo(signedBytes.AsSpan(firstLength));
-        return PdfCadesReadStatus.Success;
+        return count;
     }
 
     internal static string DetectLevel(ReadOnlySpan<byte> pdf, SignedCms cms)
@@ -91,6 +100,71 @@ internal static class PdfCadesSignatureReader
             (true, false, _) => PadesBaselineLevel.BT,
             _ => PadesBaselineLevel.BB
         };
+    }
+
+    private static PdfCadesLocatedSignature ReadOne(ReadOnlySpan<byte> pdf, string text, int subFilter)
+    {
+        string? fieldName = ReadFieldName(text, subFilter);
+        int dictionaryStart = text.LastIndexOf("<<", subFilter, StringComparison.Ordinal);
+        int markerIndex = dictionaryStart < 0
+            ? -1
+            : text.IndexOf(ByteRangeMarker, dictionaryStart, StringComparison.Ordinal);
+        if (markerIndex < 0
+            || !TryReadByteRange(text, markerIndex + ByteRangeMarker.Length, out long[] byteRange)
+            || !TryValidateByteRange(pdf.Length, byteRange, out int firstLength, out int secondOffset, out int secondLength))
+        {
+            return new(PdfCadesReadStatus.InvalidByteRange, [], [], [], pdf.Length, fieldName);
+        }
+
+        int coveredLength = checked((int)(byteRange[2] + byteRange[3]));
+        int contentsLength = secondOffset - firstLength;
+        if (contentsLength < 4
+            || pdf[firstLength] != (byte)'<'
+            || pdf[secondOffset - 1] != (byte)'>')
+        {
+            return new(PdfCadesReadStatus.InvalidByteRange, byteRange, [], [], coveredLength, fieldName);
+        }
+
+        byte[] paddedCms;
+        try
+        {
+            paddedCms = Convert.FromHexString(
+                Encoding.ASCII.GetString(pdf.Slice(firstLength + 1, contentsLength - 2)));
+        }
+        catch (FormatException)
+        {
+            return new(PdfCadesReadStatus.InvalidByteRange, byteRange, [], [], coveredLength, fieldName);
+        }
+
+        if (!TryReadDerLength(paddedCms, out int cmsLength))
+        {
+            return new(PdfCadesReadStatus.InvalidCms, byteRange, [], [], coveredLength, fieldName);
+        }
+
+        byte[] cms = paddedCms[..cmsLength];
+        byte[] signedBytes = new byte[firstLength + secondLength];
+        pdf[..firstLength].CopyTo(signedBytes);
+        pdf.Slice(secondOffset, secondLength).CopyTo(signedBytes.AsSpan(firstLength));
+        return new(PdfCadesReadStatus.Success, byteRange, cms, signedBytes, coveredLength, fieldName);
+    }
+
+    private static string? ReadFieldName(string text, int subFilter)
+    {
+        int windowEnd = text.IndexOf("%%EOF", subFilter, StringComparison.Ordinal);
+        if (windowEnd < 0)
+        {
+            windowEnd = text.Length;
+        }
+
+        int nameToken = text.IndexOf("/T (", subFilter, StringComparison.Ordinal);
+        if (nameToken < 0 || nameToken >= windowEnd)
+        {
+            return null;
+        }
+
+        int nameStart = nameToken + 4;
+        int nameEnd = text.IndexOf(')', nameStart);
+        return nameEnd < 0 || nameEnd > windowEnd ? null : text[nameStart..nameEnd];
     }
 
     private static bool HasSignatureTimeStamp(SignedCms cms)

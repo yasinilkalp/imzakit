@@ -41,6 +41,7 @@ public sealed class SsrfExternalResourceFetcher : IExternalResourceFetcher, IDis
         using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(request.Timeout);
         using HttpRequestMessage message = new(new HttpMethod(request.Method), request.Uri);
+        ApplyAllowedHeaders(message, request.Headers);
         if (request.Body.Length > 0 || string.Equals(request.Method, "POST", StringComparison.OrdinalIgnoreCase))
         {
             ByteArrayContent content = new(request.Body);
@@ -83,6 +84,28 @@ public sealed class SsrfExternalResourceFetcher : IExternalResourceFetcher, IDis
         }
 
         return new ExternalResourceFetchResult(body, mediaType);
+    }
+
+    private static void ApplyAllowedHeaders(HttpRequestMessage message, IReadOnlyDictionary<string, string>? headers)
+    {
+        if (headers is null || headers.Count == 0)
+        {
+            return;
+        }
+
+        foreach ((string name, string value) in headers)
+        {
+            if (!string.Equals(name, "Authorization", StringComparison.OrdinalIgnoreCase) ||
+                string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException("IMZAKIT.NET.HEADER_NOT_ALLOWED");
+            }
+
+            if (!message.Headers.TryAddWithoutValidation("Authorization", value.Trim()))
+            {
+                throw new InvalidOperationException("IMZAKIT.NET.HEADER_NOT_ALLOWED");
+            }
+        }
     }
 
     private static SocketsHttpHandler CreateDefaultHandler()
