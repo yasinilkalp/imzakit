@@ -49,7 +49,8 @@ public sealed class TestCertificateAuthority : IDisposable
         bool leafHasDigitalSignature = true,
         bool useSha1Signatures = false,
         string? ocspUri = null,
-        string? crlDistributionUri = null)
+        string? crlDistributionUri = null,
+        bool includeQcCompliance = false)
     {
         DateTimeOffset now = new(2026, 8, 23, 12, 0, 0, TimeSpan.Zero);
         if (useSha1Signatures)
@@ -88,6 +89,11 @@ public sealed class TestCertificateAuthority : IDisposable
             true));
         leafRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(leafRequest.PublicKey, false));
         leafRequest.CertificateExtensions.Add(CreateCertificatePoliciesExtension(leafPolicyOid));
+        if (includeQcCompliance)
+        {
+            leafRequest.CertificateExtensions.Add(CreateQcComplianceExtension());
+        }
+
         if (ocspUri is not null)
         {
             leafRequest.CertificateExtensions.Add(new X509AuthorityInformationAccessExtension(
@@ -147,6 +153,20 @@ public sealed class TestCertificateAuthority : IDisposable
             ? EncodeCertificatePolicies(policyOid)
             : throw new ArgumentException("Policy OID is invalid.", nameof(policyOid));
         return new System.Security.Cryptography.X509Certificates.X509Extension("2.5.29.32", oid, critical: false);
+    }
+
+    private static System.Security.Cryptography.X509Certificates.X509Extension CreateQcComplianceExtension()
+    {
+        System.Formats.Asn1.AsnWriter writer = new(System.Formats.Asn1.AsnEncodingRules.DER);
+        writer.PushSequence();
+        writer.PushSequence();
+        writer.WriteObjectIdentifier("0.4.0.1862.1.1");
+        writer.PopSequence();
+        writer.PopSequence();
+        return new System.Security.Cryptography.X509Certificates.X509Extension(
+            "1.3.6.1.5.5.7.1.3",
+            writer.Encode(),
+            critical: false);
     }
 
     private static byte[] EncodeCertificatePolicies(string policyOid)

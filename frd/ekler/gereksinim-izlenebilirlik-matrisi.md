@@ -10,7 +10,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 | FR-004 | Kaynak gereksinim metni | Zorunlu | 1 | Core | — | TST-015 | Ortak SDK sözleşme kanıtı | Evet |
 | FR-005 | Kaynak gereksinim metni | Zorunlu | 1 | Core | — | TST-015 | Ortak SDK sözleşme kanıtı | Evet |
 | FR-006 | Kaynak gereksinim metni | Zorunlu | 1 | Core | — | TST-015 | Ortak SDK sözleşme kanıtı | Evet |
-| FR-020 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS entegrasyon kanıtı | Evet |
+| FR-020 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS + eToken + HSM + nShield + Utimaco | Evet |
 | FR-021 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS entegrasyon kanıtı | Evet |
 | FR-022 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS entegrasyon kanıtı | Evet |
 | FR-023 | Kaynak gereksinim metni | Zorunlu | 1 | Agent | ADR-003 | TST-001/TST-002 | AKİS entegrasyon kanıtı | Evet |
@@ -55,18 +55,18 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 | FR-091 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
 | FR-092 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
 | FR-093 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
-| FR-094 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | Trust ve profil kanıtı | Evet |
+| FR-094 | Kaynak gereksinim metni | Zorunlu | 1 | Trust | ADR-004/ADR-006 | TST-007/TST-009 | TrustPolicyEvaluatorTests Eidas + OpenAPI Eidas | Evet |
 | FR-095 | Kaynak gereksinim metni | Orta | 3 | Trust | ADR-004/ADR-006 | TST-019 | İmzalı update/rollback | Evet |
 | FR-096 | Kaynak gereksinim metni | Yüksek | 2 | Revocation | ADR-004/ADR-006 | TST-008 | OCSP/CRL vector | Hayır |
 | FR-097 | Kaynak gereksinim metni | Yüksek | 2 | Revocation | ADR-004/ADR-006 | TST-008 | OCSP/CRL vector | Hayır |
 | FR-098 | Kaynak gereksinim metni | Yüksek | 2 | Revocation | ADR-004/ADR-006 | TST-008 | OCSP/CRL vector | Hayır |
 | FR-099 | Kaynak gereksinim metni | Yüksek | 2 | Revocation | ADR-004/ADR-006 | TST-008 | OCSP/CRL vector | Hayır |
 | FR-110 | Kaynak gereksinim metni | Zorunlu | 1 | Workflow | — | TST-006 | Çoklu PDF revision | Evet |
-| FR-111 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests | Evet |
-| FR-112 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests | Evet |
-| FR-113 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests | Evet |
-| FR-114 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests | Evet |
-| FR-115 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests | Evet |
+| FR-111 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests + SignatureEnvelopeRequestHandlerTests | Evet |
+| FR-112 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests + SignatureEnvelopeRequestHandlerTests | Evet |
+| FR-113 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests + SignatureEnvelopeRequestHandlerTests | Evet |
+| FR-114 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests + SignatureEnvelopeRequestHandlerTests | Evet |
+| FR-115 | Kaynak gereksinim metni | Orta | 3 | Workflow | — | TST-006/TST-009 | SignatureFlowCoordinatorTests + SignatureEnvelopeRequestHandlerTests | Evet |
 | VAL-001 | Kaynak gereksinim metni | Zorunlu | 1 | Validation | ADR-004/ADR-006 | TST-009 | Karar tablosu ve rapor snapshot | Evet |
 | VAL-002 | Kaynak gereksinim metni | Zorunlu | 1 | Validation | ADR-004/ADR-006 | TST-009 | Karar tablosu ve rapor snapshot | Evet |
 | VAL-003 | Kaynak gereksinim metni | Zorunlu | 1 | Validation | ADR-004/ADR-006 | TST-009 | Karar tablosu ve rapor snapshot | Evet |
@@ -127,6 +127,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - Faz 2 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.10.nupkg`, tam **13 DLL** (`ImzaKit.Timestamp` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - Faz 3 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.11.nupkg`, tam **14 DLL** (`ImzaKit.CAdES` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - Faz 4 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.12.nupkg`, tam **16 DLL** (`ImzaKit.XAdES` ve `ImzaKit.ASiC` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
+- Faz 5 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.13.nupkg`, tam **16 DLL** (yeni üretim DLL’si yok) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - NFR-001: `tests/ImzaKit.PAdES.Tests/Performance/PadesPrepareCompletePerformanceTests.cs` ve `reports/nfr-001-pades-prepare-complete.json`. 10 MB PDF, prepare + süreç içi RSA + complete, ağ yok; p95 195 ms (SLA 2000 ms).
 - XAdES FR-070–073: `tests/ImzaKit.XAdES.Tests` (`XadesPackagingTests`, `XadesBaselineTests`). Politika enveloped/enveloping/detached; c14n/transform allowlist; DTD ve harici URI yok. B-T `Rfc3161TimeStampClient`; B-LT CertificateValues/RevocationValues; B-LTA ArchiveTimeStamp imprint SHA-256(XML). Alpha.12 paketine alındı.
 - ASiC FR-074–076: `tests/ImzaKit.ASiC.Tests` (`AsicContainerTests`). ASiC-S tek nesne, ASiC-E çoklu nesne+imza; zip-slip, duplicate/case-conflict, zip bomb oranı; `mimetype` ilk ve stored, `META-INF` imza/manifest. Alpha.12 paketine alındı.
@@ -135,7 +136,13 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - PAdES revision raporu: `tests/ImzaKit.Verify.Tests` (`PadesRevisionReportTests`). Her imza `CoveredRevision` / `SubsequentByteCount` ile ayrı raporlanır.
 - Bağımsız CAdES B-B/B-T ve çoklu SignerInfo: `tests/ImzaKit.CAdES.Tests` (`CadesDetachedTests`). FR-065 ayrı SignerInfo kararı.
 - CAdES B-LT/B-LTA: `tests/ImzaKit.CAdES.Tests` (`CadesLongTermTests`). certificate-values / revocation-values / archive-time-stamp unsigned attr yazılır. Archive imprint SHA-256(CMS); ATSHashIndex-v3 yok.
-- İmza workflow: `tests/ImzaKit.Api.Tests/Workflow/SignatureFlowCoordinatorTests.cs`. Seri prepare kilidi, paralel aynı digest, PAdES sequential revision raporu, politika (son tarih/red), tekrar imzacı parmak izi. OpenAPI uçları yok.
+- İmza workflow: `tests/ImzaKit.Api.Tests/Workflow/SignatureFlowCoordinatorTests.cs` ve `tests/ImzaKit.Api.Tests/Hosting/SignatureEnvelopeRequestHandlerTests.cs`. Seri prepare kilidi, paralel aynı digest, PAdES sequential revision raporu, politika (son tarih/red), tekrar imzacı parmak izi. OpenAPI uçları `createSignatureEnvelope` / prepare / complete / reject / report.
+- HSM PKCS#11 ve uzak imza: `tests/ImzaKit.Pkcs11.Tests/Hsm/HsmProviderProfileTests.cs` ve `tests/ImzaKit.Agent.Tests/RemoteSigning/RemoteSigningClientTests.cs`. SoftHSM2 allowlist; özel anahtar/PIN istek gövdesine girmez; kimlik `IMZAKIT_REMOTE_*` ortam değişkeninden gelir. Fiziksel HSM ve CSC sağlayıcı kabulü ayrıdır.
+- Preservation scheduler: `tests/ImzaKit.Api.Tests/Preservation/PreservationSchedulerTests.cs` ve `PadesSignatureExtenderTests.PreserveArchiveTimestampOnLtaAddsAnotherDocumentTimestamp`. TSA notAfter eksi lead time dolunca PAdES B-LTA’ya ikinci DocTimeStamp eklenir; B-LT reddedilir. CAdES/XAdES yenileme bu dilimde yok.
+- macOS/Linux Agent fizibilitesi: `tests/ImzaKit.Agent.Tests/Platform/AgentPlatformCapabilitiesTests.cs` ve `docs/spikes/2026-08-30-macos-linux-agent-fizibilite.md`. Protokol platform bağımsız; HostReady yalnız Windows. Unix native PIN/onay fail-closed. Fiziksel Unix kart yok.
+- Ek PKCS#11 vendor: `tests/ImzaKit.Pkcs11.Tests/Nshield/NshieldProviderProfileTests.cs` ve `tests/ImzaKit.Pkcs11.Tests/Utimaco/UtimacoProviderProfileTests.cs`. `cknfast.dll` / `cs_pkcs11_R2.dll` / `cs_pkcs11_R3.dll` allowlist; `cryptoki.dll` ve `System32` yok. `ForNshield` / `ForUtimaco` AKİS güvenli varsayılanları. Vendor DLL paketlenmez. Fiziksel HSM kabulü ayrıdır.
+- eIDAS doğrulama profili: `tests/ImzaKit.Trust.Tests/Evaluation/TrustPolicyEvaluatorTests.cs`. `Eidas` Eidas etiketli kök, sürümlü katalog politika OID’i ve QcCompliance (`0.4.0.1862.1.1`) ister. OpenAPI `validationProfile` `Eidas` kabul eder. EU TSL/EUTL içe aktarılmaz; hukuki QES iddiası yoktur.
+- Ortak validation report: `tests/ImzaKit.Verify.Tests` (`SignatureValidationReportTests`). `SignatureValidationReportMapper` PAdES/CAdES/XAdES/ASiC-S raporlarını `PASSED`/`FAILED`/`INDETERMINATE` modeline taşır; güven/iptal yokken sessiz PASSED yoktur.
 - Tasarım ve uygulama bağı: `docs/superpowers/specs/2026-08-23-alpha4-offline-trust-validation-design.md` ve `docs/superpowers/plans/2026-08-23-alpha4-offline-trust-validation.md`.
 
 - `MVP = Evet` olan satırlar MVP kabulünü engeller.

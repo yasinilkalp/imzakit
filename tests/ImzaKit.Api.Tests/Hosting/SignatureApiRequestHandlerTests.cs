@@ -22,7 +22,39 @@ public sealed class SignatureApiRequestHandlerTests
         Assert.Contains("operationId: createAgentTicket", yaml, StringComparison.Ordinal);
         Assert.Contains("operationId: createValidation", yaml, StringComparison.Ordinal);
         Assert.Contains("operationId: extendSignature", yaml, StringComparison.Ordinal);
+        Assert.Contains("operationId: createSignatureEnvelope", yaml, StringComparison.Ordinal);
         Assert.Contains("/signatures/extend", yaml, StringComparison.Ordinal);
+        Assert.Contains("/signature-envelopes", yaml, StringComparison.Ordinal);
+        Assert.Contains("enum: [TurkiyeNes, GenelX509, Eidas]", yaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CreateAcceptsEidasValidationProfile()
+    {
+        HandlerFixture fixture = new();
+
+        ApiHttpResponse response = fixture.Handler.Handle(
+            HandlerFixture.Post(
+                "/v1/signature-operations",
+                HandlerFixture.CreateBody(validationProfile: "Eidas"),
+                idempotencyKey: "idempotency-key-eidas"));
+
+        Assert.Equal(201, response.StatusCode);
+    }
+
+    [Fact]
+    public void CreateRejectsUnknownValidationProfile()
+    {
+        HandlerFixture fixture = new();
+
+        ApiHttpResponse response = fixture.Handler.Handle(
+            HandlerFixture.Post(
+                "/v1/signature-operations",
+                HandlerFixture.CreateBody(validationProfile: "UnknownProfile"),
+                idempotencyKey: "idempotency-key-unknown-profile"));
+
+        Assert.Equal(422, response.StatusCode);
+        Assert.Contains("IMZAKIT.CORE.UNPROCESSABLE", response.Body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -210,6 +242,22 @@ public sealed class SignatureApiRequestHandlerTests
     }
 
     [Fact]
+    public void ValidationAcceptsEidasProfileWithoutOnlineRevocation()
+    {
+        HandlerFixture fixture = new();
+        ApiHttpResponse created = fixture.Handler.Handle(
+            HandlerFixture.Post(
+                "/v1/validations",
+                HandlerFixture.CreateValidationBody("Eidas"),
+                idempotencyKey: "idempotency-key-val-eidas"));
+
+        Assert.Equal(202, created.StatusCode);
+        using JsonDocument json = JsonDocument.Parse(created.Body);
+        Assert.Equal("INDETERMINATE", json.RootElement.GetProperty("outcome").GetString());
+        Assert.False(json.RootElement.GetProperty("onlineRevocationChecked").GetBoolean());
+    }
+
+    [Fact]
     public void AgentCallbackWithoutMtlsIsUnauthorized()
     {
         HandlerFixture fixture = new();
@@ -269,13 +317,16 @@ public sealed class SignatureApiRequestHandlerTests
             return json.RootElement.GetProperty("operationId").GetGuid();
         }
 
-        public static string CreateBody(string? tenantInBody = null, long size = 1024) =>
+        public static string CreateBody(
+            string? tenantInBody = null,
+            long size = 1024,
+            string validationProfile = "TurkiyeNes") =>
             $$"""
-            {"document":{"objectKey":"tenant-a/uploads/contract.pdf","sha256":"{{Digest}}","size":{{size}},"contentType":"application/pdf"},"format":"PAdES","targetLevel":"B-B","validationProfile":"TurkiyeNes"{{(tenantInBody is null ? "" : $",\"tenantId\":\"{tenantInBody}\"")}}}
+            {"document":{"objectKey":"tenant-a/uploads/contract.pdf","sha256":"{{Digest}}","size":{{size}},"contentType":"application/pdf"},"format":"PAdES","targetLevel":"B-B","validationProfile":"{{validationProfile}}"{{(tenantInBody is null ? "" : $",\"tenantId\":\"{tenantInBody}\"")}}}
             """;
 
-        public static string CreateValidationBody() =>
-            $$"""{"document":{"objectKey":"tenant-a/uploads/signed.pdf","sha256":"{{Digest}}","size":2048},"validationProfile":"TurkiyeNes"}""";
+        public static string CreateValidationBody(string validationProfile = "TurkiyeNes") =>
+            $$"""{"document":{"objectKey":"tenant-a/uploads/signed.pdf","sha256":"{{Digest}}","size":2048},"validationProfile":"{{validationProfile}}"}""";
 
         public static ApiHttpRequest Post(
             string path,

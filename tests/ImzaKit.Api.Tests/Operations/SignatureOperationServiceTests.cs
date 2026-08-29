@@ -138,6 +138,10 @@ public sealed class SignatureOperationServiceTests
     [InlineData(ApiProblemKind.DeviceRevoked, 401, "IMZAKIT.AGENT.DEVICE_REVOKED")]
     [InlineData(ApiProblemKind.DeviceExpired, 401, "IMZAKIT.AGENT.DEVICE_EXPIRED")]
     [InlineData(ApiProblemKind.TicketRejected, 401, "IMZAKIT.AGENT.TICKET_REJECTED")]
+    [InlineData(ApiProblemKind.WorkflowStepNotReady, 409, "IMZAKIT.WORKFLOW.STEP_NOT_READY")]
+    [InlineData(ApiProblemKind.WorkflowDuplicateSigner, 422, "IMZAKIT.WORKFLOW.DUPLICATE_SIGNER")]
+    [InlineData(ApiProblemKind.WorkflowDeadlineExpired, 422, "IMZAKIT.WORKFLOW.DEADLINE_EXPIRED")]
+    [InlineData(ApiProblemKind.WorkflowEnvelopeClosed, 409, "IMZAKIT.WORKFLOW.ENVELOPE_CLOSED")]
     public void ProblemKindsHaveStableHttpAndMachineCodes(ApiProblemKind kind, int status, string code)
     {
         ApiProblemDescriptor descriptor = ApiProblemCatalog.Get(kind);

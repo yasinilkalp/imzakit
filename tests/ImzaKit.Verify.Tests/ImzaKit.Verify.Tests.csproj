@@ -1,5 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject></PropertyGroup>
   <ItemGroup><PackageReference Include="Microsoft.NET.Test.Sdk" /><PackageReference Include="System.Security.Cryptography.Pkcs" /><PackageReference Include="xunit" /><PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="..\..\src\ImzaKit.Cms\ImzaKit.Cms.csproj" /><ProjectReference Include="..\..\src\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" /><ProjectReference Include="..\..\src\ImzaKit.PAdES\ImzaKit.PAdES.csproj" /><ProjectReference Include="..\..\src\ImzaKit.Timestamp\ImzaKit.Timestamp.csproj" /><ProjectReference Include="..\..\src\ImzaKit.Verify\ImzaKit.Verify.csproj" /><ProjectReference Include="..\ImzaKit.Testing\ImzaKit.Testing.csproj" /><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ImzaKit.ASiC\ImzaKit.ASiC.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.CAdES\ImzaKit.CAdES.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Cms\ImzaKit.Cms.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Core\ImzaKit.Core.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.PAdES\ImzaKit.PAdES.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Timestamp\ImzaKit.Timestamp.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.XAdES\ImzaKit.XAdES.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Verify\ImzaKit.Verify.csproj" />
+    <ProjectReference Include="..\ImzaKit.Testing\ImzaKit.Testing.csproj" />
+    <Using Include="Xunit" />
+  </ItemGroup>
 </Project>

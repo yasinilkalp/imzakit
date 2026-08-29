@@ -5,5 +5,6 @@ public enum TrustPolicyFailure
     TrustAnchorNotFound,
     AnchorProfileNotAllowed,
     CertificatePolicyNotAllowed,
-    PolicyNotEffective
+    PolicyNotEffective,
+    QcStatementMissing
 }

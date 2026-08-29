@@ -99,7 +99,7 @@ public sealed partial class SignatureApiRequestHandler
                 !TryString(root, "targetLevel", out string? targetLevel) ||
                 targetLevel is not ("B-T" or "B-LT" or "B-LTA") ||
                 !TryString(root, "validationProfile", out string? profile) ||
-                profile is not ("TurkiyeNes" or "GenelX509") ||
+                !IsSupportedValidationProfile(profile) ||
                 !Sha256Pattern.IsMatch(sha256!))
             {
                 return false;

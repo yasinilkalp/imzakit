@@ -1,13 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>CMS and PAdES signature validation reports for ImzaKit.</Description>
+    <Description>PAdES, CAdES, XAdES, and ASiC signature validation reports for ImzaKit.</Description>
     <PackageId>ImzaKit.Verify</PackageId>
   </PropertyGroup>
-  <ItemGroup><PackageReference Include="System.Security.Cryptography.Pkcs" /></ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+    <ProjectReference Include="..\ImzaKit.ASiC\ImzaKit.ASiC.csproj" />
+    <ProjectReference Include="..\ImzaKit.CAdES\ImzaKit.CAdES.csproj" />
     <ProjectReference Include="..\ImzaKit.Certificate\ImzaKit.Certificate.csproj" />
     <ProjectReference Include="..\ImzaKit.PAdES\ImzaKit.PAdES.csproj" />
     <ProjectReference Include="..\ImzaKit.Revocation\ImzaKit.Revocation.csproj" />
     <ProjectReference Include="..\ImzaKit.Trust\ImzaKit.Trust.csproj" />
+    <ProjectReference Include="..\ImzaKit.XAdES\ImzaKit.XAdES.csproj" />
   </ItemGroup>
 </Project>

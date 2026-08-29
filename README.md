@@ -2,7 +2,7 @@
 
 ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
-> **Ön sürüm:** `1.0.0-alpha.12` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
+> **Ön sürüm:** `1.0.0-alpha.13` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
 
 ## Öne çıkan özellikler
 
@@ -29,13 +29,13 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 ## Kurulum
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.12
+dotnet add package ImzaKit --version 1.0.0-alpha.13
 ```
 
 Ya da proje dosyanıza doğrudan ekleyin:
 
 ```xml
-<PackageReference Include="ImzaKit" Version="1.0.0-alpha.12" />
+<PackageReference Include="ImzaKit" Version="1.0.0-alpha.13" />
 ```
 
 Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuget/ImzaKit) üzerinde görünür; kurulum kaynağı nuget.org’dur.
@@ -56,7 +56,7 @@ Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuge
 | `ImzaKit.Trust` | Sürümlü güven deposu, profil ve sertifika politikası değerlendirmesi |
 | `ImzaKit.Revocation` | Gömülü, önbellek veya çevrimiçi OCSP/CRL kanıtlarının değerlendirilmesi |
 | `ImzaKit.Timestamp` | RFC 3161 zaman damgası isteği, TSA failover ve token doğrulaması |
-| `ImzaKit.Verify` | CMS/PAdES doğrulama raporları |
+| `ImzaKit.Verify` | CMS/PAdES/CAdES/XAdES/ASiC ortak validation report |
 | `ImzaKit.Agent` | Loopback Agent yapılandırması, imzalı bilet ve replay koruması |
 | `ImzaKit.Api` | İdempotent imza işlemleri, durum makinesi ve problem eşlemeleri |
 | `ImzaKit.DependencyInjection` | DI kayıtları ve süreç içi PAdES orkestrasyonu |
@@ -111,7 +111,7 @@ services.AddSingleton<IPkcs11Provider>(new NativePkcs11Provider(native, NativePk
 services.AddImzaKitPkcs11();
 ```
 
-AKİS quirk’leri `NativePkcs11ProviderOptions.ForAkis()`, eToken quirk’leri `ForEtoken()` içindedir (aynı güvenli varsayılanlar). Fiziksel kabul ayrı laboratuvar listeleriyledir; CI sahte native API kullanır.
+AKİS quirk’leri `NativePkcs11ProviderOptions.ForAkis()`, eToken quirk’leri `ForEtoken()` içindedir (aynı güvenli varsayılanlar). Faz 5 nShield (`cknfast.dll`, `ForNshield()`) ve Utimaco (`cs_pkcs11_R2.dll` / `cs_pkcs11_R3.dll`, `ForUtimaco()`) allowlist profilleri aynı güvenli varsayılanları kullanır; `cryptoki.dll` ve `System32` varsayılan değildir. Vendor DLL paketlenmez. Fiziksel nShield/Utimaco kabulü ayrıdır; CI sahte native API kullanır.
 
 MVP HTTP sözleşmesi `SignatureApiRequestHandler` ile uygulanır. Üretim Kestrel host (`ImzaKit.Hosts.Api`) paket dışındadır; HTTPS üzerinde `AllowCertificate` mTLS kullanır, özel cihaz CA’sini OS store ile doğrulamaz ve client sertifikasını `MutualTlsRequestMapper` ile işler. Redis benzeri `RedisMetadataStore` belge tutmaz; `FileSystemBlobStore` object-store bağları içindir. PIN yalnız `AddImzaKitWindowsAgent()` native penceresinde alınır.
 
@@ -176,7 +176,7 @@ switch (report.Status)
 }
 ```
 
-`TurkiyeNes` profili işletim sistemi kök deposunu kullanmaz. Trust Maintainer imzalı paketleri `TrustStorePackageCodec` + `TrustStoreActivationService` ile atomik etkinleştirir, rollback ve acil kaldırma yapar. Gerçek ESHS kökleri bu repoya konmaz; sentetik test paketleri CI’de kullanılır.
+`TurkiyeNes` profili işletim sistemi kök deposunu kullanmaz. `Eidas` profili Eidas etiketli kök, sürümlü katalog politika OID’i ve QcCompliance (`0.4.0.1862.1.1`) ister; EU TSL/EUTL içe aktarılmaz ve hukuki QES iddiası yoktur. Trust Maintainer imzalı paketleri `TrustStorePackageCodec` + `TrustStoreActivationService` ile atomik etkinleştirir, rollback ve acil kaldırma yapar. Gerçek ESHS kökleri bu repoya konmaz; sentetik test paketleri CI’de kullanılır.
 
 Windows Agent installer yerleşimi (`AgentInstallerLayout`) yalnız `win-x64` ve `win-arm64`, `%ProgramFiles%\ImzaKit\Agent`, loopback bind ve profil başına PKCS#11 allowlist kökleri taşır; vendor `akisp11.dll` ve `eTPKCS11.dll` paketlenmez. Authenticode imzası release anahtarıyla yapılır (CI’de sertifika yoktur). Her sürüm CycloneDX 1.6 SBOM, commit/digest provenance ve imzalı update manifest’i üretir; GPL/AGPL/SSPL bağımlılık release’i durdurur.
 
@@ -216,7 +216,7 @@ ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature too
 ### Install
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.12
+dotnet add package ImzaKit --version 1.0.0-alpha.13
 ```
 
 ### Included modules
@@ -225,7 +225,7 @@ dotnet add package ImzaKit --version 1.0.0-alpha.12
 
 ### Offline trust validation
 
-Create a versioned `TrustStoreSnapshot` and `CertificatePolicyCatalog`, then pass them through `ValidationContext` to `PadesValidator.Validate(pdf, context)`. Choose `GeneralX509` for general PKI rules or `TurkiyeNes` for the configured Turkish qualified-certificate policy. A `RevocationDataUnavailable` finding means suitable caller-supplied OCSP/CRL evidence was unavailable.
+Create a versioned `TrustStoreSnapshot` and `CertificatePolicyCatalog`, then pass them through `ValidationContext` to `PadesValidator.Validate(pdf, context)`. Choose `GeneralX509` for general PKI rules, `TurkiyeNes` for the configured Turkish qualified-certificate policy, or `Eidas` for an Eidas-labeled anchor plus catalog policy OID and QcCompliance. `Eidas` is not an EU Trusted List import and does not claim QES. A `RevocationDataUnavailable` finding means suitable caller-supplied OCSP/CRL evidence was unavailable.
 
 ### Limitations
 

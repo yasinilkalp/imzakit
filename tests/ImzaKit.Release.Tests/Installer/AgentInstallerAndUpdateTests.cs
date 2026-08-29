@@ -30,6 +30,8 @@ public sealed class AgentInstallerAndUpdateTests
             payload.EtokenPkcs11AllowlistRoots);
         Assert.DoesNotContain(payload.Files, file => file.Contains("akisp11", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(payload.Files, file => file.Contains("etpkcs11", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(payload.Files, file => file.Contains("cknfast", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(payload.Files, file => file.Contains("cs_pkcs11", StringComparison.OrdinalIgnoreCase));
         Assert.Contains("sbom.cdx.json", payload.Files);
         Assert.Contains("provenance.json", payload.Files);
         Assert.Contains("NOTICE", payload.Files);

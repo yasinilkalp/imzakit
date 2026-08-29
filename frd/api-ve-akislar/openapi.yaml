@@ -140,6 +140,101 @@ paths:
         '409': { $ref: '#/components/responses/Conflict' }
         '422': { $ref: '#/components/responses/Unprocessable' }
         '503': { $ref: '#/components/responses/ServerError' }
+  /signature-envelopes:
+    post:
+      operationId: createSignatureEnvelope
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSignatureEnvelopeRequest' }
+      responses:
+        '201':
+          description: Created
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureEnvelope' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /signature-envelopes/{envelopeId}:
+    get:
+      operationId: getSignatureEnvelope
+      parameters:
+        - $ref: '#/components/parameters/EnvelopeId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Envelope
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureEnvelope' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /signature-envelopes/{envelopeId}/report:
+    get:
+      operationId: getSignatureEnvelopeReport
+      parameters:
+        - $ref: '#/components/parameters/EnvelopeId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Signing order report
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureEnvelopeReport' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /signature-envelopes/{envelopeId}/steps/{stepIndex}/prepare:
+    post:
+      operationId: prepareSignatureEnvelopeStep
+      parameters:
+        - $ref: '#/components/parameters/EnvelopeId'
+        - $ref: '#/components/parameters/StepIndex'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Prepared
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureEnvelope' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /signature-envelopes/{envelopeId}/steps/{stepIndex}/complete:
+    post:
+      operationId: completeSignatureEnvelopeStep
+      parameters:
+        - $ref: '#/components/parameters/EnvelopeId'
+        - $ref: '#/components/parameters/StepIndex'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteSignatureEnvelopeStepRequest' }
+      responses:
+        '200':
+          description: Completed
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureEnvelope' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /signature-envelopes/{envelopeId}/steps/{stepIndex}/reject:
+    post:
+      operationId: rejectSignatureEnvelopeStep
+      parameters:
+        - $ref: '#/components/parameters/EnvelopeId'
+        - $ref: '#/components/parameters/StepIndex'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Rejected
+          content: { application/json: { schema: { $ref: '#/components/schemas/SignatureEnvelope' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
   /agent-callbacks/signature-results:
     post:
       operationId: submitAgentSignatureResult
@@ -173,6 +268,16 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    EnvelopeId:
+      name: envelopeId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    StepIndex:
+      name: stepIndex
+      in: path
+      required: true
+      schema: { type: integer, minimum: 0 }
     IdempotencyKey:
       name: Idempotency-Key
       in: header
@@ -210,7 +315,7 @@ components:
         document: { $ref: '#/components/schemas/DocumentReference' }
         format: { type: string, const: PAdES }
         targetLevel: { type: string, const: B-B }
-        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509] }
+        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509, Eidas] }
         appearance: { type: object, additionalProperties: true }
     SignatureOperation:
       type: object
@@ -258,7 +363,7 @@ components:
       required: [document, validationProfile]
       properties:
         document: { $ref: '#/components/schemas/DocumentReference' }
-        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509] }
+        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509, Eidas] }
     ExtendSignatureRequest:
       type: object
       additionalProperties: false
@@ -266,7 +371,7 @@ components:
       properties:
         document: { $ref: '#/components/schemas/DocumentReference' }
         targetLevel: { type: string, enum: [B-T, B-LT, B-LTA] }
-        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509] }
+        validationProfile: { type: string, enum: [TurkiyeNes, GenelX509, Eidas] }
         timeStampAuthorities:
           type: array
           items: { $ref: '#/components/schemas/TimeStampAuthority' }
@@ -311,6 +416,78 @@ components:
         revision: { type: integer, minimum: 1 }
         outcome: { $ref: '#/components/schemas/ValidationOutcome' }
         documentSha256: { $ref: '#/components/schemas/Sha256' }
+    CreateSignatureEnvelopeRequest:
+      type: object
+      additionalProperties: false
+      required: [document, flow, mergeStrategy, policy]
+      properties:
+        document: { $ref: '#/components/schemas/DocumentReference' }
+        flow: { type: string, enum: [Serial, Parallel] }
+        mergeStrategy: { type: string, enum: [SequentialRevisions, CosignCms] }
+        policy: { $ref: '#/components/schemas/SignatureEnvelopePolicy' }
+    SignatureEnvelopePolicy:
+      type: object
+      additionalProperties: false
+      required: [requiredRoles, rejection, duplicateSigner]
+      properties:
+        requiredRoles:
+          type: array
+          minItems: 1
+          items: { type: string, minLength: 1 }
+        rejection: { type: string, enum: [CancelEnvelope, FailStep] }
+        duplicateSigner: { type: string, enum: [Reject, Allow] }
+        deadlineUtc: { type: [string, 'null'], format: date-time }
+    SignatureEnvelopeStep:
+      type: object
+      required: [index, role, status, approvedDigestSha256]
+      properties:
+        index: { type: integer, minimum: 0 }
+        role: { type: string, minLength: 1 }
+        status: { type: string, enum: [Pending, Prepared, Completed, Rejected, Cancelled] }
+        approvedDigestSha256: { $ref: '#/components/schemas/Sha256' }
+        certificateFingerprintSha256: { type: [string, 'null'] }
+        coveredRevision: { type: [integer, 'null'], minimum: 1 }
+        completionOrder: { type: [integer, 'null'], minimum: 1 }
+    SignatureEnvelope:
+      type: object
+      required: [envelopeId, flow, mergeStrategy, status, approvedDocumentSha256, currentDocumentSha256, steps]
+      properties:
+        envelopeId: { type: string, format: uuid }
+        flow: { type: string, enum: [Serial, Parallel] }
+        mergeStrategy: { type: string, enum: [SequentialRevisions, CosignCms] }
+        status: { type: string, enum: [Open, Completed, Rejected, Failed] }
+        approvedDocumentSha256: { $ref: '#/components/schemas/Sha256' }
+        currentDocumentSha256: { $ref: '#/components/schemas/Sha256' }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/SignatureEnvelopeStep' }
+    CompleteSignatureEnvelopeStepRequest:
+      type: object
+      additionalProperties: false
+      required: [certificateFingerprintSha256, signedDocumentSha256, coveredRevision]
+      properties:
+        certificateFingerprintSha256: { $ref: '#/components/schemas/Sha256' }
+        signedDocumentSha256: { $ref: '#/components/schemas/Sha256' }
+        coveredRevision: { type: integer, minimum: 1 }
+    SignatureEnvelopeReportEntry:
+      type: object
+      required: [order, role, approvedDigestSha256, subsequentChangeSemantics]
+      properties:
+        order: { type: integer, minimum: 1 }
+        role: { type: string, minLength: 1 }
+        certificateFingerprintSha256: { type: [string, 'null'] }
+        approvedDigestSha256: { $ref: '#/components/schemas/Sha256' }
+        coveredRevision: { type: [integer, 'null'], minimum: 1 }
+        subsequentChangeSemantics:
+          type: string
+          enum: [LaterRevisionsDoNotInvalidatePriorCrypto, IndependentArtifacts]
+    SignatureEnvelopeReport:
+      type: object
+      required: [signatures]
+      properties:
+        signatures:
+          type: array
+          items: { $ref: '#/components/schemas/SignatureEnvelopeReportEntry' }
     AgentSignatureResult:
       type: object
       required: [operationId, ticket, signatureValueBase64, certificateFingerprintSha256]

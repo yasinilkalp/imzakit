@@ -108,6 +108,76 @@ public sealed class PadesSignatureExtenderTests
         Assert.Contains("Validation material", error.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task PreserveArchiveTimestampOnLtaAddsAnotherDocumentTimestamp()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit preserve B-LTA");
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        (byte[] signedPdf, PadesSignaturePreparation preparation) = SignBaselineB(rsa, certificateDer);
+        using TestTsaResponder tsa = new();
+        ScriptedFetcher fetcher = new((_, body) => tsa.Grant(body));
+        Rfc3161TimeStampClient client = new(fetcher);
+        TimeStampAuthority[] authorities = [new("primary", new Uri("https://tsa.example/rfc3161"))];
+        byte[] lta = await PadesSignatureExtender.ExtendAsync(
+            signedPdf,
+            "B-LTA",
+            client,
+            authorities,
+            new PadesValidationMaterial([certificateDer, tsa.CertificateDer]));
+        int firstCount = CountDocumentTimestamps(lta);
+
+        byte[] preserved = await PadesSignatureExtender.PreserveArchiveTimestampAsync(
+            lta,
+            client,
+            authorities);
+
+        Assert.Equal("B-LTA", PadesSignatureExtender.DetectLevel(preserved));
+        Assert.Equal(firstCount + 1, CountDocumentTimestamps(preserved));
+        Assert.True(preserved.Length > lta.Length);
+        AssertCmsStillValid(preserved, preparation);
+        Assert.Equal(3, fetcher.Calls);
+    }
+
+    [Fact]
+    public async Task PreserveArchiveTimestampRequiresBaselineLta()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit preserve B-LT");
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        using TestTsaResponder tsa = new();
+        (byte[] signedPdf, _) = await SignBaselineT(rsa, certificateDer, tsa);
+        byte[] lt = await PadesSignatureExtender.ExtendAsync(
+            signedPdf,
+            "B-LT",
+            material: new PadesValidationMaterial([certificateDer, tsa.CertificateDer]));
+        using TestTsaResponder preserveTsa = new();
+        ScriptedFetcher fetcher = new((_, body) => preserveTsa.Grant(body));
+
+        InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => PadesSignatureExtender.PreserveArchiveTimestampAsync(
+                lt,
+                new Rfc3161TimeStampClient(fetcher),
+                [new TimeStampAuthority("primary", new Uri("https://tsa.example/rfc3161"))]));
+
+        Assert.Contains("B-LTA", error.Message, StringComparison.Ordinal);
+        Assert.Equal(0, fetcher.Calls);
+    }
+
+    private static int CountDocumentTimestamps(byte[] pdf)
+    {
+        string text = Encoding.ASCII.GetString(pdf);
+        int count = 0;
+        int index = 0;
+        while ((index = text.IndexOf("/Type /DocTimeStamp", index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += "/Type /DocTimeStamp".Length;
+        }
+
+        return count;
+    }
+
     private static (byte[] SignedPdf, PadesSignaturePreparation Preparation) SignBaselineB(
         RSA rsa,
         byte[] certificateDer)

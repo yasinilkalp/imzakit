@@ -15,5 +15,9 @@ public enum ApiProblemKind
     DeviceUnknown,
     DeviceRevoked,
     DeviceExpired,
-    TicketRejected
+    TicketRejected,
+    WorkflowStepNotReady,
+    WorkflowDuplicateSigner,
+    WorkflowDeadlineExpired,
+    WorkflowEnvelopeClosed
 }

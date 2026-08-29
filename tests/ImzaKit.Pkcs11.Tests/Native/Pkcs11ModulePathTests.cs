@@ -1,6 +1,8 @@
 using ImzaKit.Pkcs11.Akis;
 using ImzaKit.Pkcs11.Etoken;
 using ImzaKit.Pkcs11.Native;
+using ImzaKit.Pkcs11.Nshield;
+using ImzaKit.Pkcs11.Utimaco;
 
 namespace ImzaKit.Pkcs11.Tests.Native;
 
@@ -148,6 +150,102 @@ public sealed class Pkcs11ModulePathTests
         {
             Assert.Throws<ArgumentException>(() =>
                 Pkcs11ModulePath.ResolveAllowed(path, [allowed], EtokenProviderProfile.SupportedLibraryFileNames));
+        }
+        finally
+        {
+            Directory.Delete(allowed, true);
+        }
+    }
+
+    [Fact]
+    public void AllowlistedNshieldModulePathIsNormalized()
+    {
+        string allowed = CreateTempDirectory();
+        string path = Path.Combine(allowed, "nfast", "cknfast.dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllBytes(path, [1]);
+
+        try
+        {
+            string resolved = Pkcs11ModulePath.ResolveAllowed(
+                path, [allowed], NshieldProviderProfile.SupportedLibraryFileNames);
+            Assert.Equal(Path.GetFullPath(path), resolved);
+        }
+        finally
+        {
+            Directory.Delete(allowed, true);
+        }
+    }
+
+    [Fact]
+    public void GenericCryptokiNameIsRejectedOnNshieldAllowlist()
+    {
+        string allowed = CreateTempDirectory();
+        string path = Path.Combine(allowed, "cryptoki.dll");
+        File.WriteAllBytes(path, [1]);
+
+        try
+        {
+            ArgumentException exception = Assert.Throws<ArgumentException>(() =>
+                Pkcs11ModulePath.ResolveAllowed(path, [allowed], NshieldProviderProfile.SupportedLibraryFileNames));
+            Assert.Contains("file name", exception.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            Directory.Delete(allowed, true);
+        }
+    }
+
+    [Fact]
+    public void AllowlistedUtimacoModulePathIsNormalized()
+    {
+        string allowed = CreateTempDirectory();
+        string path = Path.Combine(allowed, "Lib", "cs_pkcs11_R3.dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllBytes(path, [1]);
+
+        try
+        {
+            string resolved = Pkcs11ModulePath.ResolveAllowed(
+                path, [allowed], UtimacoProviderProfile.SupportedLibraryFileNames);
+            Assert.Equal(Path.GetFullPath(path), resolved);
+        }
+        finally
+        {
+            Directory.Delete(allowed, true);
+        }
+    }
+
+    [Fact]
+    public void UnversionedUtimacoDllNameIsRejected()
+    {
+        string allowed = CreateTempDirectory();
+        string path = Path.Combine(allowed, "cs_pkcs11.dll");
+        File.WriteAllBytes(path, [1]);
+
+        try
+        {
+            ArgumentException exception = Assert.Throws<ArgumentException>(() =>
+                Pkcs11ModulePath.ResolveAllowed(path, [allowed], UtimacoProviderProfile.SupportedLibraryFileNames));
+            Assert.Contains("file name", exception.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            Directory.Delete(allowed, true);
+        }
+    }
+
+    [Fact]
+    public void NshieldFileNameIsRejectedOnUtimacoAllowlist()
+    {
+        string allowed = CreateTempDirectory();
+        string path = Path.Combine(allowed, "cknfast.dll");
+        File.WriteAllBytes(path, [1]);
+
+        try
+        {
+            Assert.Throws<ArgumentException>(() =>
+                Pkcs11ModulePath.ResolveAllowed(path, [allowed], UtimacoProviderProfile.SupportedLibraryFileNames));
         }
         finally
         {

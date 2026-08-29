@@ -37,6 +37,12 @@ MVP HTTP sözleşmesinin kaynak tanımı [openapi.yaml](openapi.yaml) dosyasıd�
 | POST | `/v1/validations` | Belge/imza doğrulaması başlatır |
 | GET | `/v1/validations/{id}` | Ayrıntılı raporu getirir |
 | POST | `/v1/signatures/extend` | B-B’den hedef baseline seviyesine uzatır |
+| POST | `/v1/signature-envelopes` | Seri/paralel imza zarfı oluşturur |
+| GET | `/v1/signature-envelopes/{envelopeId}` | Zarf durumunu getirir |
+| GET | `/v1/signature-envelopes/{envelopeId}/report` | İmzalama sırası ve sonraki değişiklik semantiğini getirir |
+| POST | `/v1/signature-envelopes/{envelopeId}/steps/{stepIndex}/prepare` | Adımı hazırlar |
+| POST | `/v1/signature-envelopes/{envelopeId}/steps/{stepIndex}/complete` | Adımı imza özeti ile tamamlar |
+| POST | `/v1/signature-envelopes/{envelopeId}/steps/{stepIndex}/reject` | Adımı reddeder |
 
 ## 3. Operasyon oluşturma örneği
 
@@ -128,7 +134,7 @@ Seri akış her tamamlanan imzadan sonra yeni kaynak revision üretir. Paralel a
 | Aynı anahtar + farklı hash | `409 IMZAKIT.CORE.IDEMPOTENCY_CONFLICT` |
 | Süresi dolmuş kayıt | Anahtar yeni kabul edilebilir; audit önceki süre sonunu kaydeder |
 
-Yan etkili operasyon oluşturma, Agent bileti, sertifika bağlama, prepare, complete, cancel, validation oluşturma ve Agent callback uçlarında `Idempotency-Key` zorunludur.
+Yan etkili operasyon oluşturma, Agent bileti, sertifika bağlama, prepare, complete, cancel, validation oluşturma, Agent callback ve imza zarfı create/prepare/complete/reject uçlarında `Idempotency-Key` zorunludur.
 
 ## 10. Uç ve durum geçişleri
 

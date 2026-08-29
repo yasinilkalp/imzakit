@@ -81,6 +81,27 @@ public static class PadesSignatureExtender
         return pdf;
     }
 
+    public static Task<byte[]> PreserveArchiveTimestampAsync(
+        byte[] archivePdf,
+        Rfc3161TimeStampClient timeStampClient,
+        IReadOnlyList<TimeStampAuthority> authorities,
+        int documentTimestampCapacity = 8192,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(archivePdf);
+        if (DetectLevel(archivePdf) != "B-LTA")
+        {
+            throw new InvalidOperationException("Archive timestamp preservation requires an existing B-LTA document.");
+        }
+
+        return PadesSignatureCompleter.CompleteBaselineLta(
+            archivePdf,
+            timeStampClient,
+            authorities,
+            documentTimestampCapacity,
+            cancellationToken);
+    }
+
     public static string DetectLevel(ReadOnlySpan<byte> pdf)
     {
         if (!PdfCadesSignatureLocator.TryRead(pdf, out _, out byte[] cms, out _, out _))

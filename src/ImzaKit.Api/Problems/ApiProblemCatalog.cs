@@ -1,3 +1,5 @@
+using ImzaKit.Api.Workflow;
+
 namespace ImzaKit.Api.Problems;
 
 public static class ApiProblemCatalog
@@ -18,6 +20,10 @@ public static class ApiProblemCatalog
         ApiProblemKind.DeviceRevoked => new(401, "IMZAKIT.AGENT.DEVICE_REVOKED"),
         ApiProblemKind.DeviceExpired => new(401, "IMZAKIT.AGENT.DEVICE_EXPIRED"),
         ApiProblemKind.TicketRejected => new(401, "IMZAKIT.AGENT.TICKET_REJECTED"),
+        ApiProblemKind.WorkflowStepNotReady => new(409, WorkflowProblemCodes.StepNotReady),
+        ApiProblemKind.WorkflowDuplicateSigner => new(422, WorkflowProblemCodes.DuplicateSigner),
+        ApiProblemKind.WorkflowDeadlineExpired => new(422, WorkflowProblemCodes.DeadlineExpired),
+        ApiProblemKind.WorkflowEnvelopeClosed => new(409, WorkflowProblemCodes.EnvelopeClosed),
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
     };
 }

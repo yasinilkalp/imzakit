@@ -7,6 +7,8 @@ namespace ImzaKit.Trust.Evaluation;
 public sealed class TrustPolicyEvaluator : ITrustPolicyEvaluator
 {
     private const string CertificatePoliciesOid = "2.5.29.32";
+    private const string QcStatementsOid = "1.3.6.1.5.5.7.1.3";
+    private const string QcComplianceOid = "0.4.0.1862.1.1";
 
     public TrustPolicyEvaluationResult Evaluate(TrustPolicyEvaluationRequest request)
     {
@@ -37,7 +39,7 @@ public sealed class TrustPolicyEvaluator : ITrustPolicyEvaluator
 
         string? matchedPolicy = null;
         TrustPolicyStatus policyStatus = TrustPolicyStatus.Passed;
-        if (request.Profile == ValidationProfile.TurkiyeNes)
+        if (RequiresCatalogPolicy(request.Profile))
         {
             IReadOnlyList<string> leafPolicies = ReadCertificatePolicyOids(
                 request.Chain.Certificates[0].ExportDer());
@@ -61,6 +63,13 @@ public sealed class TrustPolicyEvaluator : ITrustPolicyEvaluator
             }
         }
 
+        if (request.Profile == ValidationProfile.Eidas
+            && !HasQcComplianceStatement(request.Chain.Certificates[0].ExportDer()))
+        {
+            policyStatus = TrustPolicyStatus.Failed;
+            failures.Add(TrustPolicyFailure.QcStatementMissing);
+        }
+
         return new(
             anchorStatus,
             policyStatus,
@@ -69,6 +78,38 @@ public sealed class TrustPolicyEvaluator : ITrustPolicyEvaluator
             request.TrustStore.Version,
             request.PolicyCatalog.Version,
             failures.Distinct().ToArray());
+    }
+
+    private static bool RequiresCatalogPolicy(ValidationProfile profile) =>
+        profile is ValidationProfile.TurkiyeNes or ValidationProfile.Eidas;
+
+    private static bool HasQcComplianceStatement(byte[] certificateDer)
+    {
+        using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(certificateDer);
+        X509Extension? extension = certificate.Extensions[QcStatementsOid];
+        if (extension is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            AsnReader statements = new AsnReader(extension.RawData, AsnEncodingRules.DER).ReadSequence();
+            while (statements.HasData)
+            {
+                AsnReader statement = statements.ReadSequence();
+                if (string.Equals(statement.ReadObjectIdentifier(), QcComplianceOid, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        catch (AsnContentException)
+        {
+            return false;
+        }
     }
 
     private static IReadOnlyList<string> ReadCertificatePolicyOids(byte[] certificateDer)

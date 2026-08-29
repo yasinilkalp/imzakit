@@ -22,6 +22,7 @@
 | FieldMDP | PDF form alanları üzerindeki değişiklik kısıtları |
 | INDETERMINATE | Kanıt yetersizliği/politika nedeniyle kesin başarı veya başarısızlık verilemeyen sonuç |
 | NES | Nitelikli elektronik sertifika |
+| nShield | Entrust/nCipher HSM PKCS#11 ekosistemi; Windows modülü `cknfast.dll` |
 | OCSP | Sertifika iptal durumunu çevrimiçi sorgulama protokolü |
 | PAdES | PDF tabanlı gelişmiş elektronik imza |
 | PKCS#11 | Kriptografik token/HSM erişim standardı |
@@ -29,6 +30,7 @@
 | RFC 3161 | Zaman damgası istek, cevap ve token protokolü |
 | SignatureValue | Özel anahtarla üretilen ham kriptografik imza değeri |
 | TSA | Zaman Damgası Otoritesi |
+| Utimaco | Utimaco CryptoServer PKCS#11 ekosistemi; Windows modülleri `cs_pkcs11_R2.dll` ve `cs_pkcs11_R3.dll` |
 | Trust Anchor | Sertifika zincirinin güvenilen kökü |
 | VRI | PDF’de belirli imzayla ilişkili doğrulama kanıtı referansları |
 | XAdES | XMLDSig tabanlı gelişmiş elektronik imza |

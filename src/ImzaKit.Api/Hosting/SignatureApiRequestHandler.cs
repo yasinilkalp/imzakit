@@ -6,6 +6,7 @@ using ImzaKit.Api.Idempotency;
 using ImzaKit.Api.Mtls;
 using ImzaKit.Api.Operations;
 using ImzaKit.Api.Problems;
+using ImzaKit.Api.Workflow;
 
 namespace ImzaKit.Api.Hosting;
 
@@ -28,6 +29,8 @@ public sealed partial class SignatureApiRequestHandler
     private readonly DeviceEnrollmentAuthority _devices;
     private readonly AgentTicketValidator _callbackTickets;
     private readonly InMemoryIdempotencyStore _extendIdempotency = new();
+    private readonly InMemoryIdempotencyStore _envelopeIdempotency = new();
+    private readonly Dictionary<Guid, SignatureEnvelope> _envelopes = [];
     private readonly Dictionary<Guid, OperationSidecar> _sidecars = [];
     private readonly Dictionary<Guid, StoredValidationReport> _validations = [];
 
@@ -93,6 +96,17 @@ public sealed partial class SignatureApiRequestHandler
             string.Equals(request.Method, "POST", StringComparison.OrdinalIgnoreCase))
         {
             return ExtendSignature(request, caller, correlationId);
+        }
+
+        if (string.Equals(request.Path, "/v1/signature-envelopes", StringComparison.Ordinal) &&
+            string.Equals(request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+        {
+            return CreateEnvelope(request, correlationId);
+        }
+
+        if (TryMatch(request.Path, "/v1/signature-envelopes/", out string envelopeTail))
+        {
+            return HandleEnvelopeResource(request, correlationId, envelopeTail);
         }
 
         if (TryMatch(request.Path, "/v1/validations/", out string validationTail) &&
@@ -422,7 +436,7 @@ public sealed partial class SignatureApiRequestHandler
                 return false;
             }
 
-            if (profile is not ("TurkiyeNes" or "GenelX509") || !Sha256Pattern.IsMatch(sha256!))
+            if (!IsSupportedValidationProfile(profile) || !Sha256Pattern.IsMatch(sha256!))
             {
                 return false;
             }
@@ -540,6 +554,9 @@ public sealed partial class SignatureApiRequestHandler
 
         return false;
     }
+
+    private static bool IsSupportedValidationProfile(string? profile) =>
+        profile is "TurkiyeNes" or "GenelX509" or "Eidas";
 
     private static bool TryString(JsonElement element, string name, out string? value)
     {

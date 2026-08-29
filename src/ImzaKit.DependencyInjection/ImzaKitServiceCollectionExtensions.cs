@@ -1,4 +1,5 @@
 using ImzaKit.Agent.Native;
+using ImzaKit.Agent.RemoteSigning;
 using ImzaKit.Agent.Security;
 using ImzaKit.Api.Audit;
 using ImzaKit.Api.Hosting;
@@ -33,6 +34,8 @@ public static class ImzaKitServiceCollectionExtensions
         byte[] publicKey = agentTicketPublicKey.IsEmpty ? new byte[32] : agentTicketPublicKey.ToArray();
         services.AddSingleton<IExternalResourceFetcher, SsrfExternalResourceFetcher>();
         services.AddSingleton<ITsaCredentialStore, EnvironmentTsaCredentialStore>();
+        services.AddSingleton<IRemoteSigningCredentialStore, EnvironmentRemoteSigningCredentialStore>();
+        services.AddSingleton<RemoteSigningClient>();
         services.AddSingleton<Rfc3161TimeStampClient>();
         services.AddSingleton<IDigestCalculator, DefaultDigestCalculator>();
         services.AddSingleton<ICertificateChainBuilder, CertificateChainBuilder>();
@@ -85,6 +88,19 @@ public static class ImzaKitServiceCollectionExtensions
         services.AddSingleton<IConsentDialog, MessageBoxConsentDialog>();
         services.AddSingleton<INativePinPrompt, WindowsNativePinPrompt>();
         services.AddSingleton<INativeConsentPrompt, WindowsNativeConsentPrompt>();
+        return services;
+    }
+
+    public static IServiceCollection AddImzaKitAgent(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        if (OperatingSystem.IsWindows())
+        {
+            return services.AddImzaKitWindowsAgent();
+        }
+
+        services.AddSingleton<INativePinPrompt, UnsupportedNativePinPrompt>();
+        services.AddSingleton<INativeConsentPrompt, UnsupportedNativeConsentPrompt>();
         return services;
     }
 

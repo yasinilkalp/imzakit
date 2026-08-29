@@ -161,11 +161,13 @@ public sealed class TrustStorePackageActivationTests
     }
 
     [Fact]
-    public void ValidationProfilesIncludeEidasForLaterPhase()
+    public void ValidationProfilesSeparateTurkiyeNesGeneralX509AndEidas()
     {
         Assert.True(Enum.IsDefined(ValidationProfile.Eidas));
         Assert.True(Enum.IsDefined(ValidationProfile.TurkiyeNes));
         Assert.True(Enum.IsDefined(ValidationProfile.GeneralX509));
+        Assert.NotEqual(ValidationProfile.Eidas, ValidationProfile.TurkiyeNes);
+        Assert.NotEqual(ValidationProfile.Eidas, ValidationProfile.GeneralX509);
     }
 
     private static TrustStoreManifest CreateManifest(int sequence, string version, X509Certificate2 root, bool removed)

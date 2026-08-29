@@ -404,7 +404,7 @@
               </div>
               <div class="cmd">
                 <span>dotnet add package ImzaKit</span>
-                <button class="dup" type="button" data-copy-text="dotnet add package ImzaKit --version 1.0.0-alpha.12" data-tr="Kopyala" data-en="Copy">Kopyala</button>
+                <button class="dup" type="button" data-copy-text="dotnet add package ImzaKit --version 1.0.0-alpha.13" data-tr="Kopyala" data-en="Copy">Kopyala</button>
               </div>
             </div>
             <div class="glass">
@@ -563,7 +563,7 @@ Console.WriteLine(report.Status ==
             <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
             <span class="tag">P11</span>
             <h3>PKCS#11</h3>
-            <p data-tr="IPkcs11Provider: dar sözleşme. AKİS ve eToken profilleri allowlist’ten yüklenir; DLL pakette yoktur." data-en="IPkcs11Provider: a narrow contract. AKİS and eToken profiles load from an allowlist; the DLL is not in the package.">IPkcs11Provider: dar sözleşme. AKİS ve eToken profilleri allowlist’ten yüklenir; DLL pakette yoktur.</p>
+            <p data-tr="IPkcs11Provider: dar sözleşme. AKİS, eToken, nShield ve Utimaco profilleri allowlist’ten yüklenir; DLL pakette yoktur." data-en="IPkcs11Provider: a narrow contract. AKİS, eToken, nShield, and Utimaco profiles load from an allowlist; the DLL is not in the package.">IPkcs11Provider: dar sözleşme. AKİS, eToken, nShield ve Utimaco profilleri allowlist’ten yüklenir; DLL pakette yoktur.</p>
           </article>
           <article class="cell">
             <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6.5v5.2c0 4.2 2.8 7.9 7 8.8 4.2-.9 7-4.6 7-8.8V6.5L12 3Z" stroke="currentColor" stroke-width="1.8"/><path d="m8.6 12.2 2.2 2.2 4.6-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -618,7 +618,7 @@ Console.WriteLine(report.Status ==
           </article>
           <article class="mod" data-module="signing">
             <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 12.2 2.3 2.3 4.7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <div><code>ImzaKit.Verify</code><p data-tr="CMS ve PAdES yapısal rapor. Güven zinciri isteğe bağlı." data-en="CMS and PAdES structural report. Trust chain is optional.">CMS ve PAdES yapısal rapor. Güven zinciri isteğe bağlı.</p></div>
+            <div><code>ImzaKit.Verify</code><p data-tr="PAdES, CAdES, XAdES ve ASiC ortak rapor. Güven zinciri isteğe bağlı." data-en="Shared PAdES, CAdES, XAdES, and ASiC report. Trust chain is optional.">PAdES, CAdES, XAdES ve ASiC ortak rapor. Güven zinciri isteğe bağlı.</p></div>
           </article>
           <article class="mod" data-module="signing">
             <span class="ico" aria-hidden="true">X5</span>
@@ -674,7 +674,7 @@ Console.WriteLine(report.Status ==
         <div class="head">
           <h2 data-tr="Tek komut, sabit sürüm, sizin adaptörünüz." data-en="One command, a pinned version, your adapter.">Tek komut, sabit sürüm, sizin adaptörünüz.</h2>
           <p data-tr="Ön sürümü sabitleyin. PKCS#11 kullanıyorsanız IPkcs11Provider uygulamanızı servis koleksiyonuna kaydedin. Paket sürücü veya PIN arayüzü getirmez." data-en="Pin the prerelease. If you use PKCS#11, register your IPkcs11Provider in the service collection. The package does not ship a driver or PIN UI.">Ön sürümü sabitleyin. PKCS#11 kullanıyorsanız IPkcs11Provider uygulamanızı servis koleksiyonuna kaydedin. Paket sürücü veya PIN arayüzü getirmez.</p>
-          <p data-tr="Çevrimdışı güven doğrulaması için ValidationContext ile GeneralX509 veya TurkiyeNes seçin. RevocationDataUnavailable, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz." data-en="For offline trust validation, use ValidationContext with GeneralX509 or TurkiyeNes. RevocationDataUnavailable means more OCSP/CRL evidence is required; system stores and the network are never used automatically.">Çevrimdışı güven doğrulaması için <code>ValidationContext</code> ile <code>GeneralX509</code> veya <code>TurkiyeNes</code> seçin. <code>RevocationDataUnavailable</code>, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz.</p>
+          <p data-tr="Çevrimdışı güven doğrulaması için ValidationContext ile GeneralX509, TurkiyeNes veya Eidas seçin. Eidas, Eidas etiketli kök + katalog politika OID + QcCompliance ister; EU TSL/QES iddiası yoktur. RevocationDataUnavailable, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz." data-en="For offline trust validation, use ValidationContext with GeneralX509, TurkiyeNes, or Eidas. Eidas requires an Eidas-labeled anchor, a catalog policy OID, and QcCompliance; it is not an EU TSL/QES claim. RevocationDataUnavailable means more OCSP/CRL evidence is required; system stores and the network are never used automatically.">Çevrimdışı güven doğrulaması için <code>ValidationContext</code> ile <code>GeneralX509</code>, <code>TurkiyeNes</code> veya <code>Eidas</code> seçin. <code>Eidas</code> Eidas etiketli kök, katalog politika OID ve QcCompliance ister; EU TSL/QES iddiası yoktur. <code>RevocationDataUnavailable</code>, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz.</p>
         </div>
         <div class="reqs">
           <div class="req">
@@ -683,7 +683,7 @@ Console.WriteLine(report.Status ==
           </div>
           <div class="req">
             <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8V6a2 2 0 0 1 2-2h10v12a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <div><b>1.0.0-alpha.12</b><span data-tr="API yüzeyi değişebilir, sürümü sabitleyin." data-en="The API surface may change. Pin the version.">API yüzeyi değişebilir, sürümü sabitleyin.</span></div>
+            <div><b>1.0.0-alpha.13</b><span data-tr="API yüzeyi değişebilir, sürümü sabitleyin." data-en="The API surface may change. Pin the version.">API yüzeyi değişebilir, sürümü sabitleyin.</span></div>
           </div>
           <div class="req">
             <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="7" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="7" width="7" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="M11 12h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
@@ -694,7 +694,7 @@ Console.WriteLine(report.Status ==
           <div class="panes">
             <div class="pane">
               <div class="pane-bar"><span>NuGet</span><button class="dup" type="button" data-copy data-tr="Kopyala" data-en="Copy">Kopyala</button></div>
-              <pre><code>dotnet add package ImzaKit --version 1.0.0-alpha.12</code></pre>
+              <pre><code>dotnet add package ImzaKit --version 1.0.0-alpha.13</code></pre>
             </div>
             <div class="pane">
               <div class="pane-bar"><span>Program.cs</span><button class="dup" type="button" data-copy data-tr="Kopyala" data-en="Copy">Kopyala</button></div>
@@ -705,7 +705,7 @@ services.AddImzaKitPkcs11();</code></pre>
             </div>
           </div>
           <div class="after">
-            <a class="pill solid" href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.12" data-tr="NuGet paketini aç" data-en="Open the NuGet package">NuGet paketini aç</a>
+            <a class="pill solid" href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.13" data-tr="NuGet paketini aç" data-en="Open the NuGet package">NuGet paketini aç</a>
             <a class="pill edge" href="https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html" data-tr="Teknik rehberi incele" data-en="Read the technical guide">Teknik rehberi incele</a>
           </div>
         </div>
@@ -751,7 +751,7 @@ services.AddImzaKitPkcs11();</code></pre>
           <ul>
             <li>
               <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8V6a2 2 0 0 1 2-2h10v12a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-              <span data-tr="1.0.0-alpha.12 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir." data-en="1.0.0-alpha.12 is a prerelease. The API surface may change before 1.0.0.">1.0.0-alpha.12 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir.</span>
+              <span data-tr="1.0.0-alpha.13 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir." data-en="1.0.0-alpha.13 is a prerelease. The API surface may change before 1.0.0.">1.0.0-alpha.13 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir.</span>
             </li>
             <li>
               <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0 1 14.6-4.5M20 12a8 8 0 0 1-14.6 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.5 4.5V8H15M5.5 19.5V16H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -783,7 +783,7 @@ services.AddImzaKitPkcs11();</code></pre>
           </div>
           <div class="col">
             <h3 data-tr="ÜRÜN" data-en="PRODUCT">ÜRÜN</h3>
-            <a href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.12">NuGet</a>
+            <a href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.13">NuGet</a>
             <a href="https://github.com/yasinilkalp/imzakit">GitHub</a>
             <a href="https://github.com/yasinilkalp/imzakit/blob/main/reports/imzakit-gelistirme-durum.html" data-tr="Durum raporu" data-en="Status report">Durum raporu</a>
           </div>

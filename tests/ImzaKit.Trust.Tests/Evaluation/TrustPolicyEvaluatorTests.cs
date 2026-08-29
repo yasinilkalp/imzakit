@@ -9,6 +9,7 @@ namespace ImzaKit.Trust.Tests.Evaluation;
 public sealed class TrustPolicyEvaluatorTests
 {
     private const string NesPolicyOid = "2.16.792.1.2.1.1.7.1";
+    private const string EidasPolicyOid = "0.4.0.194121.2.2";
 
     [Fact]
     public void GeneralX509AcceptsProfileEnabledConfiguredAnchorWithoutNesPolicyRequirement()
@@ -117,6 +118,98 @@ public sealed class TrustPolicyEvaluatorTests
         Assert.Contains(TrustPolicyFailure.PolicyNotEffective, result.Failures);
     }
 
+    [Fact]
+    public void EidasAcceptsEidasAnchorEffectiveCatalogPolicyAndQcCompliance()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(
+            leafPolicyOid: EidasPolicyOid,
+            includeQcCompliance: true);
+        CertificatePolicyEntry entry = EffectiveEntry(pki, EidasPolicyOid, ValidationProfile.Eidas);
+
+        TrustPolicyEvaluationResult result = new TrustPolicyEvaluator().Evaluate(CreateRequest(
+            pki,
+            ValidationProfile.Eidas,
+            anchorProfiles: [ValidationProfile.Eidas],
+            catalogEntries: [entry]));
+
+        Assert.Equal(TrustPolicyStatus.Passed, result.AnchorStatus);
+        Assert.Equal(TrustPolicyStatus.Passed, result.PolicyStatus);
+        Assert.Equal(EidasPolicyOid, result.MatchedPolicyOid);
+        Assert.Empty(result.Failures);
+    }
+
+    [Fact]
+    public void EidasRejectsTurkiyeNesOnlyAnchor()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(
+            leafPolicyOid: EidasPolicyOid,
+            includeQcCompliance: true);
+
+        TrustPolicyEvaluationResult result = new TrustPolicyEvaluator().Evaluate(CreateRequest(
+            pki,
+            ValidationProfile.Eidas,
+            anchorProfiles: [ValidationProfile.TurkiyeNes],
+            catalogEntries: [EffectiveEntry(pki, EidasPolicyOid, ValidationProfile.Eidas)]));
+
+        Assert.Equal(TrustPolicyStatus.Failed, result.AnchorStatus);
+        Assert.Contains(TrustPolicyFailure.AnchorProfileNotAllowed, result.Failures);
+    }
+
+    [Fact]
+    public void EidasRejectsLeafPolicyMissingFromEidasCatalog()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(
+            leafPolicyOid: NesPolicyOid,
+            includeQcCompliance: true);
+
+        TrustPolicyEvaluationResult result = new TrustPolicyEvaluator().Evaluate(CreateRequest(
+            pki,
+            ValidationProfile.Eidas,
+            anchorProfiles: [ValidationProfile.Eidas],
+            catalogEntries: [EffectiveEntry(pki, EidasPolicyOid, ValidationProfile.Eidas)]));
+
+        Assert.Equal(TrustPolicyStatus.Failed, result.PolicyStatus);
+        Assert.Contains(TrustPolicyFailure.CertificatePolicyNotAllowed, result.Failures);
+    }
+
+    [Fact]
+    public void EidasRejectsPolicyOutsideEffectiveWindow()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(
+            leafPolicyOid: EidasPolicyOid,
+            includeQcCompliance: true);
+        CertificatePolicyEntry expiredEntry = new(
+            ValidationProfile.Eidas,
+            EidasPolicyOid,
+            pki.ReferenceTimeUtc.AddYears(-2),
+            pki.ReferenceTimeUtc.AddDays(-1),
+            TimeSpan.FromHours(12));
+
+        TrustPolicyEvaluationResult result = new TrustPolicyEvaluator().Evaluate(CreateRequest(
+            pki,
+            ValidationProfile.Eidas,
+            anchorProfiles: [ValidationProfile.Eidas],
+            catalogEntries: [expiredEntry]));
+
+        Assert.Equal(TrustPolicyStatus.Failed, result.PolicyStatus);
+        Assert.Contains(TrustPolicyFailure.PolicyNotEffective, result.Failures);
+    }
+
+    [Fact]
+    public void EidasRejectsMissingQcComplianceStatement()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(leafPolicyOid: EidasPolicyOid);
+
+        TrustPolicyEvaluationResult result = new TrustPolicyEvaluator().Evaluate(CreateRequest(
+            pki,
+            ValidationProfile.Eidas,
+            anchorProfiles: [ValidationProfile.Eidas],
+            catalogEntries: [EffectiveEntry(pki, EidasPolicyOid, ValidationProfile.Eidas)]));
+
+        Assert.Equal(TrustPolicyStatus.Failed, result.PolicyStatus);
+        Assert.Contains(TrustPolicyFailure.QcStatementMissing, result.Failures);
+    }
+
     private static TrustPolicyEvaluationRequest CreateRequest(
         TestCertificateAuthority pki,
         ValidationProfile profile,
@@ -129,9 +222,12 @@ public sealed class TrustPolicyEvaluatorTests
             new CertificatePolicyCatalog("policy-test-v1", catalogEntries),
             pki.ReferenceTimeUtc);
 
-    private static CertificatePolicyEntry EffectiveEntry(TestCertificateAuthority pki, string oid) =>
+    private static CertificatePolicyEntry EffectiveEntry(
+        TestCertificateAuthority pki,
+        string oid,
+        ValidationProfile profile = ValidationProfile.TurkiyeNes) =>
         new(
-            ValidationProfile.TurkiyeNes,
+            profile,
             oid,
             pki.ReferenceTimeUtc.AddDays(-1),
             pki.ReferenceTimeUtc.AddDays(1),

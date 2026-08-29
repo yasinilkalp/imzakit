@@ -34,6 +34,8 @@ public sealed class AuthenticodeAndMsiLayoutTests
         Assert.Contains("win-arm64", wxs, StringComparison.Ordinal);
         Assert.DoesNotContain("akisp11", wxs, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("etpkcs11.dll", wxs, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("cknfast.dll", wxs, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("cs_pkcs11", wxs, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(@"SafeNet\Authentication\SAC\x64", wxs, StringComparison.Ordinal);
         Assert.Contains(@"Thales\SafeNet Authentication Client", wxs, StringComparison.Ordinal);
         Assert.Contains("AuthenticodeRequired", wxs, StringComparison.Ordinal);

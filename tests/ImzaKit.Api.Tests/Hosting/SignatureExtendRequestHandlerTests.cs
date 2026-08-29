@@ -139,9 +139,31 @@ public sealed class SignatureExtendRequestHandlerTests
         Assert.Contains("\"retryable\":true", response.Body, StringComparison.Ordinal);
     }
 
-    private static string CreateExtendBody(string targetLevel = "B-T") =>
+    [Fact]
+    public void ExtendAcceptsEidasValidationProfile()
+    {
+        SignatureExtensionResult payload = new(
+            Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            "B-B",
+            "B-T",
+            "tenant-a/extended.pdf",
+            Digest,
+            4096);
+        HandlerFixture fixture = new(extensions: new ScriptedExtensionWorkflow(
+            new SignatureExtensionOutcome(SignatureExtensionStatus.Succeeded, payload)));
+
+        ApiHttpResponse response = fixture.Handler.Handle(
+            HandlerFixture.Post(
+                "/v1/signatures/extend",
+                CreateExtendBody(validationProfile: "Eidas"),
+                idempotencyKey: "idempotency-key-extend-eidas"));
+
+        Assert.Equal(200, response.StatusCode);
+    }
+
+    private static string CreateExtendBody(string targetLevel = "B-T", string validationProfile = "TurkiyeNes") =>
         $$"""
-        {"document":{"objectKey":"tenant-a/uploads/signed.pdf","sha256":"{{Digest}}","size":2048},"targetLevel":"{{targetLevel}}","validationProfile":"TurkiyeNes","timeStampAuthorities":[{"name":"primary","url":"https://tsa.example/rfc3161"}]}
+        {"document":{"objectKey":"tenant-a/uploads/signed.pdf","sha256":"{{Digest}}","size":2048},"targetLevel":"{{targetLevel}}","validationProfile":"{{validationProfile}}","timeStampAuthorities":[{"name":"primary","url":"https://tsa.example/rfc3161"}]}
         """;
 
     private sealed class HandlerFixture
