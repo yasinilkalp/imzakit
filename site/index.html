@@ -3,357 +3,490 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="imzaKit, .NET 10 için açık kaynak ve sağlayıcıdan bağımsız elektronik imza araç takımıdır.">
-  <meta name="theme-color" content="#F6F8FA">
+  <meta name="description" content="imzaKit, .NET 10 için açık kaynak ve sağlayıcıdan bağımsız elektronik imza araç takımıdır. CMS, PAdES, PKCS#11 ve doğrulama tek NuGet paketinde.">
+  <meta name="theme-color" content="#00B6B9">
+  <meta property="og:title" content="imzaKit · Açık Kaynak .NET Elektronik İmza Araç Takımı">
+  <meta property="og:description" content="Yerel e-imza standartları, tek NuGet kurulumu. CMS, PAdES, PKCS#11 ve doğrulama .NET 10 paketinde.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yasinilkalp.github.io/imzakit/">
   <title>imzaKit · Açık Kaynak .NET Elektronik İmza Araç Takımı</title>
   <link rel="icon" type="image/png" href="logo-mark.png">
   <style>
+    /* Outfit SIL OFL 1.1, self-hosted for GitHub Pages */
+    @font-face {
+      font-family: Outfit;
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("outfit-latin-ext.woff2") format("woff2");
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    @font-face {
+      font-family: Outfit;
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("outfit-latin.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
     :root {
-      --navy: #012349;
-      --navy-dark: #011A36;
-      --cyan: #00B6B9;
-      /* Açık zeminde metin için: #00B6B9 kontrastı düşük kalıyor */
-      --cyan-deep: #00868A;
-      --cyan-soft: #D6F4F5;
-      --alert: #E63946;
-      --ink: #01182F;
-      --graphite: #172033;
-      --muted: #667085;
-      --surface: #F6F8FA;
-      --paper: #FFFFFF;
-      --line: #DDE3EA;
-      --max: 1220px;
-      /* Şekil sistemi: blok 16, kart 10, kontrol 8, rozet 6 */
-      --r-block: 16px;
-      --r-card: 10px;
-      --r-control: 8px;
-      --r-small: 6px;
-      --shadow: 0 20px 50px rgb(1 35 73 / .12);
+      --brand: #00B6B9;
+      --brand-600: #00959A;
+      --brand-700: #007A7D;
+      --brand-900: #012349;
+      --brand-950: #01162C;
+      --brand-25: #F2FBFC;
+      --brand-50: #E6F7F8;
+      --brand-100: #C5EEF0;
+      --brand-200: #9BDEE4;
+      --ink: #101828;
+      --muted: #4A5568;
+      --line: #D5EEF1;
+      --white: #fff;
+      --ok: #12B76A;
+      --ok-bg: #ECFDF3;
+      --alert: #D92D20;
+      --max: 1152px;
+      --r: 16px;
+      --r-xl: 12px;
+      --shadow-sm: 0 1px 2px rgb(1 35 73 / .06);
+      --shadow-md: 0 8px 20px rgb(0 182 185 / .14);
+      --shadow-lg: 0 16px 40px rgb(1 35 73 / .12);
+      --shadow-xl: 0 24px 50px rgb(1 35 73 / .16);
       color-scheme: light;
     }
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
     body {
-      margin: 0; overflow-x: hidden;
-      background: var(--surface); color: var(--graphite);
-      font: 16px/1.7 Inter, ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+      margin: 0;
+      background: var(--white);
+      color: var(--ink);
+      font: 16px/1.65 Outfit, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
-    a { color: var(--navy-dark); }
+    a { color: var(--brand-700); }
     button { font: inherit; color: inherit; }
-    h1, h2, h3 { margin: 0; letter-spacing: -.035em; }
-    :focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
-    .skip { position: fixed; left: 12px; top: -60px; z-index: 90; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: var(--r-control); }
+    h1, h2, h3 { margin: 0; letter-spacing: -.03em; color: var(--ink); }
+    :focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+    .skip {
+      position: fixed; left: 12px; top: -60px; z-index: 90;
+      background: var(--brand-950); color: #fff; padding: 10px 16px; border-radius: 10px;
+    }
     .skip:focus { top: 12px; }
-    .wrap { width: min(var(--max), calc(100% - 40px)); margin-inline: auto; }
-    .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .wrap { width: min(var(--max), calc(100% - 48px)); margin-inline: auto; }
+    .mono, code, pre { font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace; }
 
-    /* Header: yüzen kapsül */
-    .top { position: sticky; top: 0; z-index: 40; padding: 14px 0; }
-    .bar {
-      position: relative; display: flex; align-items: center; gap: 20px;
-      min-height: 62px; padding: 0 10px 0 18px;
-      border: 1px solid var(--line); border-radius: var(--r-block);
-      background: color-mix(in srgb, var(--paper) 88%, transparent);
-      backdrop-filter: blur(16px); box-shadow: 0 8px 24px rgb(11 18 32 / .05);
+    .top {
+      position: sticky; top: 0; z-index: 40;
+      background: color-mix(in srgb, var(--white) 86%, transparent);
+      border-bottom: 1px solid var(--brand-100);
+      backdrop-filter: blur(16px);
     }
+    .bar { display: flex; align-items: center; gap: 16px; min-height: 72px; }
     .brand { display: inline-flex; align-items: center; text-decoration: none; }
-    .brand img { height: 30px; width: auto; display: block; }
-    .menu { display: flex; gap: 4px; margin-left: auto; }
+    .brand img { height: 28px; width: auto; display: block; }
+    .menu { display: flex; gap: 2px; margin-left: auto; }
     .menu a {
-      padding: 9px 14px; border-radius: var(--r-small); color: var(--muted);
-      font-size: 14px; font-weight: 650; text-decoration: none;
-      transition: background .18s ease, color .18s ease;
+      padding: 8px 12px; color: var(--muted); font-size: 14px; font-weight: 600;
+      text-decoration: none; border-radius: 10px;
     }
-    .menu a:hover { background: var(--surface); color: var(--graphite); }
+    .menu a:hover { color: var(--ink); background: var(--brand-25); }
     .bar-end { display: flex; align-items: center; gap: 8px; }
     .round {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      min-height: 42px; min-width: 42px; padding: 0 14px; border-radius: var(--r-control);
-      border: 1px solid var(--line); background: var(--paper); color: var(--graphite);
-      font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
-      transition: border-color .18s ease, color .18s ease;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 40px; min-width: 40px; padding: 0 12px;
+      border: 1px solid var(--brand-100); border-radius: 10px;
+      background: var(--white); color: var(--ink);
+      font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none;
     }
-    .round:hover { border-color: var(--navy); color: var(--navy); }
+    .round:hover { border-color: var(--brand); color: var(--brand-700); }
     .burger { display: none; }
     .pill {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-height: 46px; padding: 0 22px; border-radius: var(--r-control); border: 1px solid transparent;
-      font-weight: 700; text-decoration: none; white-space: nowrap;
-      transition: background .18s ease, transform .1s ease, border-color .18s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 48px; padding: 0 28px; border-radius: var(--r-xl);
+      border: 2px solid transparent; font-weight: 600; text-decoration: none; white-space: nowrap;
+      transition: background .2s ease, box-shadow .2s ease, border-color .2s ease, transform .15s ease;
     }
-    .pill.solid { background: var(--navy); color: #fff; }
-    .pill.solid:hover { background: var(--navy-dark); }
-    .pill.light { background: var(--paper); color: var(--navy-dark); }
-    .pill.light:hover { background: var(--cyan-soft); }
-    .pill.edge { background: transparent; color: var(--graphite); border-color: var(--line); }
-    .pill.edge:hover { border-color: var(--navy); color: var(--navy); }
-    .pill.clear { background: rgb(255 255 255 / .14); color: #fff; border-color: rgb(255 255 255 / .38); }
-    .pill.clear:hover { background: rgb(255 255 255 / .24); }
-    .pill:active { transform: translateY(1px); }
+    .pill:active { transform: scale(.98); }
+    .pill.solid { background: var(--brand); color: #fff; box-shadow: var(--shadow-md); }
+    .pill.solid:hover { background: var(--brand-600); box-shadow: var(--shadow-lg); }
+    .pill.ghost {
+      background: color-mix(in srgb, var(--white) 60%, transparent);
+      color: var(--brand-700); border-color: var(--brand-200);
+    }
+    .pill.ghost:hover { border-color: var(--brand); background: var(--brand-50); }
+    .pill.paper { background: var(--white); color: var(--brand-700); }
+    .pill.paper:hover { background: var(--brand-50); }
+    .pill.clear { background: transparent; color: #fff; border-color: rgb(255 255 255 / .4); }
+    .pill.clear:hover { background: rgb(255 255 255 / .1); }
 
-    /* Hero color block */
-    .hero { padding: 20px 0 0; }
-    .block {
+    .hero {
       position: relative; overflow: hidden;
-      padding: 66px 56px 78px; border-radius: var(--r-block);
+      padding: 56px 0 72px;
       background:
-        radial-gradient(120% 130% at 88% 0%, #00B6B9 0%, transparent 54%),
-        linear-gradient(140deg, #023059 0%, #01162C 100%);
-      color: #fff;
+        radial-gradient(900px 420px at 85% 10%, rgb(0 182 185 / .14), transparent 60%),
+        radial-gradient(1000px 500px at 15% -10%, rgb(1 35 73 / .12), transparent 60%),
+        linear-gradient(180deg, #fff 0%, var(--brand-25) 100%);
     }
-    .block-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .92fr); gap: 52px; align-items: center; }
-    .tagline {
+    .hero-grid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .blue-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgb(0 182 185 / .07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(0 182 185 / .07) 1px, transparent 1px);
+      background-size: 32px 32px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 80%);
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 80%);
+    }
+    .badge {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 7px 14px; border-radius: var(--r-small);
-      background: rgb(255 255 255 / .14); border: 1px solid rgb(255 255 255 / .26);
-      font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      margin-bottom: 22px; padding: 8px 16px;
+      border: 1px solid var(--brand-100); border-radius: 999px;
+      background: color-mix(in srgb, var(--white) 80%, transparent);
+      box-shadow: var(--shadow-sm); font-size: 14px; font-weight: 500; color: var(--brand-700);
     }
-    .block h1 { margin: 22px 0 0; font-size: clamp(32px, 4.2vw, 46px); line-height: 1.12; letter-spacing: -.04em; max-width: 18ch; }
-    .block .sub { margin: 20px 0 0; max-width: 44ch; color: rgb(255 255 255 / .84); font-size: 18px; }
-    .block .acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--brand);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse { 50% { opacity: .45; } }
+    .hero h1 {
+      font-size: clamp(34px, 4.6vw, 56px); font-weight: 900; line-height: 1.12; max-width: 16ch;
+    }
+    .grad {
+      background: linear-gradient(90deg, var(--brand), var(--brand-700), #3AA0C8);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero .sub { margin: 22px 0 0; max-width: 38ch; font-size: 18px; color: var(--muted); }
+    .acts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .trust { display: flex; flex-wrap: wrap; gap: 16px 22px; margin-top: 22px; color: var(--muted); font-size: 14px; font-weight: 500; }
+    .trust span { display: inline-flex; align-items: center; gap: 8px; }
+    .trust svg { color: var(--brand); flex: none; }
     .cmd {
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      margin-top: 20px; max-width: 420px; padding: 8px 8px 8px 18px;
-      border-radius: var(--r-control); border: 1px solid rgb(255 255 255 / .24);
-      background: rgb(255 255 255 / .1);
-      font: 13px/1.4 ui-monospace, "Cascadia Code", Consolas, monospace;
-    }
-    .cmd .dup { background: rgb(255 255 255 / .92); border-color: transparent; }
-
-    .glass {
-      border-radius: var(--r-card); overflow: hidden;
-      background: rgb(1 18 36 / .55); border: 1px solid rgb(255 255 255 / .16);
-      box-shadow: inset 0 1px 0 rgb(255 255 255 / .16), 0 24px 60px rgb(1 20 40 / .38);
-      backdrop-filter: blur(8px);
-    }
-    .glass-bar {
-      display: flex; align-items: center; gap: 8px; padding: 12px 16px;
-      border-bottom: 1px solid rgb(255 255 255 / .12);
-      color: rgb(255 255 255 / .68); font: 12px ui-monospace, Consolas, monospace;
-    }
-    .glass-bar i { width: 9px; height: 9px; border-radius: 50%; display: block; background: rgb(255 255 255 / .3); }
-    .glass-bar span { margin-left: 6px; }
-    .glass pre { margin: 0; padding: 20px 18px 24px; overflow: auto; font: 13px/1.85 ui-monospace, "Cascadia Code", Consolas, monospace; color: #E9FBF7; }
-    .cmt { color: rgb(255 255 255 / .5); }
-    .key { color: #6FE0E3; }
-    .str { color: #FFD5A8; }
-
-    /* Overlapping stat row */
-    .stats {
-      position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 14px; margin: -44px auto 0; width: min(calc(var(--max) - 56px), calc(100% - 72px));
-    }
-    .stat {
-      padding: 22px 22px 24px; border-radius: var(--r-card);
-      background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow);
-    }
-    .stat svg {
-      width: 18px; height: 18px; color: var(--navy); margin-bottom: 14px; display: grid; place-items: center;
-    }
-    .stat h3 { font-size: 17px; }
-    .stat p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
-
-    /* Sections */
-    .section { padding: 48px 0; }
-    .section.tight { padding-top: 8px; padding-bottom: 40px; }
-    .head { max-width: 640px; margin-bottom: 20px; }
-    .head h2 { font-size: clamp(24px, 2.8vw, 34px); line-height: 1.18; text-wrap: balance; }
-    .head p { margin: 8px 0 0; color: var(--muted); font-size: 15px; }
-    .ico {
-      width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
-      flex: none; border-radius: var(--r-small); background: var(--cyan-soft); color: var(--navy);
-    }
-    .ico svg {
-      width: 16px; height: 16px; display: grid; place-items: center; overflow: hidden;
+      margin-top: 18px; max-width: 480px; padding: 6px 6px 6px 16px;
+      border: 1px solid var(--brand-100); border-radius: var(--r-xl); background: var(--white);
+      font: 13px/1.4 ui-monospace, Consolas, monospace; color: var(--ink);
     }
 
-    /* Workflow */
-    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .step {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: center;
-      padding: 18px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line);
+    .stage {
+      position: relative;
+      width: min(100%, 460px);
+      min-height: 460px;
+      margin-inline: auto;
+      display: grid;
+      place-items: center;
     }
-    .step .n {
-      grid-column: 2; margin: -2px 0 4px; color: var(--cyan-deep);
-      font: 700 11px ui-monospace, Consolas, monospace; letter-spacing: .08em;
+    .halo {
+      position: absolute; width: 420px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, rgb(0 182 185 / .18) 0%, transparent 68%);
     }
-    .step h3 { grid-column: 2; font-size: 16px; }
-    .step p { grid-column: 2; margin: 6px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
-    .step .ico { grid-row: 1 / span 3; align-self: center; }
-    .note {
-      display: flex; gap: 12px; align-items: center;
-      margin-top: 12px; padding: 12px 14px; border-radius: var(--r-card);
-      background: var(--cyan-soft); border: 1px solid #AEE6E8; color: var(--navy-dark); font-size: 14px;
+    .ring, .ring-2 {
+      position: absolute; border-radius: 50%; pointer-events: none;
     }
-    .note .ico { background: #fff; }
-
-    /* Scope */
-    .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .panel {
-      padding: 18px; border-radius: var(--r-card);
-      background: var(--paper); border: 1px solid var(--line);
+    .ring {
+      width: 340px; height: 340px;
+      border: 1.5px dashed var(--brand-200);
+      animation: spin 36s linear infinite;
     }
-    .panel.ink { background: var(--ink); border-color: var(--ink); color: #fff; }
-    .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .panel-head h3 { font-size: 16px; margin: 0; }
-    .panel-head .ico { width: 24px; height: 24px; }
-    .panel ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
-    .panel li {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: center;
-      color: var(--muted); font-size: 13.5px; line-height: 1.5;
+    .ring-2 {
+      width: 420px; height: 420px;
+      border: 1px solid rgb(0 182 185 / .16);
     }
-    .panel li span { display: block; }
-    .panel.ink li { color: #B7C3D3; }
-    .panel li strong { display: block; margin-bottom: 2px; color: var(--graphite); font-size: 14px; }
-    .panel.ink li strong { color: #fff; }
-    .panel.ink .ico { background: rgb(0 182 185 / .16); color: #4FD8DB; }
-
-    /* Info tiles */
-    .bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .cell {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px 12px; align-items: center;
-      padding: 16px 18px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line);
+    .seal {
+      position: relative; z-index: 2;
+      width: 176px; height: 176px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--white);
+      border: 1px solid var(--brand-100);
+      box-shadow:
+        0 0 0 14px var(--brand-50),
+        0 22px 50px rgb(1 35 73 / .16);
     }
-    .cell .ico { grid-row: 1 / span 3; align-self: center; }
-    .cell .tag {
-      display: inline-block; margin: 0; padding: 0; border-radius: 0; background: none;
-      color: var(--cyan-deep); font: 700 11px ui-monospace, Consolas, monospace; letter-spacing: .06em;
+    .seal svg { width: 92px; height: 92px; }
+    .sigpath {
+      position: absolute; z-index: 3; width: 280px; bottom: 96px;
+      overflow: visible;
     }
-    .cell h3 { font-size: 16px; }
-    .cell p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
-    .cell.hero-cell, .cell.span2 { grid-column: span 1; grid-row: auto; }
-    .cell.hero-cell {
-      display: grid; background: var(--paper); border-color: var(--line); color: inherit;
+    .sigpath path {
+      fill: none; stroke: var(--brand); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 420; stroke-dashoffset: 420;
+      animation: draw-sig 2.4s ease forwards;
     }
-    .cell.hero-cell p { color: var(--muted); }
-    .cell.hero-cell .tag { background: none; color: var(--cyan-deep); }
-    .cell.hero-cell .foot-note { display: none; }
-    .cell.accent { background: var(--cyan-soft); border-color: #AEE6E8; }
-
-    /* Modules */
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-    .chip {
-      min-height: 34px; padding: 0 14px; border-radius: var(--r-control); border: 1px solid var(--line);
-      background: var(--paper); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer;
-      transition: background .18s ease, color .18s ease, border-color .18s ease;
+    .sat {
+      position: absolute; z-index: 3;
+      padding: 8px 14px; border-radius: 999px;
+      background: var(--white); border: 1px solid var(--brand-100);
+      box-shadow: var(--shadow-md);
+      font-size: 12px; font-weight: 800; color: var(--brand-900); letter-spacing: .02em;
     }
-    .chip:hover { border-color: var(--navy); color: var(--navy); }
-    .chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
-    .mods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    .mod {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: center;
-      padding: 14px 16px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line);
+    .s1 { top: 24px; left: 50%; transform: translateX(-50%); }
+    .s2 { top: 46%; right: 8px; }
+    .s3 { bottom: 18px; left: 50%; transform: translateX(-50%); }
+    .s4 { top: 46%; left: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes draw-sig {
+      to { stroke-dashoffset: 0; }
     }
-    .mod:hover { box-shadow: var(--shadow); }
-    .mod[hidden] { display: none; }
-    .mod .ico { grid-row: 1 / span 2; align-self: center; }
-    .mod code { color: var(--navy-dark); font-size: 13px; font-weight: 800; overflow-wrap: anywhere; }
-    .mod p { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
-    .empty { padding: 16px; border-radius: var(--r-card); border: 1px dashed var(--line); color: var(--muted); font-size: 14px; }
-
-    /* Install */
-    .reqs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
-    .req {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: center;
-      padding: 14px 16px; border-radius: var(--r-card); background: var(--paper); border: 1px solid var(--line);
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .kicker { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #98A2B3; }
+    .live {
+      display: inline-flex; align-items: center; gap: 6px;
+      max-width: 52%; padding: 4px 10px; border-radius: 999px; background: var(--ok-bg);
+      color: #027A48; font-size: 11px; font-weight: 800;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .req b { display: block; font-size: 14px; }
-    .req span { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
-    .shell { padding: 16px; border-radius: var(--r-block); background: var(--paper); border: 1px solid var(--line); }
-    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .pane { min-width: 0; border-radius: var(--r-card); overflow: hidden; border: 1px solid var(--line); }
-    .pane-bar {
+    .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+    .ok { color: var(--ok); font-size: 12px; font-weight: 800; }
+    .rows { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .row {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--line);
+      padding: 10px 14px; border-radius: 10px; border: 1px solid #EEF2F6; background: #F8FAFC;
+      font-size: 14px;
+    }
+
+    .ticker {
+      overflow: hidden; border-block: 1px solid var(--brand-900); background: var(--brand-950);
+    }
+    .ticker-note {
+      margin: 0; padding: 6px; text-align: center;
+      border-bottom: 1px solid rgb(255 255 255 / .1);
+      color: rgb(255 255 255 / .5); font-size: 12px; font-weight: 500;
+    }
+    .marquee { display: flex; width: max-content; gap: 40px; padding: 14px 0; animation: marquee-scroll 40s linear infinite; }
+    .marquee:hover { animation-play-state: paused; }
+    .tick { display: flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 14px; }
+    .tick .src { font-weight: 700; color: #7EE7EA; }
+    .tick .sep { color: rgb(255 255 255 / .3); }
+    .tick .name { color: rgb(255 255 255 / .8); font-weight: 500; }
+    .tick .val { color: #fff; font-weight: 800; }
+    @keyframes marquee-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .section { padding: 72px 0 88px; }
+    .section.soft { background: linear-gradient(180deg, var(--white), var(--brand-25)); }
+    .center { max-width: 40rem; margin: 0 auto 52px; text-align: center; }
+    .eyebrow {
+      display: inline-block; margin-bottom: 16px; padding: 6px 16px;
+      border: 1px solid var(--brand-100); border-radius: 999px; background: var(--white);
+      color: var(--brand-700); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    }
+    .center h2, .head h2 { font-size: clamp(28px, 3.2vw, 40px); font-weight: 900; line-height: 1.15; }
+    .center p, .head p { margin: 14px 0 0; color: var(--muted); font-size: 18px; }
+    .head { max-width: 36rem; margin-bottom: 36px; }
+
+    .steps { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .steps::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 64px;
+      border-top: 2px dashed var(--brand-200);
+    }
+    .step {
+      position: relative; display: flex; flex-direction: column; align-items: center;
+      padding: 32px 28px; text-align: center;
+      border: 1px solid var(--brand-100); border-radius: var(--r); background: var(--white);
+      box-shadow: var(--shadow-sm); transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .step:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .step-ico {
+      position: relative; width: 64px; height: 64px; margin-bottom: 22px;
+      display: grid; place-items: center; border-radius: var(--r);
+      background: linear-gradient(180deg, var(--brand), var(--brand-700));
+      color: #fff; box-shadow: var(--shadow-md);
+    }
+    .num {
+      position: absolute; right: -8px; top: -8px;
+      width: 28px; height: 28px; border-radius: 50%;
+      display: grid; place-items: center; border: 2px solid #fff;
+      background: #3AA0C8; color: #fff; font-size: 12px; font-weight: 900;
+    }
+    .step h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .step p { margin: 0; color: var(--muted); }
+
+    .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .checks { margin: 22px 0 28px; padding: 0; list-style: none; display: grid; gap: 12px; }
+    .checks li { display: flex; gap: 12px; align-items: flex-start; font-weight: 500; color: #344054; }
+    .tick-ico {
+      flex: none; width: 24px; height: 24px; border-radius: 50%;
+      display: grid; place-items: center; background: var(--brand); color: #fff;
+    }
+    .rank {
+      position: relative; padding: 24px; border-radius: var(--r);
+      border: 1px solid var(--brand-100); background: var(--white); box-shadow: var(--shadow-xl);
+    }
+    .rank::before {
+      content: ""; position: absolute; inset: -16px; z-index: -1; border-radius: 24px;
+      background: linear-gradient(135deg, rgb(0 182 185 / .25), rgb(1 35 73 / .08)); filter: blur(18px);
+    }
+    .barline { height: 6px; margin-top: 10px; border-radius: 999px; background: #E4E7EC; overflow: hidden; }
+    .barline i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--brand), #3AA0C8); }
+    .you { border-color: var(--brand-200); background: var(--brand-50); }
+    .chip-ok { padding: 2px 8px; border-radius: 999px; background: var(--ok); color: #fff; font-size: 11px; font-weight: 800; }
+    .chip-off { padding: 2px 8px; border-radius: 999px; background: #FEF3F2; color: var(--alert); font-size: 11px; font-weight: 800; }
+    .rank-foot {
+      margin: 18px 0 0; padding: 12px; border-radius: var(--r-xl);
+      background: linear-gradient(90deg, var(--brand), var(--brand-700));
+      color: #fff; text-align: center; font-size: 14px; font-weight: 800;
+    }
+
+    .bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .cell {
+      position: relative; overflow: hidden; padding: 24px;
+      border: 1px solid var(--brand-100); border-radius: var(--r); background: var(--white);
+      box-shadow: var(--shadow-sm); transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+    }
+    .cell:hover { transform: translateY(-4px); border-color: var(--brand-200); box-shadow: var(--shadow-lg); }
+    .cell-ico {
+      width: 48px; height: 48px; margin-bottom: 18px; display: grid; place-items: center;
+      border-radius: var(--r-xl); background: linear-gradient(180deg, var(--brand), var(--brand-700));
+      color: #fff; box-shadow: var(--shadow-md);
+    }
+    .cell h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .cell p { margin: 0; color: var(--muted); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .chip {
+      min-height: 36px; padding: 0 16px; border-radius: 999px;
+      border: 1px solid var(--brand-100); background: var(--white);
+      color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .mods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .mod {
+      padding: 18px; border: 1px solid var(--brand-100); border-radius: var(--r); background: var(--white);
+      box-shadow: var(--shadow-sm);
+    }
+    .mod[hidden] { display: none; }
+    .mod:hover { border-color: var(--brand); }
+    .mod code { color: var(--brand-900); font-size: 12.5px; font-weight: 800; overflow-wrap: anywhere; }
+    .mod p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+    .empty { padding: 18px; border: 1px dashed var(--brand-200); border-radius: var(--r); color: var(--muted); }
+
+    .reqs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .req { padding: 18px; border: 1px solid var(--brand-100); border-radius: var(--r); background: var(--white); box-shadow: var(--shadow-sm); }
+    .req b { display: block; font-size: 14px; }
+    .req span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+    .shell { border: 1px solid var(--brand-100); border-radius: var(--r); background: var(--white); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; }
+    .pane { min-width: 0; border-right: 1px solid var(--brand-100); }
+    .pane:last-child { border-right: 0; }
+    .pane-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: var(--brand-25); border-bottom: 1px solid var(--brand-100);
       font: 12px ui-monospace, Consolas, monospace; color: var(--muted);
     }
     .dup {
-      min-height: 32px; padding: 0 12px; border-radius: var(--r-small); border: 1px solid var(--line);
-      background: var(--paper); color: var(--navy-dark); font-size: 12px; font-weight: 700; cursor: pointer;
+      min-height: 30px; padding: 0 12px; border-radius: 8px;
+      border: 1px solid var(--brand-100); background: var(--white);
+      color: var(--brand-900); font-size: 12px; font-weight: 700; cursor: pointer;
     }
-    .dup:hover { border-color: var(--navy); }
     .pane pre {
-      margin: 0; padding: 20px; min-height: 156px; overflow: auto;
-      background: var(--ink); color: #E6EDF5;
-      font: 13px/1.8 ui-monospace, "Cascadia Code", Consolas, monospace;
+      margin: 0; padding: 22px 18px; min-height: 168px; overflow: auto;
+      background: var(--brand-950); color: #DCE8F2;
+      font: 13px/1.75 ui-monospace, Consolas, monospace;
     }
-    .after { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-
-    /* Community */
-    .links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .link {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px 12px; align-items: center;
-      padding: 16px 18px; border-radius: var(--r-card);
-      background: var(--paper); border: 1px solid var(--line); color: inherit; text-decoration: none;
+    .after { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px; }
+    .profiles {
+      margin-top: 16px; padding: 18px 20px; border-radius: var(--r);
+      background: var(--white); border: 1px solid var(--brand-100);
+      color: var(--muted); font-size: 14.5px; box-shadow: var(--shadow-sm);
     }
-    .link:hover { border-color: var(--cyan); box-shadow: var(--shadow); }
-    .link .ico { grid-row: 1 / span 3; align-self: center; }
-    .link h3 { font-size: 16px; }
-    .link p { margin: 4px 0 8px; color: var(--muted); font-size: 13.5px; }
-    .link .more { color: var(--navy); font-weight: 800; font-size: 13px; }
 
-    /* Notice */
+    .faq { max-width: 768px; margin: 0 auto; display: grid; gap: 14px; }
+    details {
+      border: 1px solid var(--brand-100); border-radius: var(--r); background: var(--white);
+      box-shadow: var(--shadow-sm);
+    }
+    details[open] { box-shadow: var(--shadow-md); }
+    summary {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 20px; cursor: pointer; font-weight: 700; list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary h3 { font-size: 17px; font-weight: 700; }
+    .plus {
+      width: 32px; height: 32px; flex: none; border-radius: 50%;
+      display: grid; place-items: center; background: var(--brand-50); color: var(--brand-700);
+      transition: transform .3s ease;
+    }
+    details[open] .plus { transform: rotate(45deg); }
+    details p { margin: 0; padding: 0 20px 20px; color: var(--muted); }
+
+    .channels { display: grid; border: 1px solid var(--brand-100); border-radius: var(--r); background: var(--white); overflow: hidden; }
+    .channel {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center;
+      padding: 22px; border-bottom: 1px solid var(--brand-100);
+      color: inherit; text-decoration: none;
+    }
+    .channel:last-child { border-bottom: 0; }
+    .channel:hover { background: var(--brand-25); }
+    .channel h3 { font-size: 18px; }
+    .channel p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+    .channel .more { font-size: 13px; font-weight: 800; color: var(--brand-700); }
+
+    .cta {
+      position: relative; overflow: hidden;
+      padding: 72px 0; text-align: center;
+      background: linear-gradient(135deg, var(--brand-600), var(--brand-700) 40%, var(--brand-900));
+      color: #fff;
+    }
+    .cta .blue-grid { opacity: .2; }
+    .cta .badge { background: rgb(255 255 255 / .1); border-color: rgb(255 255 255 / .2); color: #fff; }
+    .cta .dot { background: #fff; }
+    .cta h2 { color: #fff; font-size: clamp(28px, 4vw, 48px); font-weight: 900; margin: 0 0 18px; }
+    .cta p { margin: 0 auto 28px; max-width: 36rem; color: var(--brand-100); font-size: 18px; }
+    .cta .acts { justify-content: center; }
+
     .notice {
-      padding: 16px 18px; border-radius: var(--r-card);
-      background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--alert);
+      padding: 28px 32px; border-radius: var(--r);
+      background: var(--white); border: 1px solid var(--brand-100); border-top: 4px solid var(--alert);
     }
-    .notice-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .notice-head .ico { background: #FDECEC; color: var(--alert); }
-    .notice h3 { font-size: 16px; color: var(--alert); }
-    .notice ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
-    .notice li {
-      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: center;
-      color: var(--muted); font-size: 13.5px; line-height: 1.5;
-    }
-    .notice li .ico { background: var(--surface); color: var(--navy); }
+    .notice h3 { font-size: 18px; color: var(--alert); margin-bottom: 14px; }
+    .notice ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 28px; }
+    .notice li { color: var(--muted); font-size: 14px; padding-left: 14px; border-left: 2px solid var(--brand-100); }
 
-    /* Footer */
-    .foot-shell { padding: 0 0 20px; }
-    .foot {
-      padding: 56px 48px 30px; border-radius: var(--r-block);
-      background: var(--ink); color: #fff;
-    }
-    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, .7fr); gap: 36px; }
-    .foot-grid p { margin: 16px 0 0; max-width: 34ch; color: #97A6BA; font-size: 15px; }
+    .foot { background: var(--white); border-top: 1px solid var(--brand-100); padding: 64px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, .7fr); gap: 40px; margin-bottom: 48px; }
+    .foot-grid p { margin: 16px 0 0; max-width: 36ch; color: var(--muted); font-size: 15px; font-weight: 500; }
     .col { display: grid; align-content: start; gap: 10px; }
-    .col h3 { font-size: 11px; letter-spacing: .12em; color: #97A6BA; }
-    .col a { color: #E6EDF5; font-size: 14px; text-decoration: none; opacity: .85; }
-    .col a:hover { color: var(--cyan); opacity: 1; }
+    .col h3 { font-size: 14px; font-weight: 800; color: var(--ink); letter-spacing: 0; }
+    .col a { color: var(--muted); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .col a:hover { color: var(--brand-600); }
     .fine {
-      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
-      margin-top: 44px; padding-top: 20px; border-top: 1px solid rgb(255 255 255 / .12);
-      color: #97A6BA; font-size: 12px;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+      padding-top: 24px; border-top: 1px solid var(--brand-100);
+      color: var(--muted); font-size: 14px; font-weight: 500;
     }
-    .fine a { color: #E6EDF5; }
-    .noscript { padding: 12px; text-align: center; background: #FFF4F4; color: #7A3940; font-size: 14px; }
+    .fine a { color: var(--ink); }
+    .noscript { padding: 12px; text-align: center; background: #FEF3F2; color: #7A3940; font-size: 14px; }
 
     @media (max-width: 1040px) {
       .burger { display: inline-flex; margin-left: auto; }
       .menu { display: none; }
       .menu.open {
-        display: grid; position: absolute; left: 0; right: 0; top: 72px; margin: 0;
-        padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-card);
-        box-shadow: var(--shadow);
+        display: grid; position: absolute; left: 24px; right: 24px; top: 72px;
+        padding: 10px; background: var(--white); border: 1px solid var(--brand-100);
+        border-radius: var(--r); box-shadow: var(--shadow-lg);
       }
       .menu.open a { min-height: 44px; display: flex; align-items: center; }
       .round.desk { display: none; }
-      .block { padding: 48px 30px 60px; }
-      .block-grid { grid-template-columns: 1fr; gap: 36px; }
-      .block h1 { max-width: none; }
-      .stats { grid-template-columns: 1fr 1fr; width: calc(100% - 40px); }
-      .steps, .scope, .panes, .links, .foot-grid, .reqs, .notice ul { grid-template-columns: 1fr; }
-      .bento { grid-template-columns: 1fr 1fr; }
-      .mods { grid-template-columns: 1fr 1fr; }
-      .foot { padding: 44px 26px 26px; }
+      .hero-grid, .scope, .panes, .foot-grid, .reqs, .notice ul, .mods, .bento, .steps { grid-template-columns: 1fr; }
+      .steps::before { display: none; }
+      .hero { padding-top: 40px; }
+      .stage { min-height: 400px; }
     }
     @media (max-width: 640px) {
       .wrap { width: min(100% - 28px, var(--max)); }
       .bar-end .pill { display: none; }
-      .block h1 { font-size: 30px; }
-      .section { padding: 36px 0; }
-      .stats, .bento, .mods, .steps { grid-template-columns: 1fr; }
-      .shell { padding: 16px; }
+      .hero h1 { font-size: 32px; max-width: none; }
+      .section { padding: 52px 0 64px; }
+      .mods { grid-template-columns: 1fr; }
+      .bento { grid-template-columns: 1fr; }
+      .halo, .ring-2 { width: 300px; height: 300px; }
+      .ring { width: 270px; height: 270px; }
+      .seal { width: 136px; height: 140px; }
+      .sigpath { width: 210px; bottom: 86px; }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -377,6 +510,7 @@
         <a href="#features" data-tr="Yetenekler" data-en="Capabilities">Yetenekler</a>
         <a href="#modules" data-tr="Modüller" data-en="Modules">Modüller</a>
         <a href="#install" data-tr="Kurulum" data-en="Install">Kurulum</a>
+        <a href="#faq" data-tr="SSS" data-en="FAQ">SSS</a>
         <a href="#community" data-tr="Topluluk" data-en="Community">Topluluk</a>
       </div>
       <div class="bar-end">
@@ -384,202 +518,222 @@
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.89.87 2.35.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.22 2.2.82A7.6 7.6 0 0 1 8 3.87c.68 0 1.36.09 2 .26 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0"/></svg>
         </a>
         <button class="round" id="language-toggle" type="button" aria-label="Change language">EN</button>
-        <a class="pill solid" href="#install" data-tr="NuGet ile Başla" data-en="Start with NuGet">NuGet ile Başla</a>
+        <a class="pill solid" href="#install"><span data-tr="NuGet ile Başla" data-en="Start with NuGet">NuGet ile Başla</span></a>
       </div>
     </nav>
   </header>
 
   <main id="main">
     <section class="hero" id="top">
+      <div class="blue-grid" aria-hidden="true"></div>
       <div class="wrap">
-        <div class="block">
-          <div class="block-grid">
-            <div>
-              <span class="tagline" data-tr="Türkiye'den açık kaynak e-imza araç takımı" data-en="Open-source e-signature toolkit from Türkiye">Türkiye'den açık kaynak e-imza araç takımı</span>
-              <h1 data-tr="Yerel e-imza standartları, tek NuGet kurulumu." data-en="Local e-signature standards, one NuGet install.">Yerel e-imza standartları, tek NuGet kurulumu.</h1>
-              <p class="sub" data-tr="CMS, PAdES, PKCS#11 ve doğrulama bileşenleri sağlayıcıdan bağımsız tek bir .NET 10 paketinde." data-en="CMS, PAdES, PKCS#11, and validation in one provider-independent .NET 10 package.">CMS, PAdES, PKCS#11 ve doğrulama bileşenleri sağlayıcıdan bağımsız tek bir .NET 10 paketinde.</p>
-              <div class="acts">
-                <a class="pill light" href="#install" data-tr="NuGet ile Başla" data-en="Start with NuGet">NuGet ile Başla</a>
-                <a class="pill clear" href="https://github.com/yasinilkalp/imzakit" data-tr="GitHub'da İncele" data-en="Explore on GitHub">GitHub'da İncele</a>
-              </div>
-              <div class="cmd">
-                <span>dotnet add package ImzaKit</span>
-                <button class="dup" type="button" data-copy-text="dotnet add package ImzaKit --version 1.0.0-alpha.13" data-tr="Kopyala" data-en="Copy">Kopyala</button>
-              </div>
+        <div class="hero-grid">
+          <div>
+            <div class="badge"><span class="dot" aria-hidden="true"></span><span data-tr="Türkiye'den açık kaynak e-imza araç takımı" data-en="Open-source e-signature toolkit from Türkiye">Türkiye'den açık kaynak e-imza araç takımı</span></div>
+            <h1 data-tr="Yerel e-imza standartları, tek NuGet kurulumu." data-en="Local e-signature standards, one NuGet install.">
+              <span data-tr="Yerel e-imza standartları," data-en="Local e-signature standards,">Yerel e-imza standartları,</span>
+              <span class="grad" data-tr=" tek NuGet kurulumu." data-en=" one NuGet install."> tek NuGet kurulumu.</span>
+            </h1>
+            <p class="sub" data-tr="CMS, PAdES, PKCS#11 ve doğrulama tek .NET 10 paketinde, sağlayıcıdan bağımsız." data-en="CMS, PAdES, PKCS#11, and validation in one provider-independent .NET 10 package.">CMS, PAdES, PKCS#11 ve doğrulama tek .NET 10 paketinde, sağlayıcıdan bağımsız.</p>
+            <div class="acts">
+              <a class="pill solid" href="#install">
+                <span data-tr="NuGet ile Başla" data-en="Start with NuGet">NuGet ile Başla</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </a>
+              <a class="pill ghost" href="https://github.com/yasinilkalp/imzakit"><span data-tr="GitHub'da İncele" data-en="Explore on GitHub">GitHub'da İncele</span></a>
             </div>
-            <div class="glass">
-              <div class="glass-bar"><i></i><i></i><i></i><span>Program.cs</span></div>
-              <pre><code><span class="cmt">// Hazırla, imzala, doğrula</span>
-services.AddImzaKitCore();
-services.AddSingleton&lt;IPkcs11Provider,
-    MyPkcs11Provider&gt;();
-services.AddImzaKitPkcs11();
-
-<span class="key">var</span> report = PadesValidator.Validate(pdf);
-Console.WriteLine(report.Status ==
-    ValidationStatus.Passed
-    ? <span class="str">"Geçerli"</span>
-    : <span class="str">"Geçersiz"</span>);</code></pre>
+            <div class="trust">
+              <span>
+                <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"/></svg>
+                Apache-2.0
+              </span>
+              <span>
+                <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"/></svg>
+                <span data-tr="16 modül tek paket" data-en="16 modules, one package">16 modül tek paket</span>
+              </span>
+              <span>
+                <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"/></svg>
+                .NET 10
+              </span>
             </div>
+            <div class="cmd">
+              <span>dotnet add package ImzaKit --version 1.0.0-alpha.13</span>
+              <button class="dup" type="button" data-copy-text="dotnet add package ImzaKit --version 1.0.0-alpha.13" data-tr="Kopyala" data-en="Copy">Kopyala</button>
+            </div>
+          </div>
+          <div class="stage" aria-hidden="true">
+            <div class="halo"></div>
+            <div class="ring-2"></div>
+            <div class="ring"></div>
+            <div class="seal">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <rect x="26" y="22" width="12" height="46" rx="3" fill="#012349"/>
+                <circle cx="32" cy="12" r="6" fill="#012349"/>
+                <path d="M20 64 L62 16" stroke="#00B6B9" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="38" cy="44" r="5.5" fill="#fff" stroke="#00B6B9" stroke-width="3.5"/>
+                <circle cx="62" cy="16" r="5.5" fill="#fff" stroke="#00B6B9" stroke-width="3.5"/>
+              </svg>
+            </div>
+            <svg class="sigpath" viewBox="0 0 280 72">
+              <path d="M8 44 C 36 12, 58 62, 92 34 S 138 12, 168 46 S 214 64, 248 28 C 258 18, 268 22, 274 30"/>
+            </svg>
+            <span class="sat s1">PAdES</span>
+            <span class="sat s2">PKCS#11</span>
+            <span class="sat s3">CMS</span>
+            <span class="sat s4">XAdES</span>
           </div>
         </div>
       </div>
-      <div class="stats">
-        <article class="stat">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="1.8"/></svg>
-          <h3 data-tr="Tek paket" data-en="One package">Tek paket</h3>
-          <p data-tr="16 modül tek NuGet kurulumuyla gelir." data-en="16 modules arrive with a single NuGet install.">16 modül tek NuGet kurulumuyla gelir.</p>
-        </article>
-        <article class="stat">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 16 4 8l8-4 8 4-3 8H7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m12 8 3 8M12 8 9 16" stroke="currentColor" stroke-width="1.8"/></svg>
-          <h3 data-tr="Modüler mimari" data-en="Modular architecture">Modüler mimari</h3>
-          <p data-tr="Yalnız ihtiyacınız olan ad alanlarını kullanırsınız." data-en="Use only the namespaces you actually need.">Yalnız ihtiyacınız olan ad alanlarını kullanırsınız.</p>
-        </article>
-        <article class="stat">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <h3>Provider-independent</h3>
-          <p data-tr="Farklı sağlayıcılarla kilitlenmeden çalışır." data-en="Works across providers without lock-in.">Farklı sağlayıcılarla kilitlenmeden çalışır.</p>
-        </article>
-        <article class="stat">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5 6.5v5.2c0 4.2 2.8 7.9 7 8.8 4.2-.9 7-4.6 7-8.8V6.5L12 3Z" stroke="currentColor" stroke-width="1.8"/><path d="m8.6 12.2 2.2 2.2 4.6-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <h3 data-tr="Açık kaynak" data-en="Open source">Açık kaynak</h3>
-          <p data-tr="Apache-2.0 lisansı, şeffaf ve denetlenebilir geliştirme." data-en="Apache-2.0 licensed, transparent and auditable development.">Apache-2.0 lisansı, şeffaf ve denetlenebilir geliştirme.</p>
-        </article>
-      </div>
     </section>
+
+    <div class="ticker" aria-label="Desteklenen biçimler">
+      <p class="ticker-note" data-tr="Paket envanteri: biçimler, profiller ve HSM allowlist." data-en="Package inventory: formats, profiles, and HSM allowlist.">Paket envanteri: biçimler, profiller ve HSM allowlist.</p>
+      <div class="marquee">
+        <span class="tick"><span class="src">PAdES</span><span class="sep">·</span><span class="name">B-B / B-T / B-LT / B-LTA</span><span class="val">PDF</span></span>
+        <span class="tick"><span class="src">CAdES</span><span class="sep">·</span><span class="name">SignedData</span><span class="val">CMS</span></span>
+        <span class="tick"><span class="src">XAdES</span><span class="sep">·</span><span class="name">enveloped / detached</span><span class="val">XML</span></span>
+        <span class="tick"><span class="src">ASiC</span><span class="sep">·</span><span class="name">ASiC-S / ASiC-E</span><span class="val">ZIP</span></span>
+        <span class="tick"><span class="src">PKCS#11</span><span class="sep">·</span><span class="name">AKİS · nShield · Utimaco</span><span class="val">HSM</span></span>
+        <span class="tick"><span class="src">Trust</span><span class="sep">·</span><span class="name">TurkiyeNes · Eidas · GeneralX509</span><span class="val">X.509</span></span>
+        <span class="tick"><span class="src">PAdES</span><span class="sep">·</span><span class="name">B-B / B-T / B-LT / B-LTA</span><span class="val">PDF</span></span>
+        <span class="tick"><span class="src">CAdES</span><span class="sep">·</span><span class="name">SignedData</span><span class="val">CMS</span></span>
+        <span class="tick"><span class="src">XAdES</span><span class="sep">·</span><span class="name">enveloped / detached</span><span class="val">XML</span></span>
+        <span class="tick"><span class="src">ASiC</span><span class="sep">·</span><span class="name">ASiC-S / ASiC-E</span><span class="val">ZIP</span></span>
+        <span class="tick"><span class="src">PKCS#11</span><span class="sep">·</span><span class="name">AKİS · nShield · Utimaco</span><span class="val">HSM</span></span>
+        <span class="tick"><span class="src">Trust</span><span class="sep">·</span><span class="name">TurkiyeNes · Eidas · GeneralX509</span><span class="val">X.509</span></span>
+      </div>
+    </div>
 
     <section class="section" id="workflow">
       <div class="wrap">
-        <div class="head">
+        <div class="center">
+          <span class="eyebrow" data-tr="Nasıl çalışır?" data-en="How it works">Nasıl çalışır?</span>
           <h2 data-tr="Hazırla, kartta imzala, PDF'de tamamla." data-en="Prepare, sign on the card, complete in the PDF.">Hazırla, kartta imzala, PDF'de tamamla.</h2>
           <p data-tr="Özel anahtar süreç dışındadır. ImzaKit belgeyi hazırlar ve imzayı PDF'ye yazar." data-en="The private key stays out of process. ImzaKit prepares the document and writes the signature into the PDF.">Özel anahtar süreç dışındadır. ImzaKit belgeyi hazırlar ve imzayı PDF'ye yazar.</p>
         </div>
         <div class="steps">
           <article class="step">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <span class="n">01</span>
+            <div class="step-ico" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span class="num">1</span>
+            </div>
             <h3 data-tr="PDF ve CMS hazırlığı" data-en="PDF and CMS preparation">PDF ve CMS hazırlığı</h3>
             <p data-tr="ByteRange yer tutucusu, signed attributes, DigestInfo. Orijinal PDF baytları yerinde kalır." data-en="ByteRange placeholder, signed attributes, DigestInfo. Original PDF bytes stay in place.">ByteRange yer tutucusu, signed attributes, DigestInfo. Orijinal PDF baytları yerinde kalır.</p>
           </article>
           <article class="step">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <span class="n">02</span>
+            <div class="step-ico" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span class="num">2</span>
+            </div>
             <h3 data-tr="PKCS#11 sınırında imza" data-en="Signature at the PKCS#11 boundary">PKCS#11 sınırında imza</h3>
             <p data-tr="IPkcs11Provider üretici kütüphanesini bağlar. PIN ve native onay sizin katmanda kalır." data-en="IPkcs11Provider binds the vendor library. PIN and native approval stay in your layer.">IPkcs11Provider üretici kütüphanesini bağlar. PIN ve native onay sizin katmanda kalır.</p>
           </article>
           <article class="step">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M14 3h5v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 3 10 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 12v7a2 2 0 0 0 2 2h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <span class="n">03</span>
+            <div class="step-ico" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="num">3</span>
+            </div>
             <h3 data-tr="CMS tamamlama ve rapor" data-en="CMS completion and report">CMS tamamlama ve rapor</h3>
             <p data-tr="İmza SignedData ve /Contents içine yazılır. Verify ByteRange ve CMS kriptografisini raporlar." data-en="The signature is written into SignedData and /Contents. Verify reports ByteRange and CMS cryptography.">İmza SignedData ve /Contents içine yazılır. Verify ByteRange ve CMS kriptografisini raporlar.</p>
           </article>
         </div>
-        <p class="note">
-          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-          <span data-tr="operationId, prepareVersion ve sertifika parmak izi tamamlama sırasında hazırlık kaydıyla aynı olmalıdır." data-en="operationId, prepareVersion, and the certificate fingerprint must match the preparation record at completion.">operationId, prepareVersion ve sertifika parmak izi tamamlama sırasında hazırlık kaydıyla aynı olmalıdır.</span>
-        </p>
       </div>
     </section>
 
-    <section class="section" id="scope">
+    <section class="section soft" id="scope">
       <div class="wrap">
-        <div class="head">
-          <h2 data-tr="Yerel e-imza işi, uluslararası biçimler." data-en="Local e-signature work, international formats.">Yerel e-imza işi, uluslararası biçimler.</h2>
-          <p data-tr="CMS ve PAdES .NET 10 paketinde. Hukuki nitelik veya TSE onayı yok." data-en="CMS and PAdES in a .NET 10 package. No legal qualification or TSE approval.">CMS ve PAdES .NET 10 paketinde. Hukuki nitelik veya TSE onayı yok.</p>
-        </div>
         <div class="scope">
-          <article class="panel ink">
-            <div class="panel-head">
-              <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m8.5 12.2 2.3 2.3 4.7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-              <h3 data-tr="Paketin yaptığı" data-en="What the package does">Paketin yaptığı</h3>
-            </div>
-            <ul>
+          <div>
+            <span class="eyebrow" data-tr="Kapsam" data-en="Scope">Kapsam</span>
+            <h2 data-tr="Yerel e-imza işi, uluslararası biçimler." data-en="Local e-signature work, international formats."><span data-tr="Yerel e-imza işi," data-en="Local e-signature work,">Yerel e-imza işi,</span> <span class="grad" data-tr="uluslararası biçimler." data-en="international formats.">uluslararası biçimler.</span></h2>
+            <p data-tr="CMS ve PAdES .NET 10 paketinde. Hukuki nitelik veya TSE onayı yok." data-en="CMS and PAdES in a .NET 10 package. No legal qualification or TSE approval.">CMS ve PAdES .NET 10 paketinde. Hukuki nitelik veya TSE onayı yok.</p>
+            <ul class="checks">
               <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                <div><strong>CMS / CAdES</strong><span data-tr="Detached signed attributes, DigestInfo, SignedData tamamlama." data-en="Detached signed attributes, DigestInfo, SignedData completion.">Detached signed attributes, DigestInfo, SignedData tamamlama.</span></div>
+                <span class="tick-ico" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span data-tr="CMS / CAdES: detached signed attributes, DigestInfo, SignedData." data-en="CMS / CAdES: detached signed attributes, DigestInfo, SignedData.">CMS / CAdES: detached signed attributes, DigestInfo, SignedData.</span>
               </li>
               <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                <div><strong>PAdES / PDF</strong><span data-tr="Artımlı hazırlama, ByteRange, /Contents, ön kontrol." data-en="Incremental prep, ByteRange, /Contents, preflight.">Artımlı hazırlama, ByteRange, /Contents, ön kontrol.</span></div>
+                <span class="tick-ico" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span data-tr="PAdES: artımlı hazırlama, ByteRange, /Contents, ön kontrol." data-en="PAdES: incremental prep, ByteRange, /Contents, preflight.">PAdES: artımlı hazırlama, ByteRange, /Contents, ön kontrol.</span>
               </li>
               <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                <div><strong>PKCS#11</strong><span data-tr="Kart ve HSM için dar IPkcs11Provider sözleşmesi." data-en="A narrow IPkcs11Provider contract for cards and HSMs.">Kart ve HSM için dar IPkcs11Provider sözleşmesi.</span></div>
+                <span class="tick-ico" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span data-tr="PKCS#11: AKİS, eToken, nShield ve Utimaco allowlist. DLL pakette yok." data-en="PKCS#11: AKİS, eToken, nShield, and Utimaco allowlist. DLL is not bundled.">PKCS#11: AKİS, eToken, nShield ve Utimaco allowlist. DLL pakette yok.</span>
               </li>
               <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 12.2 2.3 2.3 4.7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                <div><strong data-tr="Yapısal doğrulama" data-en="Structural validation">Yapısal doğrulama</strong><span data-tr="ByteRange, CMS kriptografisi, makinece okunur bulgular." data-en="ByteRange, CMS cryptography, machine-readable findings.">ByteRange, CMS kriptografisi, makinece okunur bulgular.</span></div>
-              </li>
-            </ul>
-          </article>
-          <article class="panel">
-            <div class="panel-head">
-              <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 19c1.2-3 4-5 7-5s5.8 2 7 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-              <h3 data-tr="Sizin katmanınız" data-en="Your layer">Sizin katmanınız</h3>
-            </div>
-            <ul>
-              <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="4" width="12" height="16" rx="1.6" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M9 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                <div><strong data-tr="Nitelikli sertifika" data-en="Qualified certificate">Nitelikli sertifika</strong><span data-tr="Kök ve ara CA politikası uygulama kararı." data-en="Root and intermediate CA policy is yours.">Kök ve ara CA politikası uygulama kararı.</span></div>
-              </li>
-              <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0 1 14.6-4.5M20 12a8 8 0 0 1-14.6 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.5 4.5V8H15M5.5 19.5V16H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                <div><strong>OCSP / CRL</strong><span data-tr="İptal kontrolü otomatik çalışmaz." data-en="Revocation checks are not automatic.">İptal kontrolü otomatik çalışmaz.</span></div>
-              </li>
-              <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="10" width="10" height="10" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M10 10V8a2 2 0 0 1 4 0v2" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="15" r="1.2" fill="currentColor"/></svg></span>
-                <div><strong data-tr="Sürücü ve PIN" data-en="Driver and PIN">Sürücü ve PIN</strong><span data-tr="AKİS ve native kütüphane pakette yok." data-en="AKİS and native libraries are not bundled.">AKİS ve native kütüphane pakette yok.</span></div>
-              </li>
-              <li>
-                <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 8h14M7 8c0 4 2.2 7 5 9 2.8-2 5-5 5-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                <div><strong data-tr="Hukuki sonuç" data-en="Legal outcome">Hukuki sonuç</strong><span data-tr="5070 ve nitelikli imza değerlendirmesi sizin." data-en="Law 5070 and qualified-signature assessment stay with you.">5070 ve nitelikli imza değerlendirmesi sizin.</span></div>
+                <span class="tick-ico" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span data-tr="operationId, prepareVersion ve parmak izi tamamlama ile aynı kalır." data-en="operationId, prepareVersion, and fingerprint stay matched at completion.">operationId, prepareVersion ve parmak izi tamamlama ile aynı kalır.</span>
               </li>
             </ul>
-          </article>
+            <a class="pill solid" href="#install"><span data-tr="NuGet ile Başla" data-en="Start with NuGet">NuGet ile Başla</span></a>
+          </div>
+          <div class="rank">
+            <div class="panel-head">
+              <div>
+                <p class="kicker" data-tr="Sınır çizgisi" data-en="Boundary">Sınır çizgisi</p>
+                <p style="margin:4px 0 0;font-weight:800" data-tr="Paket vs sizin katmanınız" data-en="Package vs your layer">Paket vs sizin katmanınız</p>
+              </div>
+              <span class="live"><i></i>API</span>
+            </div>
+            <ul class="rows">
+              <li class="row you">
+                <span data-tr="Paketin yaptığı" data-en="What the package does">Paketin yaptığı</span>
+                <span class="chip-ok" data-tr="CMS · PAdES · Verify" data-en="CMS · PAdES · Verify">CMS · PAdES · Verify</span>
+              </li>
+              <li class="row">
+                <span data-tr="Nitelikli sertifika" data-en="Qualified certificate">Nitelikli sertifika</span>
+                <span class="chip-off" data-tr="Sizin" data-en="Yours">Sizin</span>
+              </li>
+              <li class="row">
+                <span>OCSP / CRL</span>
+                <span class="chip-off" data-tr="Otomatik değil" data-en="Not automatic">Otomatik değil</span>
+              </li>
+              <li class="row">
+                <span data-tr="Sürücü ve PIN" data-en="Driver and PIN">Sürücü ve PIN</span>
+                <span class="chip-off" data-tr="Pakette yok" data-en="Not bundled">Pakette yok</span>
+              </li>
+            </ul>
+            <p class="rank-foot" data-tr="5070 ve nitelikli imza değerlendirmesi entegratördedir." data-en="Law 5070 and qualified-signature assessment stay with the integrator.">5070 ve nitelikli imza değerlendirmesi entegratördedir.</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section" id="features">
       <div class="wrap">
-        <div class="head">
-          <h2 data-tr="İmza akışının ihtiyaç duyduğu yapı taşları." data-en="The building blocks your signing flow needs.">İmza akışının ihtiyaç duyduğu yapı taşları.</h2>
+        <div class="center">
+          <span class="eyebrow" data-tr="Yetenekler" data-en="Capabilities">Yetenekler</span>
+          <h2 data-tr="İmza akışının ihtiyaç duyduğu yapı taşları." data-en="The building blocks your signing flow needs."><span data-tr="İmza akışının ihtiyaç duyduğu" data-en="The building blocks your">İmza akışının ihtiyaç duyduğu</span> <span class="grad" data-tr="yapı taşları." data-en="signing flow needs.">yapı taşları.</span></h2>
           <p data-tr="Her modül tek bir sınırı tutar. İhtiyacınız olan ad alanını alın, kart sürücüsünü kendiniz bağlayın." data-en="Each module holds one boundary. Take the namespaces you need and bind the card driver yourself.">Her modül tek bir sınırı tutar. İhtiyacınız olan ad alanını alın, kart sürücüsünü kendiniz bağlayın.</p>
         </div>
         <div class="bento">
           <article class="cell">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <span class="tag">PDF</span>
+            <div class="cell-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
             <h3>PAdES</h3>
             <p data-tr="Artımlı hazırlama, ByteRange, /Contents. Ön kontrol bozuk veya şifreli PDF'yi erken keser." data-en="Incremental prep, ByteRange, /Contents. Preflight stops broken or encrypted PDFs early.">Artımlı hazırlama, ByteRange, /Contents. Ön kontrol bozuk veya şifreli PDF'yi erken keser.</p>
           </article>
           <article class="cell">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16M4 12h16M4 16h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <span class="tag">CMS</span>
-            <h3>CMS</h3>
+            <div class="cell-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 8h16M4 12h16M4 16h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></div>
+            <h3>CMS / CAdES</h3>
             <p data-tr="Detached signed attributes, DigestInfo, SignedData. Kart imzası standart CMS kabuğuna oturur." data-en="Detached signed attributes, DigestInfo, SignedData. The card signature lands in a CMS envelope.">Detached signed attributes, DigestInfo, SignedData. Kart imzası standart CMS kabuğuna oturur.</p>
           </article>
-          <article class="cell accent">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <span class="tag">P11</span>
+          <article class="cell">
+            <div class="cell-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
             <h3>PKCS#11</h3>
-            <p data-tr="IPkcs11Provider: dar sözleşme. AKİS, eToken, nShield ve Utimaco profilleri allowlist’ten yüklenir; DLL pakette yoktur." data-en="IPkcs11Provider: a narrow contract. AKİS, eToken, nShield, and Utimaco profiles load from an allowlist; the DLL is not in the package.">IPkcs11Provider: dar sözleşme. AKİS, eToken, nShield ve Utimaco profilleri allowlist’ten yüklenir; DLL pakette yoktur.</p>
+            <p data-tr="IPkcs11Provider: dar sözleşme. AKİS, eToken, nShield ve Utimaco profilleri allowlist'ten yüklenir; DLL pakette yoktur." data-en="IPkcs11Provider: a narrow contract. AKİS, eToken, nShield, and Utimaco profiles load from an allowlist; the DLL is not in the package.">IPkcs11Provider: dar sözleşme. AKİS, eToken, nShield ve Utimaco profilleri allowlist'ten yüklenir; DLL pakette yoktur.</p>
           </article>
           <article class="cell">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6.5v5.2c0 4.2 2.8 7.9 7 8.8 4.2-.9 7-4.6 7-8.8V6.5L12 3Z" stroke="currentColor" stroke-width="1.8"/><path d="m8.6 12.2 2.2 2.2 4.6-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="tag">VRF</span>
+            <div class="cell-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6.5v5.2c0 4.2 2.8 7.9 7 8.8 4.2-.9 7-4.6 7-8.8V6.5L12 3Z" stroke="currentColor" stroke-width="1.8"/><path d="m8.6 12.2 2.2 2.2 4.6-4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <h3 data-tr="Doğrulama" data-en="Validation">Doğrulama</h3>
             <p data-tr="ByteRange ve CMS: Passed/Failed. TrustStatus politika yoksa Indeterminate." data-en="ByteRange and CMS: Passed/Failed. TrustStatus stays Indeterminate without policy.">ByteRange ve CMS: Passed/Failed. TrustStatus politika yoksa Indeterminate.</p>
           </article>
           <article class="cell">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 7V5.8A2.8 2.8 0 0 1 10.8 3h2.4A2.8 2.8 0 0 1 16 5.8V7" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="13" r="1.4" fill="currentColor"/></svg></span>
-            <span class="tag">AGT</span>
+            <div class="cell-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="7" y="3" width="10" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/></svg></div>
             <h3>Agent</h3>
             <p data-tr="İmzalı bilet, nonce, tekrar oynatma koruması. Loopback oturumu sahte isteğe kapanır." data-en="Signed tickets, nonces, replay protection. Loopback session rejects forged requests.">İmzalı bilet, nonce, tekrar oynatma koruması. Loopback oturumu sahte isteğe kapanır.</p>
           </article>
           <article class="cell">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="6" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11.2 15.8 7.2M8 12.8 15.8 16.8" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <span class="tag">API</span>
+            <div class="cell-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="6" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11.2 15.8 7.2M8 12.8 15.8 16.8" stroke="currentColor" stroke-width="1.8"/></svg></div>
             <h3 data-tr="İşlem modeli" data-en="Operation model">İşlem modeli</h3>
             <p data-tr="Created → WaitingForSignature → Completed. Aynı operationId idempotent döner." data-en="Created → WaitingForSignature → Completed. Same operationId returns idempotently.">Created → WaitingForSignature → Completed. Aynı operationId idempotent döner.</p>
           </article>
@@ -587,10 +741,11 @@ Console.WriteLine(report.Status ==
       </div>
     </section>
 
-    <section class="section" id="modules">
+    <section class="section soft" id="modules">
       <div class="wrap">
-        <div class="head">
-          <h2 data-tr="Tek paket, 12 odaklı modül." data-en="One package, 12 focused modules.">Tek paket, 12 odaklı modül.</h2>
+        <div class="center">
+          <span class="eyebrow" data-tr="Modüller" data-en="Modules">Modüller</span>
+          <h2 data-tr="Tek paket, 16 odaklı modül." data-en="One package, 16 focused modules.">Tek paket, 16 odaklı modül.</h2>
           <p data-tr="Hepsi ImzaKit NuGet'iyle gelir. Filtre, hangi ad alanının hangi sınıra ait olduğunu gösterir." data-en="All of them ship in the ImzaKit NuGet. The filter shows which namespace belongs to which boundary.">Hepsi ImzaKit NuGet'iyle gelir. Filtre, hangi ad alanının hangi sınıra ait olduğunu gösterir.</p>
         </div>
         <div class="chips" aria-label="Modül filtreleri">
@@ -600,70 +755,22 @@ Console.WriteLine(report.Status ==
           <button class="chip" type="button" data-filter="platform" aria-pressed="false" data-tr="Platform" data-en="Platform">Platform</button>
         </div>
         <div class="mods">
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4 4 8.5 12 13l8-4.5L12 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 12.5 12 17l8-4.5M4 16.5 12 21l8-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <div><code>ImzaKit.Core</code><p data-tr="Yaşam döngüsü sözleşmeleri ve sağlayıcıdan bağımsız modeller." data-en="Lifecycle contracts and provider-independent models.">Yaşam döngüsü sözleşmeleri ve sağlayıcıdan bağımsız modeller.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v8M8.5 10.5h7M8.5 13.5h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <div><code>ImzaKit.Cryptography</code><p data-tr="Özet algoritmaları, DigestInfo ve OID tanımlayıcıları." data-en="Digest algorithms, DigestInfo, and OID identifiers.">Özet algoritmaları, DigestInfo ve OID tanımlayıcıları.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v12H4z" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
-            <div><code>ImzaKit.Cms</code><p data-tr="Signed attributes hazırlığı ve SignedData tamamlama." data-en="Signed-attribute preparation and SignedData completion.">Signed attributes hazırlığı ve SignedData tamamlama.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <div><code>ImzaKit.PAdES</code><p data-tr="Ön kontrol, artımlı hazırlama, tamamlama, değişiklik politikası." data-en="Preflight, incremental prep, completion, change policy.">Ön kontrol, artımlı hazırlama, tamamlama, değişiklik politikası.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 12.2 2.3 2.3 4.7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <div><code>ImzaKit.Verify</code><p data-tr="PAdES, CAdES, XAdES ve ASiC ortak rapor. Güven zinciri isteğe bağlı." data-en="Shared PAdES, CAdES, XAdES, and ASiC report. Trust chain is optional.">PAdES, CAdES, XAdES ve ASiC ortak rapor. Güven zinciri isteğe bağlı.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true">X5</span>
-            <div><code>ImzaKit.Certificate</code><p data-tr="Çevrimdışı X.509 zinciri oluşturma ve doğrulama." data-en="Offline X.509 chain building and validation.">Çevrimdışı X.509 zinciri oluşturma ve doğrulama.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true">TR</span>
-            <div><code>ImzaKit.Trust</code><p data-tr="Sürümlü güven deposu ve politika profilleri." data-en="Versioned trust stores and policy profiles.">Sürümlü güven deposu ve politika profilleri.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true">OC</span>
-            <div><code>ImzaKit.Revocation</code><p data-tr="Gömülü, önbellek veya çevrimiçi OCSP/CRL kanıtı." data-en="Embedded, cached, or online OCSP/CRL evidence.">Gömülü, önbellek veya çevrimiçi OCSP/CRL kanıtı.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true">TS</span>
-            <div><code>ImzaKit.Timestamp</code><p data-tr="RFC 3161 TSA isteği, failover ve token doğrulaması." data-en="RFC 3161 timestamp request, failover, and token validation.">RFC 3161 TSA isteği, failover ve token doğrulaması.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true">CA</span>
-            <div><code>ImzaKit.CAdES</code><p data-tr="Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo." data-en="Independent CAdES B-B/B-T/B-LT/B-LTA and multiple SignerInfo.">Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true">XA</span>
-            <div><code>ImzaKit.XAdES</code><p data-tr="XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA." data-en="XAdES enveloped/enveloping/detached and B-B/B-T/B-LT/B-LTA.">XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA.</p></div>
-          </article>
-          <article class="mod" data-module="signing">
-            <span class="ico" aria-hidden="true">AS</span>
-            <div><code>ImzaKit.ASiC</code><p data-tr="ASiC-S/E paketleme ve ZIP güvenlik kontrolleri." data-en="ASiC-S/E packaging and ZIP security checks.">ASiC-S/E paketleme ve ZIP güvenlik kontrolleri.</p></div>
-          </article>
-          <article class="mod" data-module="edge">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <div><code>ImzaKit.Pkcs11</code><p data-tr="Kart/HSM orkestrasyonu. Native sürücü sizde." data-en="Card and HSM orchestration. Native driver on your side.">Kart/HSM orkestrasyonu. Native sürücü sizde.</p></div>
-          </article>
-          <article class="mod" data-module="edge">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h6M14 12h6M10 8v8M14 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="12" r="2" stroke="currentColor" stroke-width="1.8"/><circle cx="14" cy="12" r="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <div><code>ImzaKit.Agent</code><p data-tr="Loopback bilet, nonce ve tekrar oynatma koruması." data-en="Loopback tickets, nonces, and replay protection.">Loopback bilet, nonce ve tekrar oynatma koruması.</p></div>
-          </article>
-          <article class="mod" data-module="platform">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="6" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11.2 15.8 7.2M8 12.8 15.8 16.8" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <div><code>ImzaKit.Api</code><p data-tr="Durum makinesi, idempotency, problem kodu eşlemesi." data-en="State machine, idempotency, problem-code mapping.">Durum makinesi, idempotency, problem kodu eşlemesi.</p></div>
-          </article>
-          <article class="mod" data-module="platform">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M8 7V4h8v3M8 17v3h8v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><rect x="5" y="7" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <div><code>ImzaKit.DependencyInjection</code><p data-tr="AddImzaKitCore ve süreç içi PAdES kayıtları." data-en="AddImzaKitCore and in-process PAdES registrations.">AddImzaKitCore ve süreç içi PAdES kayıtları.</p></div>
-          </article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Core</code><p data-tr="Yaşam döngüsü sözleşmeleri ve sağlayıcıdan bağımsız modeller." data-en="Lifecycle contracts and provider-independent models.">Yaşam döngüsü sözleşmeleri ve sağlayıcıdan bağımsız modeller.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Cryptography</code><p data-tr="Özet algoritmaları, DigestInfo ve OID tanımlayıcıları." data-en="Digest algorithms, DigestInfo, and OID identifiers.">Özet algoritmaları, DigestInfo ve OID tanımlayıcıları.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Cms</code><p data-tr="Signed attributes hazırlığı ve SignedData tamamlama." data-en="Signed-attribute preparation and SignedData completion.">Signed attributes hazırlığı ve SignedData tamamlama.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.PAdES</code><p data-tr="Ön kontrol, artımlı hazırlama, tamamlama, değişiklik politikası." data-en="Preflight, incremental prep, completion, change policy.">Ön kontrol, artımlı hazırlama, tamamlama, değişiklik politikası.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Verify</code><p data-tr="PAdES, CAdES, XAdES ve ASiC ortak rapor. Güven zinciri isteğe bağlı." data-en="Shared PAdES, CAdES, XAdES, and ASiC report. Trust chain is optional.">PAdES, CAdES, XAdES ve ASiC ortak rapor. Güven zinciri isteğe bağlı.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Certificate</code><p data-tr="Çevrimdışı X.509 zinciri oluşturma ve doğrulama." data-en="Offline X.509 chain building and validation.">Çevrimdışı X.509 zinciri oluşturma ve doğrulama.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Trust</code><p data-tr="Sürümlü güven deposu ve politika profilleri." data-en="Versioned trust stores and policy profiles.">Sürümlü güven deposu ve politika profilleri.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Revocation</code><p data-tr="Gömülü, önbellek veya çevrimiçi OCSP/CRL kanıtı." data-en="Embedded, cached, or online OCSP/CRL evidence.">Gömülü, önbellek veya çevrimiçi OCSP/CRL kanıtı.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.Timestamp</code><p data-tr="RFC 3161 TSA isteği, failover ve token doğrulaması." data-en="RFC 3161 timestamp request, failover, and token validation.">RFC 3161 TSA isteği, failover ve token doğrulaması.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.CAdES</code><p data-tr="Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo." data-en="Independent CAdES B-B/B-T/B-LT/B-LTA and multiple SignerInfo.">Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.XAdES</code><p data-tr="XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA." data-en="XAdES enveloped/enveloping/detached and B-B/B-T/B-LT/B-LTA.">XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA.</p></article>
+          <article class="mod" data-module="signing"><code>ImzaKit.ASiC</code><p data-tr="ASiC-S/E paketleme ve ZIP güvenlik kontrolleri." data-en="ASiC-S/E packaging and ZIP security checks.">ASiC-S/E paketleme ve ZIP güvenlik kontrolleri.</p></article>
+          <article class="mod" data-module="edge"><code>ImzaKit.Pkcs11</code><p data-tr="Kart/HSM orkestrasyonu. Native sürücü sizde." data-en="Card and HSM orchestration. Native driver on your side.">Kart/HSM orkestrasyonu. Native sürücü sizde.</p></article>
+          <article class="mod" data-module="edge"><code>ImzaKit.Agent</code><p data-tr="Loopback bilet, nonce ve tekrar oynatma koruması." data-en="Loopback tickets, nonces, and replay protection.">Loopback bilet, nonce ve tekrar oynatma koruması.</p></article>
+          <article class="mod" data-module="platform"><code>ImzaKit.Api</code><p data-tr="Durum makinesi, idempotency, problem kodu eşlemesi." data-en="State machine, idempotency, problem-code mapping.">Durum makinesi, idempotency, problem kodu eşlemesi.</p></article>
+          <article class="mod" data-module="platform"><code>ImzaKit.DependencyInjection</code><p data-tr="AddImzaKitCore ve süreç içi PAdES kayıtları." data-en="AddImzaKitCore and in-process PAdES registrations.">AddImzaKitCore ve süreç içi PAdES kayıtları.</p></article>
         </div>
         <p class="empty" id="modules-empty" hidden data-tr="Bu alanda modül yok. Başka bir filtre seçin." data-en="No modules in this area. Choose another filter.">Bu alanda modül yok. Başka bir filtre seçin.</p>
       </div>
@@ -671,24 +778,15 @@ Console.WriteLine(report.Status ==
 
     <section class="section" id="install">
       <div class="wrap">
-        <div class="head">
+        <div class="center">
+          <span class="eyebrow" data-tr="Kurulum" data-en="Install">Kurulum</span>
           <h2 data-tr="Tek komut, sabit sürüm, sizin adaptörünüz." data-en="One command, a pinned version, your adapter.">Tek komut, sabit sürüm, sizin adaptörünüz.</h2>
           <p data-tr="Ön sürümü sabitleyin. PKCS#11 kullanıyorsanız IPkcs11Provider uygulamanızı servis koleksiyonuna kaydedin. Paket sürücü veya PIN arayüzü getirmez." data-en="Pin the prerelease. If you use PKCS#11, register your IPkcs11Provider in the service collection. The package does not ship a driver or PIN UI.">Ön sürümü sabitleyin. PKCS#11 kullanıyorsanız IPkcs11Provider uygulamanızı servis koleksiyonuna kaydedin. Paket sürücü veya PIN arayüzü getirmez.</p>
-          <p data-tr="Çevrimdışı güven doğrulaması için ValidationContext ile GeneralX509, TurkiyeNes veya Eidas seçin. Eidas, Eidas etiketli kök + katalog politika OID + QcCompliance ister; EU TSL/QES iddiası yoktur. RevocationDataUnavailable, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz." data-en="For offline trust validation, use ValidationContext with GeneralX509, TurkiyeNes, or Eidas. Eidas requires an Eidas-labeled anchor, a catalog policy OID, and QcCompliance; it is not an EU TSL/QES claim. RevocationDataUnavailable means more OCSP/CRL evidence is required; system stores and the network are never used automatically.">Çevrimdışı güven doğrulaması için <code>ValidationContext</code> ile <code>GeneralX509</code>, <code>TurkiyeNes</code> veya <code>Eidas</code> seçin. <code>Eidas</code> Eidas etiketli kök, katalog politika OID ve QcCompliance ister; EU TSL/QES iddiası yoktur. <code>RevocationDataUnavailable</code>, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz.</p>
         </div>
         <div class="reqs">
-          <div class="req">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M16.5 4 8 20M7 8h10M6 16h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <div><b>.NET 10</b><span data-tr="SDK veya uyumlu çalışma zamanı." data-en="SDK or a compatible runtime.">SDK veya uyumlu çalışma zamanı.</span></div>
-          </div>
-          <div class="req">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8V6a2 2 0 0 1 2-2h10v12a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <div><b>1.0.0-alpha.13</b><span data-tr="API yüzeyi değişebilir, sürümü sabitleyin." data-en="The API surface may change. Pin the version.">API yüzeyi değişebilir, sürümü sabitleyin.</span></div>
-          </div>
-          <div class="req">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="7" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="7" width="7" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="M11 12h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <div><b>IPkcs11Provider</b><span data-tr="Kart/HSM için sizin yazdığınız adaptör." data-en="Your adapter for the card or HSM.">Kart/HSM için sizin yazdığınız adaptör.</span></div>
-          </div>
+          <div class="req"><b>.NET 10</b><span data-tr="SDK veya uyumlu çalışma zamanı." data-en="SDK or a compatible runtime.">SDK veya uyumlu çalışma zamanı.</span></div>
+          <div class="req"><b>1.0.0-alpha.13</b><span data-tr="API yüzeyi değişebilir, sürümü sabitleyin." data-en="The API surface may change. Pin the version.">API yüzeyi değişebilir, sürümü sabitleyin.</span></div>
+          <div class="req"><b>IPkcs11Provider</b><span data-tr="Kart/HSM için sizin yazdığınız adaptör." data-en="Your adapter for the card or HSM.">Kart/HSM için sizin yazdığınız adaptör.</span></div>
         </div>
         <div class="shell">
           <div class="panes">
@@ -705,108 +803,141 @@ services.AddImzaKitPkcs11();</code></pre>
             </div>
           </div>
           <div class="after">
-            <a class="pill solid" href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.13" data-tr="NuGet paketini aç" data-en="Open the NuGet package">NuGet paketini aç</a>
-            <a class="pill edge" href="https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html" data-tr="Teknik rehberi incele" data-en="Read the technical guide">Teknik rehberi incele</a>
+            <a class="pill solid" href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.13"><span data-tr="NuGet paketini aç" data-en="Open the NuGet package">NuGet paketini aç</span></a>
+            <a class="pill ghost" href="https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html"><span data-tr="Teknik rehberi incele" data-en="Read the technical guide">Teknik rehberi incele</span></a>
           </div>
+        </div>
+        <p class="profiles" data-tr="Çevrimdışı güven doğrulaması için ValidationContext ile GeneralX509, TurkiyeNes veya Eidas seçin. Eidas, Eidas etiketli kök + katalog politika OID + QcCompliance ister; EU TSL/QES iddiası yoktur. RevocationDataUnavailable, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz." data-en="For offline trust validation, use ValidationContext with GeneralX509, TurkiyeNes, or Eidas. Eidas requires an Eidas-labeled anchor, a catalog policy OID, and QcCompliance; it is not an EU TSL/QES claim. RevocationDataUnavailable means more OCSP/CRL evidence is required; system stores and the network are never used automatically.">Çevrimdışı güven doğrulaması için ValidationContext ile GeneralX509, TurkiyeNes veya Eidas seçin. Eidas, Eidas etiketli kök + katalog politika OID + QcCompliance ister; EU TSL/QES iddiası yoktur. RevocationDataUnavailable, ek OCSP/CRL kanıtı gerektiğini belirtir; sistem deposu ve ağ otomatik kullanılmaz.</p>
+      </div>
+    </section>
+
+    <section class="section soft" id="faq">
+      <div class="wrap">
+        <div class="center">
+          <span class="eyebrow">SSS</span>
+          <h2 data-tr="Sıkça sorulan sorular" data-en="Frequently asked questions">Sıkça sorulan sorular</h2>
+          <p data-tr="Paket ne yapar, ne bırakır: kısa cevaplar." data-en="What the package does and what it leaves to you.">Paket ne yapar, ne bırakır: kısa cevaplar.</p>
+        </div>
+        <div class="faq">
+          <details>
+            <summary><h3 data-tr="ImzaKit nedir?" data-en="What is ImzaKit?">ImzaKit nedir?</h3><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span></summary>
+            <p data-tr="Sağlayıcıdan bağımsız .NET 10 elektronik imza araç takımıdır. CMS, PAdES, PKCS#11 ve doğrulama tek NuGet paketinde gelir." data-en="A provider-independent .NET 10 electronic-signature toolkit. CMS, PAdES, PKCS#11, and validation ship in one NuGet package.">Sağlayıcıdan bağımsız .NET 10 elektronik imza araç takımıdır. CMS, PAdES, PKCS#11 ve doğrulama tek NuGet paketinde gelir.</p>
+          </details>
+          <details>
+            <summary><h3 data-tr="PKCS#11 sürücüsü pakette mi?" data-en="Is a PKCS#11 driver bundled?">PKCS#11 sürücüsü pakette mi?</h3><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span></summary>
+            <p data-tr="Hayır. AKİS, eToken, nShield ve Utimaco allowlist'ten yüklenir; native DLL ve PIN arayüzü sizin katmanınızdadır." data-en="No. AKİS, eToken, nShield, and Utimaco load from an allowlist; the native DLL and PIN UI stay in your layer.">Hayır. AKİS, eToken, nShield ve Utimaco allowlist'ten yüklenir; native DLL ve PIN arayüzü sizin katmanınızdadır.</p>
+          </details>
+          <details>
+            <summary><h3 data-tr="Nitelikli imza kararı paket mi verir?" data-en="Does the package decide qualified signatures?">Nitelikli imza kararı paket mi verir?</h3><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span></summary>
+            <p data-tr="Hayır. Hukuki nitelik, 5070 ve TSE onayı yoktur. Kök politikası, OCSP/CRL ve nitelikli imza değerlendirmesi entegratördedir." data-en="No. There is no legal qualification or TSE approval. Root policy, OCSP/CRL, and qualified-signature assessment stay with the integrator.">Hayır. Hukuki nitelik, 5070 ve TSE onayı yoktur. Kök politikası, OCSP/CRL ve nitelikli imza değerlendirmesi entegratördedir.</p>
+          </details>
+          <details>
+            <summary><h3 data-tr="Hangi doğrulama profilleri var?" data-en="Which validation profiles exist?">Hangi doğrulama profilleri var?</h3><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span></summary>
+            <p data-tr="ValidationContext ile GeneralX509, TurkiyeNes veya Eidas. Eidas, Eidas etiketli kök + katalog OID + QcCompliance ister; EU TSL/QES iddiası yoktur." data-en="Use ValidationContext with GeneralX509, TurkiyeNes, or Eidas. Eidas needs an Eidas-labeled anchor, a catalog OID, and QcCompliance; it is not an EU TSL/QES claim.">ValidationContext ile GeneralX509, TurkiyeNes veya Eidas. Eidas, Eidas etiketli kök + katalog OID + QcCompliance ister; EU TSL/QES iddiası yoktur.</p>
+          </details>
+          <details>
+            <summary><h3 data-tr="1.0.0-alpha.13 üretim için uygun mu?" data-en="Is 1.0.0-alpha.13 ready for production?">1.0.0-alpha.13 üretim için uygun mu?</h3><span class="plus" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span></summary>
+            <p data-tr="Ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir. Kart, HSM ve hedef PDF okuyucularını kendi ortamınızda doğrulayın." data-en="It is a prerelease. The API surface may change before 1.0.0. Validate the card, HSM, and target PDF readers in your environment.">Ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir. Kart, HSM ve hedef PDF okuyucularını kendi ortamınızda doğrulayın.</p>
+          </details>
         </div>
       </div>
     </section>
 
     <section class="section" id="community">
       <div class="wrap">
-        <div class="head">
+        <div class="center">
+          <span class="eyebrow" data-tr="Topluluk" data-en="Community">Topluluk</span>
           <h2 data-tr="Katkı, hata ve güvenlik ayrı kanallarda." data-en="Contribution, bugs, and security stay on separate channels.">Katkı, hata ve güvenlik ayrı kanallarda.</h2>
           <p data-tr="Kod Apache-2.0. Davranış kuralları Contributor Covenant. Güvenlik açığını herkese açık issue'ya yazmayın." data-en="The code is Apache-2.0. Conduct follows the Contributor Covenant. Do not file security issues in public tickets.">Kod Apache-2.0. Davranış kuralları Contributor Covenant. Güvenlik açığını herkese açık issue'ya yazmayın.</p>
         </div>
-        <div class="links">
-          <a class="link" href="https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="6" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="6" cy="18" r="2.2" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="12" r="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M8 7.2 16 11M8 16.8 16 13" stroke="currentColor" stroke-width="1.8"/></svg></span>
-            <h3 data-tr="Katkı yapın" data-en="Contribute">Katkı yapın</h3>
-            <p data-tr="Ortam, testler ve PR kapsamı CONTRIBUTING.md içinde." data-en="Environment, tests, and PR scope live in CONTRIBUTING.md.">Ortam, testler ve PR kapsamı CONTRIBUTING.md içinde.</p>
+        <div class="channels">
+          <a class="channel" href="https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md">
+            <div>
+              <h3 data-tr="Katkı yapın" data-en="Contribute">Katkı yapın</h3>
+              <p data-tr="Ortam, testler ve PR kapsamı CONTRIBUTING.md içinde." data-en="Environment, tests, and PR scope live in CONTRIBUTING.md.">Ortam, testler ve PR kapsamı CONTRIBUTING.md içinde.</p>
+            </div>
             <span class="more" data-tr="Katkı rehberi" data-en="Contribution guide">Katkı rehberi</span>
           </a>
-          <a class="link" href="https://github.com/yasinilkalp/imzakit/issues/new/choose">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span>
-            <h3 data-tr="Issue açın" data-en="Open an issue">Issue açın</h3>
-            <p data-tr="Yeniden üretilebilir hata veya somut senaryo. Şablon ortam ister." data-en="A reproducible bug or a concrete scenario. The template asks for environment.">Yeniden üretilebilir hata veya somut senaryo. Şablon ortam ister.</p>
+          <a class="channel" href="https://github.com/yasinilkalp/imzakit/issues/new/choose">
+            <div>
+              <h3 data-tr="Issue açın" data-en="Open an issue">Issue açın</h3>
+              <p data-tr="Yeniden üretilebilir hata veya somut senaryo. Şablon ortam ister." data-en="A reproducible bug or a concrete scenario. The template asks for environment.">Yeniden üretilebilir hata veya somut senaryo. Şablon ortam ister.</p>
+            </div>
             <span class="more" data-tr="Şablonları aç" data-en="Open templates">Şablonları aç</span>
           </a>
-          <a class="link" href="https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6.5v5.2c0 4.2 2.8 7.9 7 8.8 4.2-.9 7-4.6 7-8.8V6.5L12 3Z" stroke="currentColor" stroke-width="1.8"/><rect x="9.5" y="10" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.6"/><path d="M11 10V9a1 1 0 0 1 2 0v1" stroke="currentColor" stroke-width="1.6"/></svg></span>
-            <h3 data-tr="Güvenli bildirin" data-en="Report securely">Güvenli bildirin</h3>
-            <p data-tr="Açığı private advisory ile iletin. SECURITY.md kanalı tarif eder." data-en="Send issues through a private advisory. SECURITY.md describes the channel.">Açığı private advisory ile iletin. SECURITY.md kanalı tarif eder.</p>
+          <a class="channel" href="https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md">
+            <div>
+              <h3 data-tr="Güvenli bildirin" data-en="Report securely">Güvenli bildirin</h3>
+              <p data-tr="Açığı private advisory ile iletin. SECURITY.md kanalı tarif eder." data-en="Send issues through a private advisory. SECURITY.md describes the channel.">Açığı private advisory ile iletin. SECURITY.md kanalı tarif eder.</p>
+            </div>
             <span class="more" data-tr="Güvenlik politikası" data-en="Security policy">Güvenlik politikası</span>
           </a>
         </div>
       </div>
     </section>
 
-    <section class="section tight" aria-labelledby="alpha-title">
+    <section class="cta">
+      <div class="blue-grid" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="badge"><span class="dot"></span><span>1.0.0-alpha.13</span></div>
+        <h2 data-tr="Yerel e-imzayı bugün paketleyin." data-en="Package local e-signature today.">Yerel e-imzayı bugün paketleyin.</h2>
+        <p data-tr="Tek NuGet, 16 modül, sizin PKCS#11 adaptörünüz. Sürümü sabitleyin, belgede imzalayın." data-en="One NuGet, 16 modules, your PKCS#11 adapter. Pin the version and sign the document.">Tek NuGet, 16 modül, sizin PKCS#11 adaptörünüz. Sürümü sabitleyin, belgede imzalayın.</p>
+        <div class="acts">
+          <a class="pill paper" href="#install"><span data-tr="NuGet ile Başla" data-en="Start with NuGet">NuGet ile Başla</span></a>
+          <a class="pill clear" href="https://github.com/yasinilkalp/imzakit"><span data-tr="GitHub'da İncele" data-en="Explore on GitHub">GitHub'da İncele</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="alpha-title">
       <div class="wrap">
         <div class="notice">
-          <div class="notice-head">
-            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4 3.5 19h17L12 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v5M12 17.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <h3 id="alpha-title" data-tr="Üretimden önce doğrulayın" data-en="Validate before production">Üretimden önce doğrulayın</h3>
-          </div>
+          <h3 id="alpha-title" data-tr="Üretimden önce doğrulayın" data-en="Validate before production">Üretimden önce doğrulayın</h3>
           <ul>
-            <li>
-              <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 8V6a2 2 0 0 1 2-2h10v12a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-              <span data-tr="1.0.0-alpha.13 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir." data-en="1.0.0-alpha.13 is a prerelease. The API surface may change before 1.0.0.">1.0.0-alpha.13 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir.</span>
-            </li>
-            <li>
-              <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0 1 14.6-4.5M20 12a8 8 0 0 1-14.6 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.5 4.5V8H15M5.5 19.5V16H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-              <span data-tr="Güven zinciri, OCSP/CRL ve nitelikli imza kararı entegratördedir." data-en="Trust chain, OCSP/CRL, and qualified-signature decisions stay with the integrator.">Güven zinciri, OCSP/CRL ve nitelikli imza kararı entegratördedir.</span>
-            </li>
-            <li>
-              <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="3" width="10" height="18" rx="1.6" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/></svg></span>
-              <span data-tr="Kart veya HSM, native onay ve hedef PDF okuyucularını kendi ortamınızda test edin." data-en="Test the card or HSM, native approval, and target PDF readers in your environment.">Kart veya HSM, native onay ve hedef PDF okuyucularını kendi ortamınızda test edin.</span>
-            </li>
-            <li>
-              <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="10" width="10" height="10" rx="1.6" stroke="currentColor" stroke-width="1.8"/><path d="M10 10V8a2 2 0 0 1 4 0v2" stroke="currentColor" stroke-width="1.8"/><path d="m9 15 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-              <span data-tr="Üreticiye özel PKCS#11 sürücüsü veya PIN arayüzü pakette yoktur." data-en="No vendor PKCS#11 driver or PIN interface is bundled.">Üreticiye özel PKCS#11 sürücüsü veya PIN arayüzü pakette yoktur.</span>
-            </li>
+            <li data-tr="1.0.0-alpha.13 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir." data-en="1.0.0-alpha.13 is a prerelease. The API surface may change before 1.0.0.">1.0.0-alpha.13 ön sürümdür. API yüzeyi 1.0.0 öncesinde değişebilir.</li>
+            <li data-tr="Güven zinciri, OCSP/CRL ve nitelikli imza kararı entegratördedir." data-en="Trust chain, OCSP/CRL, and qualified-signature decisions stay with the integrator.">Güven zinciri, OCSP/CRL ve nitelikli imza kararı entegratördedir.</li>
+            <li data-tr="Kart veya HSM, native onay ve hedef PDF okuyucularını kendi ortamınızda test edin." data-en="Test the card or HSM, native approval, and target PDF readers in your environment.">Kart veya HSM, native onay ve hedef PDF okuyucularını kendi ortamınızda test edin.</li>
+            <li data-tr="Üreticiye özel PKCS#11 sürücüsü veya PIN arayüzü pakette yoktur." data-en="No vendor PKCS#11 driver or PIN interface is bundled.">Üreticiye özel PKCS#11 sürücüsü veya PIN arayüzü pakette yoktur.</li>
           </ul>
         </div>
       </div>
     </section>
   </main>
 
-  <div class="foot-shell">
-    <footer class="wrap">
-      <div class="foot">
-        <div class="foot-grid">
-          <div>
-            <a class="brand" href="#top">
-              <img src="logo-light.png" width="117" height="30" alt="imzaKit">
-            </a>
-            <p data-tr="Sağlayıcıdan bağımsız .NET elektronik imza araç takımı." data-en="Provider-independent .NET electronic-signature toolkit.">Sağlayıcıdan bağımsız .NET elektronik imza araç takımı.</p>
-          </div>
-          <div class="col">
-            <h3 data-tr="ÜRÜN" data-en="PRODUCT">ÜRÜN</h3>
-            <a href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.13">NuGet</a>
-            <a href="https://github.com/yasinilkalp/imzakit">GitHub</a>
-            <a href="https://github.com/yasinilkalp/imzakit/blob/main/reports/imzakit-gelistirme-durum.html" data-tr="Durum raporu" data-en="Status report">Durum raporu</a>
-          </div>
-          <div class="col">
-            <h3 data-tr="BELGELER" data-en="DOCS">BELGELER</h3>
-            <a href="https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html" data-tr="Teknik rehber" data-en="Technical guide">Teknik rehber</a>
-            <a href="https://github.com/yasinilkalp/imzakit/blob/main/README.md">README</a>
-            <a href="https://github.com/yasinilkalp/imzakit/blob/main/NOTICE">NOTICE</a>
-          </div>
-          <div class="col">
-            <h3 data-tr="TOPLULUK" data-en="COMMUNITY">TOPLULUK</h3>
-            <a href="https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md" data-tr="Katkı" data-en="Contributing">Katkı</a>
-            <a href="https://github.com/yasinilkalp/imzakit/blob/main/CODE_OF_CONDUCT.md" data-tr="Davranış kuralları" data-en="Code of conduct">Davranış kuralları</a>
-            <a href="https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md" data-tr="Güvenlik" data-en="Security">Güvenlik</a>
-          </div>
+  <footer class="foot">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="brand" href="#top">
+            <img src="logo.png" width="117" height="30" alt="imzaKit">
+          </a>
+          <p data-tr="Sağlayıcıdan bağımsız .NET elektronik imza araç takımı." data-en="Provider-independent .NET electronic-signature toolkit.">Sağlayıcıdan bağımsız .NET elektronik imza araç takımı.</p>
         </div>
-        <div class="fine">
-          <span>Copyright 2026 ImzaKit contributors.</span>
-          <a href="https://github.com/yasinilkalp/imzakit/blob/main/LICENSE">Apache License 2.0</a>
+        <div class="col">
+          <h3 data-tr="Ürün" data-en="Product">Ürün</h3>
+          <a href="https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.13">NuGet</a>
+          <a href="https://github.com/yasinilkalp/imzakit">GitHub</a>
+          <a href="https://github.com/yasinilkalp/imzakit/blob/main/reports/imzakit-gelistirme-durum.html" data-tr="Durum raporu" data-en="Status report">Durum raporu</a>
+        </div>
+        <div class="col">
+          <h3 data-tr="Belgeler" data-en="Docs">Belgeler</h3>
+          <a href="https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html" data-tr="Teknik rehber" data-en="Technical guide">Teknik rehber</a>
+          <a href="https://github.com/yasinilkalp/imzakit/blob/main/README.md">README</a>
+          <a href="https://github.com/yasinilkalp/imzakit/blob/main/NOTICE">NOTICE</a>
+        </div>
+        <div class="col">
+          <h3 data-tr="Topluluk" data-en="Community">Topluluk</h3>
+          <a href="https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md" data-tr="Katkı" data-en="Contributing">Katkı</a>
+          <a href="https://github.com/yasinilkalp/imzakit/blob/main/CODE_OF_CONDUCT.md" data-tr="Davranış kuralları" data-en="Code of conduct">Davranış kuralları</a>
+          <a href="https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md" data-tr="Güvenlik" data-en="Security">Güvenlik</a>
         </div>
       </div>
-    </footer>
-  </div>
+      <div class="fine">
+        <span>Copyright 2026 ImzaKit contributors.</span>
+        <a href="https://github.com/yasinilkalp/imzakit/blob/main/LICENSE">Apache License 2.0</a>
+      </div>
+    </div>
+  </footer>
 
   <script>
     (() => {
@@ -820,6 +951,7 @@ services.AddImzaKitPkcs11();</code></pre>
         const next = language === 'en' ? 'en' : 'tr';
         root.lang = next;
         document.querySelectorAll('[data-tr][data-en]').forEach((element) => {
+          if (element.querySelector('[data-tr]')) return;
           element.textContent = element.dataset[next];
         });
         document.querySelectorAll('[data-aria-tr][data-aria-en]').forEach((element) => {
