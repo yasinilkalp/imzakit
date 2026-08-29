@@ -1,5 +1,8 @@
 using ImzaKit.Agent.Configuration;
 using ImzaKit.Api.Problems;
+using ImzaKit.ASiC;
+using ImzaKit.CAdES;
+using ImzaKit.XAdES;
 using ImzaKit.Certificate.Models;
 using ImzaKit.Cms.Preparation;
 using ImzaKit.Core.Cryptography;
@@ -25,6 +28,9 @@ var names = new[]
     typeof(ApiProblemCatalog).Assembly.GetName().Name,
     typeof(CertificateDescriptor).Assembly.GetName().Name,
     typeof(CmsSignaturePreparer).Assembly.GetName().Name,
+    typeof(AsicPacker).Assembly.GetName().Name,
+    typeof(CadesValidator).Assembly.GetName().Name,
+    typeof(XadesSigner).Assembly.GetName().Name,
     typeof(HashAlgorithmId).Assembly.GetName().Name,
     typeof(DefaultDigestCalculator).Assembly.GetName().Name,
     typeof(ImzaKitServiceCollectionExtensions).Assembly.GetName().Name,

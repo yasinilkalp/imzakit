@@ -1,21 +1,22 @@
 param(
     [string]$PackageDirectory = (Join-Path (Split-Path -Parent $PSScriptRoot) 'artifacts\packages'),
-    [string]$Version = '1.0.0-alpha.10'
+    [string]$Version = '1.0.0-alpha.12'
 )
 
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $expectedModules = @(
-    'ImzaKit.Agent', 'ImzaKit.Api', 'ImzaKit.Cms', 'ImzaKit.Core',
+    'ImzaKit.ASiC', 'ImzaKit.Agent', 'ImzaKit.Api', 'ImzaKit.CAdES', 'ImzaKit.Cms', 'ImzaKit.Core',
     'ImzaKit.Certificate', 'ImzaKit.Cryptography', 'ImzaKit.DependencyInjection',
     'ImzaKit.PAdES', 'ImzaKit.Pkcs11', 'ImzaKit.Revocation', 'ImzaKit.Timestamp',
-    'ImzaKit.Trust', 'ImzaKit.Verify'
+    'ImzaKit.Trust', 'ImzaKit.Verify', 'ImzaKit.XAdES'
 )
 $expectedDependencies = [ordered]@{
     'BouncyCastle.Cryptography' = '2.7.0'
     'Microsoft.Extensions.DependencyInjection.Abstractions' = '10.0.11'
     'System.Security.Cryptography.Pkcs' = '10.0.11'
+    'System.Security.Cryptography.Xml' = '10.0.11'
 }
 
 $packages = @(Get-ChildItem -LiteralPath $PackageDirectory -Filter '*.nupkg' |
@@ -51,7 +52,7 @@ try {
         Where-Object { $_ -like 'lib/net10.0/ImzaKit.*.dll' } |
         ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_) } |
         Sort-Object -Unique)
-    if ($actualDlls.Count -ne 13) { throw "Expected exactly 13 ImzaKit DLLs, found $($actualDlls.Count)." }
+    if ($actualDlls.Count -ne 16) { throw "Expected exactly 16 ImzaKit DLLs, found $($actualDlls.Count)." }
     $expectedDlls = @($expectedModules | Sort-Object)
     if (Compare-Object $expectedDlls $actualDlls) { throw "Module DLL set is invalid: $($actualDlls -join ', ')" }
 
@@ -86,6 +87,9 @@ if ($sbom -notmatch 'CycloneDX' -or $sbom -notmatch '1\.6') {
 }
 if ($sbom -notmatch 'BouncyCastle.Cryptography') {
     throw 'Release SBOM is missing runtime components.'
+}
+if ($sbom -notmatch 'System.Security.Cryptography.Xml') {
+    throw 'Release SBOM is missing Xml runtime component.'
 }
 
 Write-Output "NuGet package verification passed: ImzaKit $Version"

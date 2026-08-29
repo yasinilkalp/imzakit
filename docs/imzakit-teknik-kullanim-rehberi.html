@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="ImzaKit 1.0.0-alpha.10 için etkileşimli Türkçe ve İngilizce teknik kullanım rehberi.">
+  <meta name="description" content="ImzaKit 1.0.0-alpha.12 için etkileşimli Türkçe ve İngilizce teknik kullanım rehberi.">
   <title>ImzaKit — Teknik Kullanım Rehberi</title>
   <style>
     :root{color-scheme:dark;--bg:#09110f;--surface:#101b18;--surface2:#16231f;--text:#edf7f2;--muted:#91aaa0;--line:#2b4038;--accent:#31d0aa;--accent2:#b6f09c;--warn:#f2c66d;--danger:#ff887b;--code:#07100e;--shadow:0 18px 50px rgba(0,0,0,.24);--sidebar:290px}
@@ -30,8 +30,8 @@
   </aside>
   <main class="main" id="icerik">
     <header class="hero">
-      <div class="hero-grid"><div><div class="eyebrow">Sürüm sözleşmesi / 28 Ağustos 2026</div><h1>Elektronik imza entegrasyonu, uçtan uca.</h1><p class="lead">ImzaKit 1.0.0-alpha.10 paketini .NET 10 uygulamasına eklemek, PDF hazırlamak, kartta imzalamak ve çevrimdışı güven girdileriyle doğrulamak için teknik ekip referansı.</p></div>
-      <aside class="contract"><dl><dt>Paket</dt><dd>ImzaKit</dd><dt>Sürüm</dt><dd>1.0.0-alpha.10</dd><dt>Hedef</dt><dd>.NET 10</dd><dt>Lisans</dt><dd>Apache-2.0</dd><dt>Dağıtım</dt><dd>Tek NuGet / 13 modül</dd></dl></aside></div>
+      <div class="hero-grid"><div><div class="eyebrow">Sürüm sözleşmesi / 29 Ağustos 2026</div><h1>Elektronik imza entegrasyonu, uçtan uca.</h1><p class="lead">ImzaKit 1.0.0-alpha.12 paketini .NET 10 uygulamasına eklemek, PDF hazırlamak, kartta imzalamak ve çevrimdışı güven girdileriyle doğrulamak için teknik ekip referansı.</p></div>
+      <aside class="contract"><dl><dt>Paket</dt><dd>ImzaKit</dd><dt>Sürüm</dt><dd>1.0.0-alpha.12</dd><dt>Hedef</dt><dd>.NET 10</dd><dt>Lisans</dt><dd>Apache-2.0</dd><dt>Dağıtım</dt><dd>Tek NuGet / 16 modül</dd></dl></aside></div>
       <div class="notice"><strong>Ön sürüm.</strong> API yüzeyi değişebilir. Üretime geçmeden güven zinciri, iptal kontrolü, zaman damgası, donanım ve PDF okuyucu uyumluluğunu kendi ortamınızda doğrulayın.</div>
       <div class="mobile-tools"><button class="ui-btn" id="mobile-theme" type="button">Temayı değiştir</button><button class="ui-btn" type="button" onclick="window.print()">Yazdır</button></div>
     </header>
@@ -41,12 +41,12 @@
       <section class="doc-section" id="kurulum" data-search="gereksinimler kurulum nuget package reference net 10 alpha">
         <div class="section-head"><div class="section-no">01 / 11</div><div><h2>Gereksinimler ve kurulum</h2><p>Başlangıç sözleşmesi küçüktür: .NET 10 ve tek paket. Kartla imzalama kullanılacaksa üretici sürücüsüne bağlanan adaptör uygulama tarafından sağlanır.</p></div></div>
         <div class="grid"><div class="panel"><h3>Çalışma zamanı</h3><p>.NET 10 SDK veya uyumlu .NET 10 runtime. Paket ön sürüm olduğu için sürümü sabitleyin.</p></div><div class="panel"><h3>Donanım akışı</h3><p>Hedef kart/HSM için native PKCS#11 kitaplığı ve bir <code>IPkcs11Provider</code> adaptörü gerekir.</p></div></div>
-        <div class="code-wrap"><div class="code-label"><span>Terminal</span><button class="copy" data-copy type="button">Kopyala</button></div><pre><code>dotnet add package ImzaKit --version 1.0.0-alpha.10</code></pre></div>
-        <div class="code-wrap"><div class="code-label"><span>Proje dosyası</span><button class="copy" data-copy type="button">Kopyala</button></div><pre><code>&lt;PackageReference Include="ImzaKit" Version="1.0.0-alpha.10" /&gt;</code></pre></div>
+        <div class="code-wrap"><div class="code-label"><span>Terminal</span><button class="copy" data-copy type="button">Kopyala</button></div><pre><code>dotnet add package ImzaKit --version 1.0.0-alpha.12</code></pre></div>
+        <div class="code-wrap"><div class="code-label"><span>Proje dosyası</span><button class="copy" data-copy type="button">Kopyala</button></div><pre><code>&lt;PackageReference Include="ImzaKit" Version="1.0.0-alpha.12" /&gt;</code></pre></div>
       </section>
 
       <section class="doc-section" id="mimari" data-search="paket mimari modüller core cryptography cms pades timestamp pkcs11 verify agent api dependency injection">
-        <div class="section-head"><div class="section-no">02 / 11</div><div><h2>Tek paket, 13 modül</h2><p>Filtreleyerek sorumluluk sınırlarını inceleyin. Modüller tek NuGet içinde dağıtılır; uygulama yalnızca kullandığı ad alanlarını içe alır.</p></div></div>
+        <div class="section-head"><div class="section-no">02 / 11</div><div><h2>Tek paket, 16 modül</h2><p>Filtreleyerek sorumluluk sınırlarını inceleyin. Modüller tek NuGet içinde dağıtılır; uygulama yalnızca kullandığı ad alanlarını içe alır.</p></div></div>
         <div class="filters" aria-label="Modül filtreleri"><button class="ui-btn filter" data-filter="all" aria-pressed="true">Tümü</button><button class="ui-btn filter" data-filter="sign" aria-pressed="false">İmzalama</button><button class="ui-btn filter" data-filter="edge" aria-pressed="false">Sınır</button><button class="ui-btn filter" data-filter="platform" aria-pressed="false">Platform</button></div>
         <div class="module-grid">
           <article class="module-card" data-module="sign"><h3><code>ImzaKit.Core</code></h3><p>Sağlayıcıdan bağımsız sözleşmeler ve imza yaşam döngüsü.</p></article>
@@ -58,6 +58,9 @@
           <article class="module-card" data-module="sign"><h3><code>ImzaKit.Trust</code></h3><p>Sürümlü güven deposu, profil ve sertifika politikaları.</p></article>
           <article class="module-card" data-module="sign"><h3><code>ImzaKit.Revocation</code></h3><p>Gömülü, önbellek veya çevrimiçi OCSP/CRL kanıtlarının değerlendirilmesi.</p></article>
           <article class="module-card" data-module="sign"><h3><code>ImzaKit.Timestamp</code></h3><p>RFC 3161 zaman damgası isteği, TSA failover ve token doğrulaması.</p></article>
+          <article class="module-card" data-module="sign"><h3><code>ImzaKit.CAdES</code></h3><p>Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo.</p></article>
+          <article class="module-card" data-module="sign"><h3><code>ImzaKit.XAdES</code></h3><p>XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA.</p></article>
+          <article class="module-card" data-module="sign"><h3><code>ImzaKit.ASiC</code></h3><p>ASiC-S/E paketleme, ASiCManifest ve ZIP güvenlik kontrolleri.</p></article>
           <article class="module-card" data-module="sign"><h3><code>ImzaKit.Verify</code></h3><p>CMS/PAdES yapı ve kriptografik doğrulama raporu.</p></article>
           <article class="module-card" data-module="edge"><h3><code>ImzaKit.Agent</code></h3><p>Loopback Agent bileti, nonce ve replay koruması.</p></article>
           <article class="module-card" data-module="platform"><h3><code>ImzaKit.Api</code></h3><p>İşlem durumları, idempotency ve problem eşleme.</p></article>
@@ -212,7 +215,7 @@ Console.WriteLine($"Doğrulama: {result.Validation.Status}");</code></pre></div>
         <ul class="checklist"><li>Sürüm sabitlendi; yükseltmeler sözleşme ve regresyon testinden geçiyor.</li><li>Hedef kart/HSM ve üretici sürücüsü için gerçek cihaz testleri tamamlandı.</li><li>PIN, özel anahtar, bilet ve token kimliği log/telemetry dışında tutuluyor.</li><li>Root/ara sertifika, OCSP/CRL ve zaman damgası politikası tanımlı.</li><li>İmzalama sonrası <code>PadesValidator.Validate</code> çalışıyor; bulgular izleniyor.</li><li>PDF boyut/nesne/revizyon sınırları tehdit modeline göre ayarlı.</li><li>Idempotency, replay koruması, zaman aşımı ve terminal durumlar test edildi.</li><li>PDF okuyucu birlikte çalışabilirliği hedef istemcilerde doğrulandı.</li><li>Apache-2.0 <code>LICENSE</code> ve <code>NOTICE</code> dağıtıma dahil edildi.</li><li>Ön sürüm riski ürün sahibi ve güvenlik ekibi tarafından kabul edildi.</li></ul>
       </section>
     </div>
-    <footer class="footer">ImzaKit 1.0.0-alpha.10 · Apache-2.0 · Bu doküman paket sözleşmesiyle birlikte sürümlenmelidir.</footer>
+    <footer class="footer">ImzaKit 1.0.0-alpha.12 · Apache-2.0 · Bu doküman paket sözleşmesiyle birlikte sürümlenmelidir.</footer>
   </main>
 </div>
 <script>

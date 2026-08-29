@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ImzaKit.CAdES\ImzaKit.CAdES.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Cms\ImzaKit.Cms.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" />
+    <ProjectReference Include="..\..\src\ImzaKit.Timestamp\ImzaKit.Timestamp.csproj" />
+    <ProjectReference Include="..\ImzaKit.Testing\ImzaKit.Testing.csproj" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

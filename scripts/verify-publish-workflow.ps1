@@ -26,7 +26,7 @@ $requiredPatterns = [ordered]@{
     'temporary API key output' = 'steps\.login\.outputs\.NUGET_API_KEY'
     'GitHub Packages token' = 'secrets\.GITHUB_TOKEN'
     'GitHub Packages source' = 'nuget\.pkg\.github\.com'
-    'alpha.10 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.10\.nupkg'
+    'alpha.12 package path' = 'artifacts/packages/ImzaKit\.1\.0\.0-alpha\.12\.nupkg'
     'NuGet.org source' = 'https://api\.nuget\.org/v3/index\.json'
 }
 

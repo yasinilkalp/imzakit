@@ -134,5 +134,10 @@ static SoftwareComponent[] RuntimeComponents(string version) =>
         "System.Security.Cryptography.Pkcs",
         "10.0.11",
         "MIT",
-        "pkg:nuget/System.Security.Cryptography.Pkcs@10.0.11")
+        "pkg:nuget/System.Security.Cryptography.Pkcs@10.0.11"),
+    new(
+        "System.Security.Cryptography.Xml",
+        "10.0.11",
+        "MIT",
+        "pkg:nuget/System.Security.Cryptography.Xml@10.0.11")
 ];

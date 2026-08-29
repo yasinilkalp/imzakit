@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>ASiC-S and ASiC-E containers with ZIP security checks for ImzaKit.</Description>
+    <PackageId>ImzaKit.ASiC</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+  </ItemGroup>
+</Project>

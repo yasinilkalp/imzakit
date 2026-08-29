@@ -20,10 +20,13 @@ $required = [ordered]@{
     'English hero' = 'Local e-signature standards, one NuGet install.'
     'Primary CTA' = 'NuGet ile Başla'
     'Secondary CTA' = 'GitHub''da İncele'
-    'Package command' = 'dotnet add package ImzaKit --version 1.0.0-alpha.10'
-    'Thirteen-module inventory' = '13 modül'
+    'Package command' = 'dotnet add package ImzaKit --version 1.0.0-alpha.12'
+    'Sixteen-module inventory' = '16 modül'
     'Certificate module' = 'ImzaKit.Certificate'
     'Timestamp module' = 'ImzaKit.Timestamp'
+    'CAdES module' = 'ImzaKit.CAdES'
+    'XAdES module' = 'ImzaKit.XAdES'
+    'ASiC module' = 'ImzaKit.ASiC'
     'Trust module' = 'ImzaKit.Trust'
     'Revocation module' = 'ImzaKit.Revocation'
     'Validation context' = 'ValidationContext'
@@ -39,7 +42,7 @@ $required = [ordered]@{
     'Reduced motion' = 'prefers-reduced-motion'
     'No-script fallback' = '<noscript>'
     'GitHub repository' = 'https://github.com/yasinilkalp/imzakit'
-    'NuGet package' = 'https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.10'
+    'NuGet package' = 'https://www.nuget.org/packages/ImzaKit/1.0.0-alpha.12'
     'Technical guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html'
     'Security policy' = 'https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md'
     'Contribution guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md'
@@ -74,8 +77,8 @@ foreach ($entry in $forbiddenPatterns.GetEnumerator()) {
 }
 
 $moduleCount = [regex]::Matches($html, '<article\s+[^>]*data-module\s*=', 'IgnoreCase').Count
-if ($moduleCount -ne 13) {
-    throw "Landing page must contain exactly 13 module cards; found $moduleCount."
+if ($moduleCount -ne 16) {
+    throw "Landing page must contain exactly 16 module cards; found $moduleCount."
 }
 
 $h1Count = [regex]::Matches($html, '<h1(?:\s|>)', 'IgnoreCase').Count

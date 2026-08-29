@@ -234,6 +234,40 @@ public sealed class CmsSignedDataCompleterTests
     }
 
     [Fact]
+    public void AddUnsignedAttributesMergesWithExistingSignatureTimestamp()
+    {
+        using X509Certificate2 certificate = CreateCertificate();
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        string fingerprint = Convert.ToHexString(SHA256.HashData(certificateDer));
+        CmsSignaturePreparer preparer = new(new DefaultDigestCalculator());
+        SignaturePreparation preparation = preparer.PrepareDetached(
+            Guid.NewGuid(),
+            new string('A', 64),
+            [0x10, 0x20],
+            certificateDer,
+            fingerprint,
+            prepareVersion: 1);
+        byte[] timestamped = CmsSignedDataCompleter.CompleteDetached(
+            preparation,
+            SignatureCompletion.Create(
+                preparation.OperationId,
+                preparation.PrepareVersion,
+                fingerprint,
+                Enumerable.Repeat((byte)0x5A, 256).ToArray()),
+            certificateDer,
+            CreateMinimalContentInfo());
+        byte[] extraValue = [0x04, 0x01, 0xAA];
+
+        byte[] encoded = CmsSignedDataCompleter.AddUnsignedAttributes(
+            timestamped,
+            [new CmsUnsignedValue("1.2.840.113549.1.9.16.2.23", extraValue)]);
+
+        Assert.True(CmsSignedDataCompleter.HasSignatureTimeStamp(encoded));
+        Assert.True(CmsSignedDataCompleter.HasUnsignedAttribute(encoded, "1.2.840.113549.1.9.16.2.23"));
+        Assert.False(CmsSignedDataCompleter.HasUnsignedAttribute(timestamped, "1.2.840.113549.1.9.16.2.23"));
+    }
+
+    [Fact]
     public void CompleteDetachedRejectsDifferentPrepareVersion()
     {
         SignaturePreparation preparation = SignaturePreparation.Create(

@@ -11,6 +11,9 @@
     <ProjectReference Include="..\..\src\ImzaKit.Api\ImzaKit.Api.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Certificate\ImzaKit.Certificate.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Cms\ImzaKit.Cms.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\ImzaKit.ASiC\ImzaKit.ASiC.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\ImzaKit.CAdES\ImzaKit.CAdES.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\ImzaKit.XAdES\ImzaKit.XAdES.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Core\ImzaKit.Core.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.Cryptography\ImzaKit.Cryptography.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\ImzaKit.DependencyInjection\ImzaKit.DependencyInjection.csproj" PrivateAssets="all" />
@@ -23,14 +26,18 @@
     <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
   </ItemGroup>
   <Target Name="IncludeProjectAssemblies">
     <ItemGroup>
       <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.ASiC\bin\$(Configuration)\$(TargetFramework)\ImzaKit.ASiC.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Agent\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Agent.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Api\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Api.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Certificate\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Certificate.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Cms\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cms.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.CAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.CAdES.dll" />
+      <_ModuleAssembly Include="..\..\src\ImzaKit.XAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.XAdES.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Core\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Core.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.Cryptography\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cryptography.dll" />
       <_ModuleAssembly Include="..\..\src\ImzaKit.DependencyInjection\bin\$(Configuration)\$(TargetFramework)\ImzaKit.DependencyInjection.dll" />
@@ -47,10 +54,13 @@
   <Target Name="IncludeProjectSymbols">
     <ItemGroup>
       <DebugSymbolsProjectOutputGroupOutput Remove="@(DebugSymbolsProjectOutputGroupOutput)" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.ASiC\bin\$(Configuration)\$(TargetFramework)\ImzaKit.ASiC.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Agent\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Agent.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Api\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Api.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Certificate\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Certificate.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Cms\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cms.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.CAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.CAdES.pdb" />
+      <_ModuleSymbol Include="..\..\src\ImzaKit.XAdES\bin\$(Configuration)\$(TargetFramework)\ImzaKit.XAdES.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Core\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Core.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.Cryptography\bin\$(Configuration)\$(TargetFramework)\ImzaKit.Cryptography.pdb" />
       <_ModuleSymbol Include="..\..\src\ImzaKit.DependencyInjection\bin\$(Configuration)\$(TargetFramework)\ImzaKit.DependencyInjection.pdb" />

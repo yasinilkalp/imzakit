@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Independent CAdES baseline signatures for ImzaKit.</Description>
+    <PackageId>ImzaKit.CAdES</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+    <ProjectReference Include="..\ImzaKit.Cms\ImzaKit.Cms.csproj" />
+    <ProjectReference Include="..\ImzaKit.Timestamp\ImzaKit.Timestamp.csproj" />
+  </ItemGroup>
+</Project>

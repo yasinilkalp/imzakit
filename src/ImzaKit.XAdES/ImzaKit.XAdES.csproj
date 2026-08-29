@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>XAdES baseline signatures with a secure XMLDSig allowlist for ImzaKit.</Description>
+    <PackageId>ImzaKit.XAdES</PackageId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <ProjectReference Include="..\ImzaKit.Core\ImzaKit.Core.csproj" />
+    <ProjectReference Include="..\ImzaKit.Timestamp\ImzaKit.Timestamp.csproj" />
+  </ItemGroup>
+</Project>

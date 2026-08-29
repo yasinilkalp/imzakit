@@ -1,0 +1,17 @@
+{
+  "requirement": "NFR-001",
+  "measured": "PAdES prepare + in-process RSA-SHA256 + complete",
+  "networkExcluded": true,
+  "host": "Windows 10, .NET 10, Release",
+  "pdfBytes": 10486096,
+  "signedBytes": 10494823,
+  "warmupIterations": 2,
+  "measuredIterations": 20,
+  "slaMilliseconds": 2000,
+  "minMilliseconds": 82.4,
+  "medianMilliseconds": 153.6,
+  "p95Milliseconds": 194.8,
+  "maxMilliseconds": 216.7,
+  "passed": true,
+  "capturedUtc": "2026-08-29T18:41:00Z"
+}

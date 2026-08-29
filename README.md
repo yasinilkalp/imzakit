@@ -2,11 +2,11 @@
 
 ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
-> **Ön sürüm:** `1.0.0-alpha.10` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
+> **Ön sürüm:** `1.0.0-alpha.12` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
 
 ## Öne çıkan özellikler
 
-- Tek `ImzaKit` paketi içinde 13 modül
+- Tek `ImzaKit` paketi içinde 16 modül
 - Haricî imzalama akışları için prepare/complete modeli
 - CMS detached imza verisi hazırlama ve tamamlama
 - PDF bütünlüğünü koruyan artımlı PAdES imzalama altyapısı
@@ -14,6 +14,9 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 - PAdES `ByteRange` ve CMS kriptografik imza doğrulaması
 - Sistem deposuna başvurmayan X.509 zincir, güven politikası ve OCSP/CRL değerlendirmesi
 - RFC 3161 TSA ve PAdES B-T/B-LT/B-LTA uzatma hattı
+- Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo
+- XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA
+- ASiC-S/E paketleme ve ZIP güvenlik kontrolleri
 - DI kayıtları ve süreç içi örnek orkestrasyon
 - Agent bileti, tekrar oynatma koruması, API durum makinesi ve idempotency bileşenleri
 
@@ -26,13 +29,13 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 ## Kurulum
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.10
+dotnet add package ImzaKit --version 1.0.0-alpha.12
 ```
 
 Ya da proje dosyanıza doğrudan ekleyin:
 
 ```xml
-<PackageReference Include="ImzaKit" Version="1.0.0-alpha.10" />
+<PackageReference Include="ImzaKit" Version="1.0.0-alpha.12" />
 ```
 
 Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuget/ImzaKit) üzerinde görünür; kurulum kaynağı nuget.org’dur.
@@ -44,6 +47,9 @@ Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuge
 | `ImzaKit.Core` | Sağlayıcıdan bağımsız imzalama ve kriptografi sözleşmeleri |
 | `ImzaKit.Cryptography` | Özet hesaplama ve algoritma modelleri |
 | `ImzaKit.Cms` | CMS signed-attributes hazırlama ve SignedData tamamlama |
+| `ImzaKit.CAdES` | Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo |
+| `ImzaKit.XAdES` | XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA |
+| `ImzaKit.ASiC` | ASiC-S/E paketleme, ASiCManifest ve ZIP güvenlik kontrolleri |
 | `ImzaKit.PAdES` | PDF/PAdES ön kontrol, hazırlama, tamamlama ve değişiklik politikaları |
 | `ImzaKit.Pkcs11` | PKCS#11 sağlayıcı sözleşmeleri ve imzalama orkestrasyonu |
 | `ImzaKit.Certificate` | Çevrimdışı X.509 zinciri oluşturma ve kriptografik sertifika doğrulaması |
@@ -205,17 +211,17 @@ Windows Agent installer yerleşimi (`AgentInstallerLayout`) yalnız `win-x64` ve
 
 ## English summary
 
-ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature toolkit for .NET 10. A single NuGet package contains 13 modules covering signing, RFC 3161 timestamps, PAdES B-T/B-LT/B-LTA, offline certificate/trust/revocation validation, local-agent security, API semantics, and dependency injection.
+ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature toolkit for .NET 10. A single NuGet package contains 16 modules covering signing, independent CAdES, XAdES, ASiC, RFC 3161 timestamps, PAdES B-T/B-LT/B-LTA, offline certificate/trust/revocation validation, local-agent security, API semantics, and dependency injection.
 
 ### Install
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-alpha.10
+dotnet add package ImzaKit --version 1.0.0-alpha.12
 ```
 
 ### Included modules
 
-`ImzaKit.Core`, `ImzaKit.Cryptography`, `ImzaKit.Cms`, `ImzaKit.PAdES`, `ImzaKit.Pkcs11`, `ImzaKit.Certificate`, `ImzaKit.Trust`, `ImzaKit.Revocation`, `ImzaKit.Timestamp`, `ImzaKit.Verify`, `ImzaKit.Agent`, `ImzaKit.Api`, and `ImzaKit.DependencyInjection` are distributed together.
+`ImzaKit.Core`, `ImzaKit.Cryptography`, `ImzaKit.Cms`, `ImzaKit.CAdES`, `ImzaKit.XAdES`, `ImzaKit.ASiC`, `ImzaKit.PAdES`, `ImzaKit.Pkcs11`, `ImzaKit.Certificate`, `ImzaKit.Trust`, `ImzaKit.Revocation`, `ImzaKit.Timestamp`, `ImzaKit.Verify`, `ImzaKit.Agent`, `ImzaKit.Api`, and `ImzaKit.DependencyInjection` are distributed together.
 
 ### Offline trust validation
 
