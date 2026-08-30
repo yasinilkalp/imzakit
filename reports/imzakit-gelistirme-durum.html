@@ -39,7 +39,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
  <div class="verdict"><strong>Mevcut aşama</strong><span>Açık kaynak landing page yayında</span><p><a href="https://yasinilkalp.github.io/imzakit/"><code>yasinilkalp.github.io/imzakit</code></a> HTTP 200 döndürüyor. Actions koşusu başarılı; Türkçe/İngilizce içerik, GitHub ve NuGet bağlantıları ile temiz tarayıcı konsolu canlıda doğrulandı.</p></div>
 </header>
 <div class="metrics" aria-label="Geliştirme metrikleri">
- <div class="metric"><b>22</b><span>solution projesi</span></div><div class="metric"><b>90</b><span>başarılı test çalışması</span></div><div class="metric"><b>1+1</b><span>NuGet + sembol paketi</span></div><div class="metric"><b>0</b><span>build hatası</span></div><div class="metric"><b>0</b><span>build uyarısı</span></div><div class="metric"><b>109/109</b><span>FRD izlenebilirliği</span></div>
+ <div class="metric"><b>22</b><span>solution projesi</span></div><div class="metric"><b>90</b><span>başarılı test çalışması</span></div><div class="metric"><b>1+1</b><span>NuGet + sembol paketi</span></div><div class="metric"><b>0</b><span>build hatası</span></div><div class="metric"><b>0</b><span>build uyarısı</span></div><div class="metric"><b>116/116</b><span>FRD izlenebilirliği</span></div>
 </div>
 <section id="yol">
  <div class="section-head"><p class="kicker">Teslimat sırası</p><h2>Ürün yol haritası</h2><p>Durumlar kanıta dayanır. Gri aşamalar planlıdır; tamamlanmış sayılmaz.</p></div>
@@ -66,7 +66,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
  <div class="grid">
   <article class="panel span6"><h3>Test paketleri</h3><div class="check"><span>ImzaKit.Core.Tests</span><code>4 / 4</code></div><div class="check"><span>ImzaKit.Cryptography.Tests</span><code>3 / 3</code></div><div class="check"><span>ImzaKit.Cms.Tests</span><code>17 / 17</code></div><div class="check"><span>ImzaKit.CAdES.Tests</span><code>8 / 8</code></div><div class="check"><span>ImzaKit.XAdES.Tests</span><code>14 / 14</code></div><div class="check"><span>ImzaKit.ASiC.Tests</span><code>12 / 12</code></div><div class="check"><span>ImzaKit.PAdES.Tests</span><code>69 / 69</code></div><div class="check"><span>ImzaKit.Verify.Tests</span><code>42 / 42</code></div><div class="check"><span>ImzaKit.Trust.Tests</span><code>34 / 34</code></div><div class="check"><span>ImzaKit.Pkcs11.Tests</span><code>61 / 61</code></div><div class="check"><span>ImzaKit.Agent.Tests</span><code>34 / 34</code></div><div class="check"><span>ImzaKit.Api.Tests</span><code>121 / 121</code></div></article>
   <article class="panel span6"><h3>Kalite kapıları</h3><div class="check"><span>Release build</span><code>0 hata, 0 uyarı</code></div><div class="check"><span>FRD doğrulama</span><code>passed</code></div><div class="check"><span>Teknik rehber sözleşmesi</span><code>passed</code></div><div class="check"><span>Açık kaynak hazırlığı</span><code>passed</code></div><div class="check"><span>Landing page sözleşmesi</span><code>passed</code></div><div class="check"><span>GitHub Pages workflow</span><code>passed</code></div><div class="check"><span>NuGet paket doğrulaması</span><code>16 DLL + 16 PDB</code></div><div class="check"><span>Solution proje sayısı</span><code>22</code></div></article>
-  <article class="panel span6"><h3>Henüz kanıtlanmayanlar</h3><p>Gerçek AKİS kart imzası, sertifika güven zinciri ve iptal kontrolü, native kullanıcı onayı, mTLS callback ve kurulum/dağıtım kanıtları.</p></article>
+  <article class="panel span6"><h3>Henüz kanıtlanmayanlar</h3><p>Gerçek AKİS kart imzası, sertifika güven zinciri ve iptal kontrolü, native kullanıcı onayı, mTLS callback ve kurulum/dağıtım kanıtları. Faz 6 yazılımı (FR-066, VAL-008, FR-116–118) FRD’ye alındı; donanım kapısını kilitlemez.</p></article>
   <article class="panel span6"><h3>Build ortamı notu</h3><p>Kısıtlı çalışma ortamı Roslyn yerel iletişim kanalını engelleyebiliyor; Release doğrulaması izinli süreçte tamamlandı. Kod ve analizör çıktısı temiz.</p></article>
  </div>
 </section>
@@ -116,7 +116,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
 </section>
 <section id="sonraki">
  <div class="section-head"><p class="kicker">Önerilen devam</p><h2>Bir sonraki işlem</h2></div>
- <div class="next-card"><div><h3>Donanım kabulü</h3><p>Faz 5 yazılım kartları kapandı (HSM/remote, preservation, macOS/Linux fizibilite, eIDAS, nShield/Utimaco). Sıradaki kapı fiziksel AKİS ve altyapı kabulüdür.</p></div><ol><li>Fiziksel AKİS kart keşfi ve imza</li></ol></div>
+ <div class="next-card"><div><h3>Donanım kabulü</h3><p>Faz 5 yazılım kartları kapandı. Faz 6 (ATSHashIndex-v3, ASiC-E ortak rapor, CAdES/XAdES preservation, host tetikleyici, Unix HostReady) FRD’de Sonraki/Hayır’dır; sıradaki kapı fiziksel AKİS ve altyapı kabulüdür.</p></div><ol><li>Fiziksel AKİS kart keşfi ve imza</li></ol></div>
 </section>
  <footer><span>İmzaKit Geliştirme Durum Raporu</span><span>Kaynak tarihi: 30 Ağustos 2026</span></footer>
 </main>
@@ -206,6 +206,11 @@ const items=[
  {status:"done",component:"Evidence",title:"Nihai yerel kanıt paketi",detail:"Test, build, FRD, lisans, golden hash ve destek matrisi tek kayıtta.",evidence:"90 test / kanıt raporu"},
  {status:"wait",component:"External",title:"Fiziksel AKİS ve altyapı kabulü",detail:"Gerçek kart, native onay, mTLS, trust/revocation ve installer.",evidence:"harici kanıt bekleniyor"},
  {status:"wait",component:"AKİS",title:"Gerçek kart keşfi ve imza",detail:"Fiziksel AKİS kartıyla RSA/SHA-256 kanıtı.",evidence:"donanım kanıtı bekleniyor"},
+ {status:"wait",component:"Faz6",title:"CAdES ATSHashIndex-v3",detail:"FR-066: B-LTA archive-time-stamp-v3 ve ATSHashIndex-v3. Mevcut yazma id-aa-ets-archiveTimestampV2 SHA-256(CMS).",evidence:"TST-022 planlandı"},
+ {status:"wait",component:"Faz6",title:"ASiC-E ortak rapor bağ",detail:"VAL-008: ortak SignatureValidationReport ASiCManifest imza-veri bağını değerlendirmeli. Mapper bugün AsicExtendedBindingNotEvaluated ile durur.",evidence:"TST-023 planlandı"},
+ {status:"wait",component:"Faz6",title:"CAdES/XAdES preservation",detail:"FR-116: scheduler CAdES archive-time-stamp ve XAdES ArchiveTimeStamp yenilemesini PAdES DocTimeStamp ile aynı due sözleşmesinde uygulamalıdır.",evidence:"TST-024 planlandı"},
+ {status:"wait",component:"Faz6",title:"Host preservation tetikleyici",detail:"FR-117: host due öğeleri yapılandırılmış aralıkla çalıştırmalıdır. PreservationScheduler.Run in-process kalır.",evidence:"TST-025 planlandı"},
+ {status:"wait",component:"Faz6",title:"Unix Agent HostReady",detail:"FR-118: HostReady true iken Keychain/secret-service. HostReady false fail-closed korunur. Üretim Windows Agent ADR-002 ile değişmez.",evidence:"TST-026 planlandı"},
  {status:"done",component:"Agent",title:"Loopback güvenlik prototipi",detail:"Ed25519 bilet ve yalnız 127.0.0.1/::1 binding; native onay ve mTLS entegrasyonu sonraki adaptör sınırında.",evidence:"9 Agent testi"},
  {status:"done",component:"API",title:"Operasyon state machine",detail:"OpenAPI durum kümesinin çalışan, sürümlü ve idempotent servis uygulaması.",evidence:"14 API testi"},
  {status:"done",component:"Verify",title:"Temel PAdES doğrulama",detail:"Geçerli, değiştirilmiş, bozuk ByteRange, eksik CMS ve desteklenmeyen giriş ayrımları.",evidence:"6 Verify testi"}

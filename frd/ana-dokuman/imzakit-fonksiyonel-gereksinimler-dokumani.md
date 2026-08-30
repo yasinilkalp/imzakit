@@ -56,6 +56,11 @@
 - İlk MVP’de macOS/Linux Agent, mobil imza ve tüm HSM/uzak imza sağlayıcıları
 - İlk MVP’de görsel iş akışı tasarım aracı veya son kullanıcı belge yönetim portalı
 - Hukuki geçerlilik hakkında otomatik ve mutlak hüküm vermek
+- EU TSL/EUTL içe aktarma ve hukuki nitelikli elektronik imza (QES) kararı (FR-100)
+- CAdES `archive-time-stamp-v3` / `ATSHashIndex-v3` (FR-066, Faz 6)
+- Ortak doğrulama raporunda ASiC-E ASiCManifest bağ değerlendirmesi (VAL-008, Faz 6)
+- CAdES/XAdES archive timestamp yenileme ve host periyodik tetikleyici (FR-116/FR-117, Faz 6)
+- macOS/Linux üretim Agent `HostReady` (FR-118, Faz 6); fizibilite Faz 5’te kapanmıştır
 
 ## 5. Paydaşlar ve kullanıcı rolleri
 

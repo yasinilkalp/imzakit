@@ -74,6 +74,15 @@
 - Preservation scheduler ve periyodik B-LTA yenileme
 - İhtiyaca göre eIDAS doğrulama profili
 
+## Faz 6 — Format ve platform olgunlaştırma
+
+- CAdES B-LTA `archive-time-stamp-v3` ve `ATSHashIndex-v3` (FR-066)
+- Ortak doğrulama raporunda ASiC-E ASiCManifest imza-veri bağı (VAL-008)
+- CAdES/XAdES archive timestamp preservation yenilemesi (FR-116)
+- Host periyodik preservation tetikleyicisi (FR-117)
+- Unix Agent `HostReady` ve native PIN/onay (FR-118); üretim Windows Agent [ADR-002](../kararlar/ADR-002-dotnet-platform-tabani.md) ile değişmez
+- EU TSL/EUTL içe aktarma ve hukuki QES kararı bu fazın da dışındadır (FR-100)
+
 ## Önceliklendirme
 
 | Öncelik | Kapsam |
@@ -81,7 +90,7 @@
 | Zorunlu | Özel anahtar/PIN izolasyonu, PAdES B-B, AKİS, validation, state/idempotency, audit |
 | Yüksek | RFC 3161, OCSP/CRL, B-T/B-LT/B-LTA, Trust Store güncelleme, DocMDP/FieldMDP |
 | Orta | CAdES, seri/paralel akış, görünür imza şablonları |
-| Sonraki | XAdES, ASiC, HSM/remote signing, çoklu platform Agent, preservation scheduler |
+| Sonraki | XAdES, ASiC, HSM/remote signing, çoklu platform Agent, preservation scheduler, ATSHashIndex-v3, ASiC-E ortak rapor, host cron |
 
 ## Başlıca riskler
 

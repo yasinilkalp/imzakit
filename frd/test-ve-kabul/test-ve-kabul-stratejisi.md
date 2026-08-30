@@ -33,6 +33,11 @@
 - **TST-019:** İmzalı artefakt, SBOM, provenance ve kaynak commit/digest doğrulaması.
 - **TST-020:** 120 saniye/24 saat/7 gün TTL, tenant izolasyonu, audit hash-chain bozulması ve hassas veri taraması.
 - **TST-021:** eToken profil sözleşmesi, `eTPKCS11.dll` allowlist, sahte native imza; fiziksel token laboratuvar listesi CI’yi durdurmaz.
+- **TST-022:** CAdES B-LTA `archive-time-stamp-v3` ve `ATSHashIndex-v3` yazma/doğrulama; yalnız v2 `archive-time-stamp` yeterli sayılmaz.
+- **TST-023:** ASiC-E ortak raporda ASiCManifest bağ PASSED/FAILED; bozuk digest FAILED; `AsicExtendedBindingNotEvaluated` ile durulamaz.
+- **TST-024:** CAdES ve XAdES B-LTA preservation yenilemesi; PAdES DocTimeStamp yolu gerilemez; bir nesne hatası diğer due öğeleri durdurmaz.
+- **TST-025:** Host zamanlayıcı due öğeleri yapılandırılmış aralıkla çalıştırır; lead time öncesi tetiklenmez.
+- **TST-026:** Unix `HostReady` false iken PIN/onay fail-closed; `HostReady` true yolunda Keychain/secret-service; Windows `HostReady` değişmez.
 
 ## 3. Kabul kriterleri
 

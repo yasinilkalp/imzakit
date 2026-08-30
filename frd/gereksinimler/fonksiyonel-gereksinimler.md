@@ -15,6 +15,12 @@ Her gereksinimin tekil fazı, önceliği ve MVP engelleyici durumu [izlenebilirl
 | Uzun dönem PAdES ve online iptal | FR-043–045, FR-096–099 | Yüksek | 2 | Hayır |
 | Bağımsız CAdES ve workflow | FR-064–065, FR-111–115 | Orta | 3 | Hayır |
 | XAdES/ASiC | FR-070–076 | Sonraki | 4 | Hayır |
+| eIDAS profil sınırı | FR-100 | Zorunlu | 5 | Hayır |
+| CAdES archive-time-stamp-v3 | FR-066 | Sonraki | 6 | Hayır |
+| ASiC-E ortak rapor bağ | VAL-008 | Sonraki | 6 | Hayır |
+| Preservation CAdES/XAdES | FR-116 | Sonraki | 6 | Hayır |
+| Preservation host tetikleyici | FR-117 | Sonraki | 6 | Hayır |
+| Unix Agent HostReady | FR-118 | Sonraki | 6 | Hayır |
 
 ## 1. Ortak SDK
 
@@ -62,6 +68,7 @@ Her gereksinimin tekil fazı, önceliği ve MVP engelleyici durumu [izlenebilirl
 - **FR-063:** Signed attributes canonical DER olarak kodlanmalı ve doğrulamada orijinal imzalı byte’lar korunmalıdır.
 - **FR-064:** CAdES B-T/B-LT/B-LTA uzatma hattı format-özel unsigned attribute’larla desteklenmelidir.
 - **FR-065:** Çoklu SignerInfo yapıları ayrı ayrı doğrulanmalıdır.
+- **FR-066:** CAdES B-LTA, ETSI EN 319 122-1 `archive-time-stamp-v3` ve `ATSHashIndex-v3` ile yazılmalı ve doğrulanmalıdır. Yalnız SignedData’nın tamamının SHA-256 özeti üzerine `archive-time-stamp` (id-aa-ets-archiveTimestampV2) yeterli sayılmaz.
 
 ## 5. XAdES ve ASiC
 
@@ -93,6 +100,7 @@ Her gereksinimin tekil fazı, önceliği ve MVP engelleyici durumu [izlenebilirl
 - **FR-097:** OCSP cevap imzası, responder yetkisi, CertificateID, zaman alanları ve politika/nonce doğrulanmalıdır.
 - **FR-098:** CRL imzası, issuer, AKI, thisUpdate/nextUpdate ve seri numarası doğrulanmalıdır.
 - **FR-099:** Cache TTL’i kanıtın `nextUpdate`/freshness politikasından türetilmelidir.
+- **FR-100:** `Eidas` doğrulama profili EU TSL/EUTL içe aktarmaz ve hukuki nitelikli elektronik imza (QES) kararı üretmez. Profil yalnız yapılandırılmış Eidas etiketli kök, sürümlü katalog politika OID’i ve QcCompliance uzantısını değerlendirir.
 
 ## 8. Doğrulama
 
@@ -103,6 +111,7 @@ Her gereksinimin tekil fazı, önceliği ve MVP engelleyici durumu [izlenebilirl
 - **VAL-005:** Ağ/kanıt yokluğu Türkiye NES varsayılan profilinde sessiz PASSED değil INDETERMINATE üretmelidir.
 - **VAL-006:** Alt durumlar; signature/content invalid, certificate expired/not-yet-valid/revoked/suspended, chain/trust/policy failure, revocation unavailable/stale, timestamp invalid ve algorithm disallowed nedenlerini kapsamalıdır.
 - **VAL-007:** Rapor, kullanılan Trust Store/politika sürümünü, validation time kaynağını ve kanıt kaynağını içermelidir.
+- **VAL-008:** Ortak doğrulama raporu ASiC-E konteynerde ASiCManifest imza-veri bağını değerlendirmelidir. ASiC-S dışı paketler `AsicExtendedBindingNotEvaluated` ile INDETERMINATE bırakılamaz; bağ başarısızsa FAILED, bağ kanıtı yoksa INDETERMINATE üretilir.
 
 Faz 1’de çevrimiçi OCSP/CRL sorgusu yapılmaz. Gerekli gömülü/yerel iptal kanıtı bulunmadığında VAL-005 sonucu `INDETERMINATE`, VAL-006 alt nedeni `REVOCATION_DATA_UNAVAILABLE` olur. API raporu çevrimiçi kontrolün yapılmadığını açıkça belirtir.
 
@@ -115,7 +124,13 @@ Faz 1’de çevrimiçi OCSP/CRL sorgusu yapılmaz. Gerekli gömülü/yerel iptal
 - **FR-114:** İmza politikası gerekli imzacı sayısı, rol, sıra, son tarih ve reddetme davranışını tanımlamalıdır.
 - **FR-115:** Aynı imzacının tekrar imzası, sertifika parmak izi/kimlik politikasıyla kontrol edilmelidir.
 
-## 10. Fonksiyonel olmayan gereksinimler
+## 10. Preservation ve platform olgunlaştırma
+
+- **FR-116:** Preservation scheduler CAdES B-LTA archive-time-stamp ve XAdES B-LTA ArchiveTimeStamp yenilemesini PAdES B-LTA DocTimeStamp ile aynı due/lead-time sözleşmesinde uygulamalıdır. Bir nesnenin başarısızlığı diğer due öğeleri durdurmamalıdır.
+- **FR-117:** Host, due preservation nesnelerini yapılandırılmış aralıkla tetikleyen bir zamanlayıcı (hosted service veya eşdeğer) çalıştırmalıdır. Yalnız çağıranın `PreservationScheduler.Run` çağırması yeterli sayılmaz.
+- **FR-118:** Unix Agent’ta `HostReady` true ise native PIN ve onay işletim sisteminin güvenli deposu (macOS Keychain, Linux secret-service veya eşdeğeri) üzerinden alınmalıdır. `HostReady` false iken imza oturumu açılmamalıdır. Üretim Windows Agent hedefi [ADR-002](../kararlar/ADR-002-dotnet-platform-tabani.md) ile değişmez.
+
+## 11. Fonksiyonel olmayan gereksinimler
 
 - **NFR-001 Performans:** 10 MB tipik PDF için sunucu hazırlama/tamamlama hedefi, dış ağ gecikmesi hariç p95 2 saniyenin altında olmalıdır.
 - **NFR-002 Ölçeklenebilirlik:** API ve Verify stateless yatay ölçeklenmelidir.
