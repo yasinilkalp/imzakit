@@ -73,6 +73,7 @@ $requiredText = @{
     'kararlar\ADR-003-agent-loopback-guven-modeli.md' = @('Ed25519', '120 saniye', '30 gün', 'mTLS')
     'kararlar\ADR-006-mvp-kapsami-ve-revocation.md' = @('REVOCATION_DATA_UNAVAILABLE', 'Faz 2')
     'kararlar\ADR-007-saklama-ve-audit.md' = @('24 saat', '7 gün', '120 saniye')
+    'kararlar\ADR-008-winui-masaustu-imza-istemcisi.md' = @('WinUI 3', 'CredUI', 'NuGet', 'setup.exe')
 }
 foreach ($entry in $requiredText.GetEnumerator()) {
     $text = Get-Content -LiteralPath (Join-Path $frdRoot $entry.Key) -Raw

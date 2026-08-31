@@ -72,6 +72,9 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 | FR-116 | CAdES/XAdES preservation | Sonraki | 6 | Api | — | TST-024 | PreservationScheduler yalnız PAdES yeniler; CAdES/XAdES UNSUPPORTED_FORMAT | Hayır |
 | FR-117 | Host preservation tetikleyici | Sonraki | 6 | Api | — | TST-025 | PreservationScheduler.Run in-process; host cron yok | Hayır |
 | FR-118 | Unix Agent HostReady | Sonraki | 6 | Agent | ADR-002 | TST-026 | HostReady yalnız Windows; Unix PIN/onay fail-closed | Hayır |
+| FR-119 | WinUI Desktop host | Yüksek | 1 | Desktop | ADR-008 | TST-027 | Hosts.Desktop NuGet dışı; süreç içi PAdES B-B | Hayır |
+| FR-120 | Desktop PDF/PIN/çıktı | Yüksek | 1 | Desktop | ADR-008 | TST-027 | CredUI; `{ad}-imzali.pdf`; PasswordBox yok | Hayır |
+| FR-121 | Desktop setup.exe ve site | Yüksek | 1 | Desktop | ADR-008 | TST-027 | Releases + Authenticode; site/ içinde exe yok | Hayır |
 | VAL-001 | Kaynak gereksinim metni | Zorunlu | 1 | Validation | ADR-004/ADR-006 | TST-009 | Karar tablosu ve rapor snapshot | Evet |
 | VAL-002 | Kaynak gereksinim metni | Zorunlu | 1 | Validation | ADR-004/ADR-006 | TST-009 | Karar tablosu ve rapor snapshot | Evet |
 | VAL-003 | Kaynak gereksinim metni | Zorunlu | 1 | Validation | ADR-004/ADR-006 | TST-009 | Karar tablosu ve rapor snapshot | Evet |
@@ -110,6 +113,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 | SEC-025 | Kaynak gereksinim metni | Zorunlu | 1 | Server | ADR-001/ADR-007 | TST-013/TST-014/TST-019/TST-020 | Sunucu güvenlik kanıtı | Evet |
 | SEC-026 | Kaynak gereksinim metni | Zorunlu | 1 | Server | ADR-001/ADR-007 | TST-013/TST-014/TST-019/TST-020 | Sunucu güvenlik kanıtı | Evet |
 | SEC-027 | Kaynak gereksinim metni | Zorunlu | 1 | Server | ADR-001/ADR-007 | TST-013/TST-014/TST-019/TST-020 | Sunucu güvenlik kanıtı | Evet |
+| SEC-028 | Desktop CredUI PIN | Yüksek | 1 | Desktop | ADR-008 | TST-027 | PasswordBox/HTTP PIN yok; allowlist PKCS#11 | Hayır |
 | API-001 | Kaynak gereksinim metni | Zorunlu | 1 | Api | openapi.yaml | TST-015/TST-016/TST-017 | OpenAPI sözleşme kanıtı | Evet |
 | API-002 | Kaynak gereksinim metni | Zorunlu | 1 | Api | openapi.yaml | TST-015/TST-016/TST-017 | OpenAPI sözleşme kanıtı | Evet |
 | API-003 | Kaynak gereksinim metni | Zorunlu | 1 | Api | openapi.yaml | TST-015/TST-016/TST-017 | OpenAPI sözleşme kanıtı | Evet |
@@ -149,10 +153,12 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - Ek PKCS#11 vendor: `tests/ImzaKit.Pkcs11.Tests/Nshield/NshieldProviderProfileTests.cs` ve `tests/ImzaKit.Pkcs11.Tests/Utimaco/UtimacoProviderProfileTests.cs`. `cknfast.dll` / `cs_pkcs11_R2.dll` / `cs_pkcs11_R3.dll` allowlist; `cryptoki.dll` ve `System32` yok. `ForNshield` / `ForUtimaco` AKİS güvenli varsayılanları. Vendor DLL paketlenmez. Fiziksel HSM kabulü ayrıdır.
 - eIDAS doğrulama profili: `tests/ImzaKit.Trust.Tests/Evaluation/TrustPolicyEvaluatorTests.cs`. `Eidas` Eidas etiketli kök, sürümlü katalog politika OID’i ve QcCompliance (`0.4.0.1862.1.1`) ister. OpenAPI `validationProfile` `Eidas` kabul eder. EU TSL/EUTL içe aktarılmaz; hukuki QES iddiası yoktur. FR-100 bu sınırı bağlayıcı kılar.
 - Faz 6 yazılım kapıları (henüz uygulanmadı): FR-066 ATSHashIndex-v3; VAL-008 ASiC-E ortak rapor bağ; FR-116 CAdES/XAdES preservation; FR-117 host tetikleyici; FR-118 Unix HostReady. MVP ve fiziksel AKİS kapısını kilitlemez.
+- WinUI Desktop (henüz uygulanmadı): FR-119–121, SEC-028, ADR-008. Süreç içi PAdES B-B, CredUI, paket dışı `setup.exe`. MVP Agent/AKİS kapısını kilitlemez. Tasarım: `docs/superpowers/specs/2026-08-31-winui-desktop-signer-design.md`.
 - Ortak validation report: `tests/ImzaKit.Verify.Tests` (`SignatureValidationReportTests`). `SignatureValidationReportMapper` PAdES/CAdES/XAdES/ASiC-S raporlarını `PASSED`/`FAILED`/`INDETERMINATE` modeline taşır; güven/iptal yokken sessiz PASSED yoktur.
 - Tasarım ve uygulama bağı: `docs/superpowers/specs/2026-08-23-alpha4-offline-trust-validation-design.md` ve `docs/superpowers/plans/2026-08-23-alpha4-offline-trust-validation.md`.
 
 - `MVP = Evet` olan satırlar MVP kabulünü engeller.
 - `FR-030` eToken yazılım profilidir; fiziksel eToken kanıtı MVP çıkış kapısını kilitlemez.
+- `FR-119`–`FR-121` WinUI Desktop yazılım host’udur; fiziksel kart/CredUI kanıtı MVP çıkış kapısını kilitlemez.
 - Çevrimiçi OCSP/CRL ve uzun dönem PAdES Faz 2; bağımsız CAdES/workflow Faz 3; XAdES/ASiC Faz 4’tedir.
 - Aynı test birden çok gereksinimi kapsayabilir; test ve kabul kanıtı boş bırakılamaz.

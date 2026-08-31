@@ -38,12 +38,13 @@
 - **TST-024:** CAdES ve XAdES B-LTA preservation yenilemesi; PAdES DocTimeStamp yolu gerilemez; bir nesne hatası diğer due öğeleri durdurmaz.
 - **TST-025:** Host zamanlayıcı due öğeleri yapılandırılmış aralıkla çalıştırır; lead time öncesi tetiklenmez.
 - **TST-026:** Unix `HostReady` false iken PIN/onay fail-closed; `HostReady` true yolunda Keychain/secret-service; Windows `HostReady` değişmez.
+- **TST-027:** Desktop oturum durumları, `{ad}-imzali.pdf` çıktısı, boş PKCS#11 kataloğu, sahte native PAdES B-B, installer allowlist/Authenticode, NuGet dışlama ve landing page Releases bağlantısı. CredUI ve fiziksel kart CI’yi durdurmaz.
 
 ## 3. Kabul kriterleri
 
 ### MVP kapısı
 
-MVP geliştirmesine giriş için ADR-001–007 kabul edilmiş, OpenAPI doğrulanmış ve PDF/AKİS/Agent Faz 0 kapıları ölçülebilir olmalıdır.
+MVP geliştirmesine giriş için ADR-001–007 kabul edilmiş, OpenAPI doğrulanmış ve PDF/AKİS/Agent Faz 0 kapıları ölçülebilir olmalıdır. ADR-008 WinUI Desktop host’unu tanımlar; MVP giriş kapısını değiştirmez.
 
 - Windows üzerinde referans AKİS kartı ile gerçek PAdES B-B üretimi başarılıdır.
 - Üretilen dosya İmzaKit Verify ve seçilen iki bağımsız doğrulayıcıda beklenen sonuç verir.

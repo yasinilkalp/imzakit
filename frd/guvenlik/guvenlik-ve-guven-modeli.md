@@ -2,7 +2,7 @@
 
 ## 1. Güven sınırları
 
-Tarayıcı, müşteri uygulaması, Agent, API, belge deposu, Redis, PKCS#11 sürücüsü, TSA ve ESHS uçları ayrı güven sınırlarıdır. Kullanıcı tarafından sağlanan PDF/XML/ASiC, sertifika içindeki AIA/OCSP/CRL URL’leri ve önceki imzalar düşmanca girdi kabul edilir.
+Tarayıcı, müşteri uygulaması, Agent, Desktop host, API, belge deposu, Redis, PKCS#11 sürücüsü, TSA ve ESHS uçları ayrı güven sınırlarıdır. Kullanıcı tarafından sağlanan PDF/XML/ASiC, sertifika içindeki AIA/OCSP/CRL URL’leri ve önceki imzalar düşmanca girdi kabul edilir.
 
 ## 2. Agent güvenliği
 
@@ -19,7 +19,11 @@ Tarayıcı, müşteri uygulaması, Agent, API, belge deposu, Redis, PKCS#11 sür
 - **SEC-011:** Enrollment yalnız yetkili yöneticinin tek kullanımlık token’ıyla yapılmalı; mTLS sertifikası en fazla 30 gün geçerli olmalı, ömrünün üçte ikisinde yenilenmeli ve anında iptal edilebilmelidir.
 - **SEC-012:** Loopback HTTP gizli taşıma kanalı sayılmamalı; PIN, credential ve ham özel veri bu kanal üzerinden taşınmamalıdır.
 
-## 3. Sunucu ve veri güvenliği
+## 3. Desktop host güvenliği
+
+- **SEC-028:** İmzaKit Desktop PIN’i yalnız native CredUI alanında almalı; WinUI `PasswordBox` veya HTTP gövdesi yedek olmamalıdır. PDF, PIN ve `SignatureValue` Agent bileti veya API üzerinden taşınmamalıdır. Vendor PKCS#11 yolu allowlist dışındaysa yüklenmemelidir ([ADR-008](../kararlar/ADR-008-winui-masaustu-imza-istemcisi.md)).
+
+## 4. Sunucu ve veri güvenliği
 
 - **SEC-020:** Kimlik doğrulama OAuth2/OIDC veya mTLS profiliyle; yetkilendirme tenant, uygulama ve operasyon kapsamıyla yapılmalıdır.
 - **SEC-021:** Belge erişimi tahmin edilemez kimlik ve süreli URL ile sınırlandırılmalı; cross-tenant erişim reddedilmelidir.
@@ -30,11 +34,11 @@ Tarayıcı, müşteri uygulaması, Agent, API, belge deposu, Redis, PKCS#11 sür
 - **SEC-026:** Tamamlanmamış operasyon metadata’sı varsayılan 24 saat, tamamlanan çıktı ve doğrulama raporu 7 gün tutulmalı; süresiz saklama varsayılan olmamalıdır.
 - **SEC-027:** Release süreci NuGet, installer, container, SBOM ve Trust Store artefaktlarını imzalamalı; kaynak commit ile artefakt digest ilişkisini provenance olarak yayımlamalıdır.
 
-## 4. Dış kaynak erişimi ve SSRF
+## 5. Dış kaynak erişimi ve SSRF
 
 `IExternalResourceFetcher` yalnız HTTP/HTTPS kabul eder; DNS çözümünden önce ve sonra loopback, link-local, private, multicast ve cloud metadata ağlarını engeller. Redirect sayısı, timeout, maksimum cevap boyutu, content type ve sıkıştırılmış içerik sınırları uygulanır. DNS rebinding’e karşı her bağlantı hedefi yeniden doğrulanır. `file`, `ftp`, UNC ve özel şemalar reddedilir.
 
-## 5. Belge işleme güvenliği
+## 6. Belge işleme güvenliği
 
 - PDF parser; aşırı nesne, stream, revision, xref ve dekompresyon limitlerine sahip olmalıdır.
 - XML; DTD ve external entity kapalı, depth/node/attribute limitli olmalıdır.
@@ -42,21 +46,22 @@ Tarayıcı, müşteri uygulaması, Agent, API, belge deposu, Redis, PKCS#11 sür
 - İmzalı verinin canonical/ByteRange byte’ları doğrulama sırasında yeniden yazılmamalıdır.
 - Format hatası ile kriptografik hata ayrılmalıdır.
 
-## 6. Algoritma politikası
+## 7. Algoritma politikası
 
 Algoritma kararı kod içine dağılmamalı; sürümlü politika `allowedForSigning`, `allowedForValidation`, başlangıç/bitiş zamanı ve anahtar boyutu koşullarını taşımalıdır. Zayıflayan algoritma eski imzayı otomatik FAILED yapmaz; validation time ve proof-of-existence ile değerlendirilir. Yeni imza üretiminde politika dışı algoritma reddedilir.
 
-## 7. Trust Store
+## 8. Trust Store
 
 Trust Store, işletim sistemi köklerinden ayrı ve profil bazlıdır. Paket; sürüm, sağlayıcı, kök/ara sertifikalar, politika OID’leri, geçerlilik tarihleri, kaynak/provenance ve paket imzası içerir. Güncelleme atomik yapılır; doğrulama raporu kullanılan sürümü kaydeder. Geri alma ve acil trust removal süreci bulunur.
 
-## 8. Tehdit ve kontrol özeti
+## 9. Tehdit ve kontrol özeti
 
 | Tehdit | Kontrol |
 |---|---|
 | Kötü niyetli web sayfası Agent’a imza attırır | Origin-bound tek kullanımlık bilet + native onay |
 | Bilet tekrar oynatılır | Nonce, TTL, atomik consume, operation state |
 | PIN sızar | Native giriş, server/browser/log izolasyonu |
+| Desktop WinUI PIN kutusu | CredUI zorunlu; PasswordBox yok |
 | Sahte TSA/OCSP cevabı | CMS/response imzası, zincir, EKU/yetki, freshness |
 | Sertifika URL’si iç ağa erişir | SSRF korumalı fetcher |
 | Belge parser kaynak tüketir | Boyut, derinlik, obje, süre ve dekompresyon limitleri |

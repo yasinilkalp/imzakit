@@ -7,14 +7,14 @@
 | Ürün | İmzaKit — Türkiye Elektronik İmza Entegrasyon Kiti |
 | Hedef kitle | Teknoloji şirketleri, SaaS/ERP/EBYS üreticileri, fintech ve kurumsal yazılım ekipleri |
 | Birincil platform | .NET |
-| Ürün ailesi | İmzaKit SDK, İmzaKit Agent, İmzaKit API, İmzaKit Verify |
+| Ürün ailesi | İmzaKit SDK, İmzaKit Agent, İmzaKit API, İmzaKit Verify, İmzaKit Desktop |
 | Durum | Ürün ve mimari temeli oluşturan FRD |
 | Kaynak lisansı | Apache License 2.0; ürünün tamamı açık kaynak |
 | Platform tabanı | .NET 10 LTS; MVP Agent Windows x64/arm64 |
 
 ## 2. Amaç ve ürün konumlandırması
 
-İmzaKit, son kullanıcıya doğrudan e-imza hizmeti sunan tekil bir uygulama değil; teknoloji şirketlerinin elektronik imza işlevlerini kendi ürünlerine ekleyebilmesi için geliştirilen **developer-first entegrasyon kiti ve platformudur**.
+İmzaKit birincil olarak **developer-first entegrasyon kiti ve platformudur**; teknoloji şirketleri elektronik imza işlevlerini kendi ürünlerine ekler. Birinci taraf Windows Desktop host (WinUI) yerel PAdES B-B vitrini ve kurulum artefaktıdır; belge yönetim portalı veya tekil e-imza hizmeti değildir.
 
 Ürün; PAdES, CAdES, XAdES ve ASiC formatlarında imza oluşturma/doğrulama, RFC 3161 zaman damgası, Türkiye NES/ESHS güven politikası, PKCS#11 tabanlı akıllı kart/token/HSM erişimi ve ayrıntılı doğrulama raporlamasını ortak bir çekirdek üzerinde sağlar.
 
@@ -34,6 +34,7 @@
 
 - .NET SDK ve bağımlılık enjeksiyonu uzantıları
 - Windows odaklı yerel Agent; loopback güvenli iletişim
+- Windows WinUI Desktop host; süreç içi PAdES B-B, paket dışı `setup.exe`
 - REST tabanlı İmzaKit API
 - Bağımsız doğrulama servisi/kütüphanesi olan İmzaKit Verify
 - PKCS#11; ilk doğrulanmış adaptör olarak AKİS, ikinci doğrulanmış Windows profili olarak eToken (`eTPKCS11.dll`)
@@ -54,7 +55,7 @@
 - Sertifika veya zaman damgası hizmet sağlayıcısı olmak
 - Nitelikli sertifika üretmek ya da kullanıcı kimlik doğrulaması yapmak
 - İlk MVP’de macOS/Linux Agent, mobil imza ve tüm HSM/uzak imza sağlayıcıları
-- İlk MVP’de görsel iş akışı tasarım aracı veya son kullanıcı belge yönetim portalı
+- İlk MVP’de görsel iş akışı tasarım aracı veya son kullanıcı belge yönetim portalı (Desktop tek ekranlı yerel imza host’udur; portal değildir)
 - Hukuki geçerlilik hakkında otomatik ve mutlak hüküm vermek
 - EU TSL/EUTL içe aktarma ve hukuki nitelikli elektronik imza (QES) kararı (FR-100)
 - CAdES `archive-time-stamp-v3` / `ATSHashIndex-v3` (FR-066, Faz 6)
@@ -90,6 +91,10 @@ Belge hazırlama, imza operasyonu oluşturma, Agent bağlantısı, imzanın tama
 ### 6.4 İmzaKit Verify
 
 İmzalama yeteneğinden bağımsız kullanılabilen format tespiti ve doğrulama motorudur. Belge ve her imza için ayrı rapor üretir; çevrimdışı kanıtları önceler, ağ erişimini politika ile sınırlar.
+
+### 6.5 İmzaKit Desktop
+
+Kullanıcının cihazında çalışan WinUI 3 host’tur. PDF seçimi, PKCS#11 sertifika listesi, native CredUI PIN ve süreç içi PAdES B-B üretir; imzalı dosya için yerel indirme/açma bağlantısı gösterir. NuGet paketine girmez. Agent ve API bu host için zorunlu değildir ([ADR-008](../kararlar/ADR-008-winui-masaustu-imza-istemcisi.md)).
 
 ## 7. Temel ürün ilkeleri
 
@@ -135,7 +140,8 @@ Belge hazırlama, imza operasyonu oluşturma, Agent bağlantısı, imzanın tama
 - PDF motoru yalnız sekiz maddelik Faz 0 kapısını geçerse seçilir ([ADR-005](../kararlar/ADR-005-pdf-motoru-secim-kapisi.md)). Bu ölçüm kararı sahipsiz bırakmaz; seçilecek uygulamayı kanıta bağlar.
 - MVP PAdES B-B ile sınırlıdır. Çevrimiçi OCSP/CRL Faz 2’dedir; Faz 1’de kanıt yokluğu `INDETERMINATE/REVOCATION_DATA_UNAVAILABLE` üretir ([ADR-006](../kararlar/ADR-006-mvp-kapsami-ve-revocation.md)).
 - Varsayılan saklama süreleri ve audit modeli [ADR-007](../kararlar/ADR-007-saklama-ve-audit.md) ile belirlenmiştir.
+- Birinci taraf WinUI Desktop host süreç içi PAdES B-B üretir; NuGet dışıdır; MVP Agent/AKİS kapısını değiştirmez ([ADR-008](../kararlar/ADR-008-winui-masaustu-imza-istemcisi.md)).
 
 ## 11. Kesin MVP kapsamı
 
-MVP; PAdES B-B görünür/görünmez imza, PAdES için gerekli detached CMS alt kümesi, AKİS/PKCS#11, Windows Agent, operasyon API’si, temel Verify, PASSED/FAILED/INDETERMINATE kararları ve temel çoklu PDF revision desteğidir. PAdES B-T/B-LT/B-LTA Faz 2; bağımsız CAdES Faz 3; XAdES/ASiC Faz 4’tedir.
+MVP; PAdES B-B görünür/görünmez imza, PAdES için gerekli detached CMS alt kümesi, AKİS/PKCS#11, Windows Agent, operasyon API’si, temel Verify, PASSED/FAILED/INDETERMINATE kararları ve temel çoklu PDF revision desteğidir. PAdES B-T/B-LT/B-LTA Faz 2; bağımsız CAdES Faz 3; XAdES/ASiC Faz 4’tedir. WinUI Desktop host Faz 1 yazılımında yer alabilir; MVP kabulünü kilitlemez (FR-119–121).
