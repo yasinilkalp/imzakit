@@ -16,31 +16,22 @@ $html = Get-Content -LiteralPath $resolvedSitePath -Raw
 $required = [ordered]@{
     'HTML5 doctype' = '<!doctype html>'
     'Default Turkish language' = 'lang="tr"'
-    'Turkish hero' = 'Yerel e-imza standartları, tek NuGet kurulumu.'
-    'English hero' = 'Local e-signature standards, one NuGet install.'
+    'Turkish hero start' = 'Yerel e-imza standartları,'
+    'Turkish hero highlight' = 'tek NuGet kurulumu.'
+    'English hero start' = 'Local e-signature standards,'
+    'English hero highlight' = 'one NuGet install.'
     'Primary CTA' = 'NuGet ile Başla'
     'Secondary CTA' = 'GitHub''da İncele'
     'Package command' = 'dotnet add package ImzaKit --version 1.0.0-alpha.13'
-    'Sixteen-module inventory' = '16 modül'
-    'Certificate module' = 'ImzaKit.Certificate'
-    'Timestamp module' = 'ImzaKit.Timestamp'
-    'CAdES module' = 'ImzaKit.CAdES'
-    'XAdES module' = 'ImzaKit.XAdES'
-    'ASiC module' = 'ImzaKit.ASiC'
-    'Trust module' = 'ImzaKit.Trust'
-    'Revocation module' = 'ImzaKit.Revocation'
-    'Validation context' = 'ValidationContext'
-    'General X509 profile' = 'GeneralX509'
-    'Turkiye NES profile' = 'TurkiyeNes'
-    'eIDAS profile' = 'Eidas'
-    'nShield profile' = 'nShield'
-    'Utimaco profile' = 'Utimaco'
-    'Unavailable revocation reason' = 'RevocationDataUnavailable'
-    'Core registration' = 'AddImzaKitCore'
-    'PKCS11 registration' = 'AddImzaKitPkcs11'
+    'Plain-language workflow start' = 'Belgeyi hazırla'
+    'Plain-language workflow sign' = 'Kartla imzala'
+    'Plain-language workflow verify' = 'Sonucu doğrula'
+    'Private key promise' = 'Özel anahtar karttan çıkmaz'
+    'Supported PDF format' = 'PDF'
+    'Supported XML format' = 'XML'
+    'Open source promise' = 'Apache-2.0'
     'Language control' = 'id="language-toggle"'
     'Mobile menu state' = 'aria-expanded="false"'
-    'Module filter' = 'data-module='
     'Copy action' = 'data-copy'
     'Reduced motion' = 'prefers-reduced-motion'
     'No-script fallback' = '<noscript>'
@@ -79,9 +70,13 @@ foreach ($entry in $forbiddenPatterns.GetEnumerator()) {
     }
 }
 
-$moduleCount = [regex]::Matches($html, '<article\s+[^>]*data-module\s*=', 'IgnoreCase').Count
-if ($moduleCount -ne 16) {
-    throw "Landing page must contain exactly 16 module cards; found $moduleCount."
+$workflowStepCount = [regex]::Matches($html, '<article\s+[^>]*class=["''][^"'']*step[^"'']*["'']', 'IgnoreCase').Count
+if ($workflowStepCount -ne 3) {
+    throw "Landing page must contain exactly three plain-language workflow steps; found $workflowStepCount."
+}
+
+if ($html -match 'data-module=|data-filter=') {
+    throw 'Landing page must not expose the technical module filter.'
 }
 
 $h1Count = [regex]::Matches($html, '<h1(?:\s|>)', 'IgnoreCase').Count
