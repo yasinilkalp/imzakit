@@ -1,0 +1,53 @@
+using ImzaKit.Release.Installer;
+
+namespace ImzaKit.Release.Tests.Installer;
+
+public sealed class DesktopInstallerAndUpdateTests
+{
+    [Fact]
+    public void PayloadInstallsToProgramFilesDesktopWithoutVendorPkcs11()
+    {
+        DesktopInstallerPayload payload = DesktopInstallerLayout.Create(
+            version: "1.0.0-alpha.13",
+            rids: ["win-x64", "win-arm64"]);
+
+        Assert.True(payload.AuthenticodeRequired);
+        Assert.Equal(@"%ProgramFiles%\ImzaKit\Desktop", payload.InstallDirectory);
+        Assert.Contains("win-x64", payload.RuntimeIdentifiers);
+        Assert.Contains("win-arm64", payload.RuntimeIdentifiers);
+        Assert.True(payload.DisableDllSearchPathHijacking);
+        Assert.Contains(@"%ProgramFiles%\AKIS", payload.Pkcs11AllowlistRoots);
+        Assert.Equal(
+            [
+                @"%ProgramFiles%\SafeNet\Authentication\SAC\x64",
+                @"%ProgramFiles%\Thales\SafeNet Authentication Client"
+            ],
+            payload.EtokenPkcs11AllowlistRoots);
+        Assert.DoesNotContain(payload.Files, file => file.Contains("akisp11", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(payload.Files, file => file.Contains("etpkcs11", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("ImzaKit.Hosts.Desktop.App.exe", payload.Files);
+        Assert.Contains("sbom.cdx.json", payload.Files);
+        Assert.Contains("NOTICE", payload.Files);
+    }
+
+    [Fact]
+    public void WixSourceExcludesVendorDllAndRequiresAuthenticode()
+    {
+        DesktopInstallerPayload payload = DesktopInstallerLayout.Create("1.0.0-alpha.13", ["win-x64"]);
+        string wxs = DesktopMsiDocument.CreateWixSource(payload);
+
+        Assert.Contains(@"ProgramFiles64Folder", wxs, StringComparison.Ordinal);
+        Assert.Contains("Desktop", wxs, StringComparison.Ordinal);
+        Assert.Contains("win-x64", wxs, StringComparison.Ordinal);
+        Assert.DoesNotContain("akisp11", wxs, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("etpkcs11.dll", wxs, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("AuthenticodeRequired", wxs, StringComparison.Ordinal);
+        Assert.Contains(@"SafeNet\Authentication\SAC\x64", wxs, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RejectsNonWindowsRuntimeIdentifiers()
+    {
+        Assert.Throws<ArgumentException>(() => DesktopInstallerLayout.Create("1.0.0", ["linux-x64"]));
+    }
+}

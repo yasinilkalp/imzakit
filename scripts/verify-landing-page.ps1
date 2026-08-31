@@ -40,6 +40,11 @@ $required = [ordered]@{
     'Technical guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html'
     'Security policy' = 'https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md'
     'Contribution guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md'
+    'Windows app heading' = 'Windows uygulaması'
+    'Windows app English' = 'Sign a PDF with'
+    'Desktop setup download' = 'setup.exe indir'
+    'GitHub Releases latest' = 'https://github.com/yasinilkalp/imzakit/releases/latest'
+    'Desktop not in NuGet' = 'NuGet paketinde yoktur'
     'Skip link' = 'class="skip"'
     'Main landmark' = '<main'
     'Navigation landmark' = '<nav'
@@ -104,6 +109,12 @@ foreach ($pattern in @('Açık kaynak landing page', 'GitHub Pages', 'landing pa
     if ($report.IndexOf($pattern, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
         throw "Status report is missing landing-page integration content: $pattern"
     }
+}
+
+$siteDirectory = Split-Path -Parent $resolvedSitePath
+$exeFiles = @(Get-ChildItem -LiteralPath $siteDirectory -Filter '*.exe' -File -Recurse -ErrorAction SilentlyContinue)
+if ($exeFiles.Count -gt 0) {
+    throw "Landing page site directory must not contain .exe binaries."
 }
 
 Write-Host 'Landing page verification passed.' -ForegroundColor Green

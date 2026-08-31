@@ -17,6 +17,8 @@
     <Project Path="src/ImzaKit.XAdES/ImzaKit.XAdES.csproj" />
     <Project Path="src/ImzaKit.ASiC/ImzaKit.ASiC.csproj" />
     <Project Path="src/ImzaKit.Hosts.Api/ImzaKit.Hosts.Api.csproj" />
+    <Project Path="src/ImzaKit.Hosts.Desktop/ImzaKit.Hosts.Desktop.csproj" />
+    <Project Path="src/ImzaKit.Hosts.Desktop.App/ImzaKit.Hosts.Desktop.App.csproj" />
     </Folder>
   <Folder Name="/packaging/">
     <Project Path="packaging/ImzaKit/ImzaKit.csproj" />
@@ -39,6 +41,7 @@
     <Project Path="tests/ImzaKit.XAdES.Tests/ImzaKit.XAdES.Tests.csproj" />
     <Project Path="tests/ImzaKit.ASiC.Tests/ImzaKit.ASiC.Tests.csproj" />
     <Project Path="tests/ImzaKit.Release.Tests/ImzaKit.Release.Tests.csproj" />
+    <Project Path="tests/ImzaKit.Desktop.Tests/ImzaKit.Desktop.Tests.csproj" />
     <Project Path="tests/ImzaKit.Testing/ImzaKit.Testing.csproj" />
   </Folder>
 </Solution>

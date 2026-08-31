@@ -4,6 +4,7 @@ public enum ReleaseArtifactKind
 {
     NugetPackage,
     AgentPeOrInstaller,
+    DesktopPeOrInstaller,
     UpdateManifest
 }
 
@@ -28,7 +29,9 @@ public static class ReleaseSigningPolicy
         ArgumentNullException.ThrowIfNull(materials);
 
         bool prerelease = IsPrerelease(version);
-        bool authenticodeRequired = kind is ReleaseArtifactKind.AgentPeOrInstaller || !prerelease;
+        bool authenticodeRequired = kind is ReleaseArtifactKind.AgentPeOrInstaller
+            or ReleaseArtifactKind.DesktopPeOrInstaller
+            || !prerelease;
         if (authenticodeRequired && !materials.AuthenticodeCertificatePresent)
         {
             throw new InvalidOperationException("IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING");
