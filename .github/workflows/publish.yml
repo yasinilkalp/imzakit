@@ -151,12 +151,18 @@ jobs:
           $pfx = Join-Path $env:RUNNER_TEMP 'imzakit.pfx'
           [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:IMZAKIT_AUTHENTICODE_PFX))
           "IMZAKIT_AUTHENTICODE_PFX=$pfx" | Add-Content $env:GITHUB_ENV
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
+          if ([string]::IsNullOrWhiteSpace($signtool)) {
+            throw 'IMZAKIT.RELEASE.SIGNTOOL_NOT_FOUND'
+          }
           $files = @(
             'artifacts/desktop-publish/ImzaKit.Hosts.Desktop.App.exe',
             'artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe'
           )
           foreach ($file in $files) {
-            & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:IMZAKIT_AUTHENTICODE_PFX_PASSWORD $file
+            & $signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:IMZAKIT_AUTHENTICODE_PFX_PASSWORD $file
             if ($LASTEXITCODE -ne 0) { throw "signtool failed for $file" }
           }
 

@@ -42,10 +42,15 @@ $requiredPatterns = [ordered]@{
     'wix 5 bootstrapper extension' = 'WixToolset\.BootstrapperApplications\.wixext/5\.0\.2'
     'bundle uses bootstrapper extension' = '-ext WixToolset\.BootstrapperApplications\.wixext'
     'bundle bindpath finds msi' = '-bindpath artifacts/desktop'
+    'signtool from Windows Kits' = 'Windows Kits\\10\\bin'
 }
 
 if ($workflow -match 'WixToolset\.Bal\.wixext') {
     throw 'Publish workflow must pin WixToolset.BootstrapperApplications.wixext/5.0.2; Bal.wixext is an alias that installs WiX 7 on unversioned add.'
+}
+
+if ($workflow -match '(?m)& signtool ') {
+    throw 'Publish workflow must resolve signtool.exe from Windows Kits; it is not on PATH on windows-latest.'
 }
 
 foreach ($requirement in $requiredPatterns.GetEnumerator()) {
