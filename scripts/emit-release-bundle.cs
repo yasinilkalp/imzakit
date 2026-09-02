@@ -21,7 +21,7 @@ string? commit = ReadOption(args, "--commit");
 string product = ReadOption(args, "--product") ?? "ImzaKit";
 string builderId = ReadOption(args, "--builder-id")
     ?? "https://github.com/yasinilkalp/imzakit/.github/workflows/publish.yml";
-ReleaseArtifactKind kind = ParseKind(ReadOption(args, "--kind"));
+ReleaseArtifactKind kind = ReleaseArtifactKindParser.Parse(ReadOption(args, "--kind"));
 
 if (string.IsNullOrWhiteSpace(package) ||
     string.IsNullOrWhiteSpace(output) ||
@@ -93,14 +93,6 @@ static string? ReadOption(string[] arguments, string name)
     int index = Array.FindIndex(arguments, argument => string.Equals(argument, name, StringComparison.Ordinal));
     return index >= 0 && index + 1 < arguments.Length ? arguments[index + 1] : null;
 }
-
-static ReleaseArtifactKind ParseKind(string? value) => value switch
-{
-    null or "nuget" => ReleaseArtifactKind.NugetPackage,
-    "agent" => ReleaseArtifactKind.AgentPeOrInstaller,
-    "manifest" => ReleaseArtifactKind.UpdateManifest,
-    _ => throw new InvalidOperationException("Unknown --kind: " + value)
-};
 
 static string WriteProvenanceJson(ReleaseProvenance provenance)
 {
