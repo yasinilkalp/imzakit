@@ -57,6 +57,18 @@ public sealed class DesktopInstallerAndUpdateTests
     }
 
     [Fact]
+    public void BurnBundleWrapsMsiAsWinX64SetupExe()
+    {
+        string wxs = DesktopBurnDocument.CreateWixSource("1.0.0-alpha.14", "ImzaKit.Desktop.msi");
+        Assert.Equal("ImzaKit.Desktop-win-x64.setup.exe", DesktopBurnDocument.SetupExeFileName);
+        Assert.Contains(@"Version=""1.0.14""", wxs, StringComparison.Ordinal);
+        Assert.Contains("ImzaKit Desktop 1.0.0-alpha.14", wxs, StringComparison.Ordinal);
+        Assert.Contains("ImzaKit.Desktop.msi", wxs, StringComparison.Ordinal);
+        Assert.Contains("B7E4C1A2-8F93-4D6E-9B10-2C5A7E8D4F31", wxs, StringComparison.Ordinal);
+        Assert.DoesNotContain("akisp11", wxs, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void RejectsNonWindowsRuntimeIdentifiers()
     {
         Assert.Throws<ArgumentException>(() => DesktopInstallerLayout.Create("1.0.0", ["linux-x64"]));
