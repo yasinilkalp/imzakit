@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ImzaKit.Release.Installer;
 using ImzaKit.Release.Provenance;
 using ImzaKit.Release.Sbom;
 using ImzaKit.Release.Signing;
@@ -51,6 +52,19 @@ catch (InvalidOperationException exception)
 {
     Console.Error.WriteLine(exception.Message);
     return 1;
+}
+
+if (kind is ReleaseArtifactKind.AgentPeOrInstaller or ReleaseArtifactKind.DesktopPeOrInstaller)
+{
+    try
+    {
+        AuthenticodeGate.RequireFile(package, required: true);
+    }
+    catch (InvalidOperationException exception)
+    {
+        Console.Error.WriteLine(exception.Message);
+        return 1;
+    }
 }
 
 ECDsa? releaseKey = null;

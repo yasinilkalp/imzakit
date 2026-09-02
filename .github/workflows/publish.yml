@@ -11,21 +11,19 @@ on:
         type: boolean
         default: true
 
-permissions:
-  contents: read
-  id-token: write
-  packages: write
-
 concurrency:
   group: nuget-publish
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Verify and publish
+  verify-pack:
+    name: Verify and pack
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -34,6 +32,23 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          PROPS=$(sed -n 's/.*<Version>\([^<]*\)<\/Version>.*/\1/p' Directory.Build.props | head -1)
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            if [ "$VERSION" != "$PROPS" ]; then
+              echo "Version mismatch tag=$VERSION props=$PROPS" >&2
+              exit 1
+            fi
+          else
+            VERSION="$PROPS"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "IMZAKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Build
         run: dotnet build ImzaKit.slnx -c Release
@@ -47,27 +62,165 @@ jobs:
       - name: Emit SBOM and provenance
         env:
           IMZAKIT_RELEASE_ECDSA_KEY: ${{ secrets.IMZAKIT_RELEASE_ECDSA_KEY }}
+          IMZAKIT_VERSION: ${{ steps.version.outputs.version }}
         run: >
           dotnet run --file scripts/emit-release-bundle.cs --
-          --package artifacts/packages/ImzaKit.1.0.0-alpha.13.nupkg
+          --package artifacts/packages/ImzaKit.${{ env.IMZAKIT_VERSION }}.nupkg
           --output artifacts/packages
-          --version 1.0.0-alpha.13
+          --version ${{ env.IMZAKIT_VERSION }}
           --commit "${{ github.sha }}"
+          --kind nuget
 
       - name: Verify package contract
         shell: pwsh
-        run: ./scripts/verify-nuget-package.ps1
+        env:
+          IMZAKIT_VERSION: ${{ steps.version.outputs.version }}
+        run: ./scripts/verify-nuget-package.ps1 -Version ${{ env.IMZAKIT_VERSION }}
 
-      - name: Upload SBOM
+      - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: release-sbom
-          path: artifacts/packages/sbom.cdx.json
+          name: packages
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.snupkg
+            artifacts/packages/sbom.cdx.json
+
+  desktop:
+    name: Sign Desktop installer
+    needs: verify-pack
+    runs-on: windows-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    env:
+      IMZAKIT_VERSION: ${{ needs.verify-pack.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Publish Desktop host
+        run: >
+          dotnet publish src/ImzaKit.Hosts.Desktop.App/ImzaKit.Hosts.Desktop.App.csproj
+          -c Release -r win-x64 --self-contained true
+          -o artifacts/desktop-publish
+
+      - name: Copy license files into harvest
+        shell: pwsh
+        run: |
+          Copy-Item LICENSE,NOTICE artifacts/desktop-publish
+          if (-not (Test-Path artifacts/desktop-publish/sbom.cdx.json)) {
+            Set-Content artifacts/desktop-publish/sbom.cdx.json '{}'
+          }
+          if (-not (Test-Path artifacts/desktop-publish/provenance.json)) {
+            Set-Content artifacts/desktop-publish/provenance.json '{}'
+          }
+
+      - name: Emit WiX sources
+        run: >
+          dotnet run --file scripts/emit-desktop-installer.cs --
+          --version ${{ env.IMZAKIT_VERSION }}
+          --publish-dir artifacts/desktop-publish
+          --output-dir artifacts/desktop-wxs
+
+      - name: Install WiX
+        run: dotnet tool install --global wix --version 5.0.2
+
+      - name: Build MSI and setup.exe
+        shell: pwsh
+        run: |
+          wix extension add -g WixToolset.Bal.wixext
+          New-Item -ItemType Directory -Force artifacts/desktop | Out-Null
+          wix build artifacts/desktop-wxs/desktop.wxs -o artifacts/desktop/ImzaKit.Desktop.msi
+          wix build artifacts/desktop-wxs/desktop-bundle.wxs -ext WixToolset.Bal.wixext -o artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
+
+      - name: Import certificate and sign
+        shell: pwsh
+        env:
+          IMZAKIT_AUTHENTICODE_PFX: ${{ secrets.IMZAKIT_AUTHENTICODE_PFX }}
+          IMZAKIT_AUTHENTICODE_PFX_PASSWORD: ${{ secrets.IMZAKIT_AUTHENTICODE_PFX_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:IMZAKIT_AUTHENTICODE_PFX) -or [string]::IsNullOrWhiteSpace($env:IMZAKIT_AUTHENTICODE_PFX_PASSWORD)) {
+            throw 'IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING'
+          }
+          $pfx = Join-Path $env:RUNNER_TEMP 'imzakit.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:IMZAKIT_AUTHENTICODE_PFX))
+          "IMZAKIT_AUTHENTICODE_PFX=$pfx" | Add-Content $env:GITHUB_ENV
+          $files = @(
+            'artifacts/desktop-publish/ImzaKit.Hosts.Desktop.App.exe',
+            'artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe'
+          )
+          foreach ($file in $files) {
+            & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:IMZAKIT_AUTHENTICODE_PFX_PASSWORD $file
+            if ($LASTEXITCODE -ne 0) { throw "signtool failed for $file" }
+          }
+
+      - name: Authenticode gate
+        run: >
+          dotnet run --file scripts/emit-release-bundle.cs --
+          --package artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
+          --output artifacts/desktop
+          --version ${{ env.IMZAKIT_VERSION }}
+          --commit "${{ github.sha }}"
+          --kind desktop
+          --product ImzaKit.Desktop
+
+      - name: Remove certificate material
+        if: always()
+        shell: pwsh
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'imzakit.pfx'
+          if (Test-Path $pfx) { Remove-Item $pfx -Force }
+
+      - name: Upload Desktop installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-installer
+          path: |
+            artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
+            artifacts/desktop/sbom.cdx.json
+
+  publish:
+    name: Publish NuGet and GitHub Release
+    needs: [verify-pack, desktop]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    env:
+      IMZAKIT_VERSION: ${{ needs.verify-pack.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: artifacts/packages
+
+      - name: Download Desktop installer
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-installer
+          path: artifacts/desktop
 
       - name: Publish to GitHub Packages
         shell: bash
         run: |
-          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.13.nupkg \
+          dotnet nuget push artifacts/packages/ImzaKit.${{ env.IMZAKIT_VERSION }}.nupkg \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
@@ -82,7 +235,17 @@ jobs:
         if: github.event_name == 'push' || inputs.publish_nuget_org
         shell: bash
         run: |
-          dotnet nuget push artifacts/packages/ImzaKit.1.0.0-alpha.13.nupkg \
+          dotnet nuget push artifacts/packages/ImzaKit.${{ env.IMZAKIT_VERSION }}.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --symbol-source https://api.nuget.org/v3/index.json
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ env.IMZAKIT_VERSION }}" \
+            artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe \
+            artifacts/desktop/sbom.cdx.json \
+            --title "ImzaKit ${{ env.IMZAKIT_VERSION }}" \
+            --notes "Ön sürüm. Authenticode imzalı Desktop setup.exe. Fiziksel AKİS kabulü iddia edilmez. NuGet paketi Desktop host içermez."
