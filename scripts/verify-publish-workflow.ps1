@@ -43,6 +43,7 @@ $requiredPatterns = [ordered]@{
     'bundle uses bootstrapper extension' = '-ext WixToolset\.BootstrapperApplications\.wixext'
     'bundle bindpath finds msi' = '-bindpath artifacts/desktop'
     'signtool from Windows Kits' = 'Windows Kits\\10\\bin'
+    'prerelease unsigned desktop' = 'Prerelease Desktop ships unsigned'
 }
 
 if ($workflow -match 'WixToolset\.Bal\.wixext') {

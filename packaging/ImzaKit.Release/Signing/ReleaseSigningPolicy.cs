@@ -20,6 +20,17 @@ public static class ReleaseSigningPolicy
         return version.Contains('-', StringComparison.Ordinal);
     }
 
+    public static bool RequiresAuthenticode(string version, ReleaseArtifactKind kind)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(version);
+        if (kind is ReleaseArtifactKind.AgentPeOrInstaller)
+        {
+            return true;
+        }
+
+        return !IsPrerelease(version);
+    }
+
     public static void AssertCanPublish(
         string version,
         ReleaseArtifactKind kind,
@@ -29,9 +40,7 @@ public static class ReleaseSigningPolicy
         ArgumentNullException.ThrowIfNull(materials);
 
         bool prerelease = IsPrerelease(version);
-        bool authenticodeRequired = kind is ReleaseArtifactKind.AgentPeOrInstaller
-            or ReleaseArtifactKind.DesktopPeOrInstaller
-            || !prerelease;
+        bool authenticodeRequired = RequiresAuthenticode(version, kind);
         if (authenticodeRequired && !materials.AuthenticodeCertificatePresent)
         {
             throw new InvalidOperationException("IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING");

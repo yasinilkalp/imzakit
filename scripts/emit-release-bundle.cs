@@ -58,7 +58,9 @@ if (kind is ReleaseArtifactKind.AgentPeOrInstaller or ReleaseArtifactKind.Deskto
 {
     try
     {
-        AuthenticodeGate.RequireFile(package, required: true);
+        AuthenticodeGate.RequireFile(
+            package,
+            required: ReleaseSigningPolicy.RequiresAuthenticode(version, kind));
     }
     catch (InvalidOperationException exception)
     {

@@ -145,6 +145,10 @@ jobs:
           IMZAKIT_AUTHENTICODE_PFX: ${{ secrets.IMZAKIT_AUTHENTICODE_PFX }}
           IMZAKIT_AUTHENTICODE_PFX_PASSWORD: ${{ secrets.IMZAKIT_AUTHENTICODE_PFX_PASSWORD }}
         run: |
+          if ($env:IMZAKIT_VERSION -match '-') {
+            Write-Host 'Prerelease Desktop ships unsigned.'
+            return
+          }
           if ([string]::IsNullOrWhiteSpace($env:IMZAKIT_AUTHENTICODE_PFX) -or [string]::IsNullOrWhiteSpace($env:IMZAKIT_AUTHENTICODE_PFX_PASSWORD)) {
             throw 'IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING'
           }
@@ -254,4 +258,4 @@ jobs:
             artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe \
             artifacts/desktop/sbom.cdx.json \
             --title "ImzaKit ${{ env.IMZAKIT_VERSION }}" \
-            --notes "Ön sürüm. Authenticode imzalı Desktop setup.exe. Fiziksel AKİS kabulü iddia edilmez. NuGet paketi Desktop host içermez."
+            --notes "Ön sürüm. Desktop setup.exe Authenticode imzasızdır; Windows Unknown publisher gösterebilir. Fiziksel AKİS kabulü iddia edilmez. NuGet paketi Desktop host içermez."
