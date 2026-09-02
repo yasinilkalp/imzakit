@@ -18,7 +18,7 @@ public static class DesktopBurnDocument
             <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
               <Bundle Name="ImzaKit Desktop {version}" Manufacturer="ImzaKit" Version="{productVersion}" UpgradeCode="{UpgradeCode}">
                 <BootstrapperApplication>
-                  <bal:WixStandardBootstrapperApplication Theme="hyperlinkLicense" />
+                  <bal:WixStandardBootstrapperApplication LicenseUrl="" Theme="hyperlinkLicense" />
                 </BootstrapperApplication>
                 <Chain>
                   <MsiPackage SourceFile="{msiFileName}" />

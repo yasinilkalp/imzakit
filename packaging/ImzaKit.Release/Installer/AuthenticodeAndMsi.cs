@@ -88,6 +88,8 @@ public static class AgentMsiDocument
 
 public static class DesktopMsiDocument
 {
+    public const string UpgradeCode = "E1B47A62-9C3D-4F80-A6D1-5E8C2B9F0147";
+
     public static string CreateWixSource(DesktopInstallerPayload payload, string harvestDirectory)
     {
         ArgumentNullException.ThrowIfNull(payload);
@@ -95,7 +97,7 @@ public static class DesktopMsiDocument
         string productVersion = WindowsInstallerVersion.FromSemVer(payload.Version);
         StringBuilder xml = new();
         xml.AppendLine(CultureInfo.InvariantCulture, $"""<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">""");
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""  <Package Name="ImzaKit Desktop {payload.Version}" Manufacturer="ImzaKit" Version="{productVersion}" Scope="perMachine">""");
+        xml.AppendLine(CultureInfo.InvariantCulture, $"""  <Package Name="ImzaKit Desktop {payload.Version}" Manufacturer="ImzaKit" Version="{productVersion}" UpgradeCode="{UpgradeCode}" Scope="perMachine">""");
         xml.AppendLine("""    <StandardDirectory Id="ProgramFiles64Folder">""");
         xml.AppendLine("""      <Directory Name="ImzaKit"><Directory Name="Desktop" Id="INSTALLFOLDER">""");
         foreach (string file in payload.Files)

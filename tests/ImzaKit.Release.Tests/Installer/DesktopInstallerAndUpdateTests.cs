@@ -41,6 +41,7 @@ public sealed class DesktopInstallerAndUpdateTests
         Assert.Contains("Desktop", wxs, StringComparison.Ordinal);
         Assert.Contains("win-x64", wxs, StringComparison.Ordinal);
         Assert.Contains(@"Version=""1.0.14""", wxs, StringComparison.Ordinal);
+        Assert.Contains(@"UpgradeCode=""E1B47A62-9C3D-4F80-A6D1-5E8C2B9F0147""", wxs, StringComparison.Ordinal);
         Assert.DoesNotContain("1.0.0.alpha", wxs, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("akisp11", wxs, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("etpkcs11.dll", wxs, StringComparison.OrdinalIgnoreCase);
@@ -65,6 +66,7 @@ public sealed class DesktopInstallerAndUpdateTests
         Assert.Contains("ImzaKit Desktop 1.0.0-alpha.14", wxs, StringComparison.Ordinal);
         Assert.Contains("ImzaKit.Desktop.msi", wxs, StringComparison.Ordinal);
         Assert.Contains("B7E4C1A2-8F93-4D6E-9B10-2C5A7E8D4F31", wxs, StringComparison.Ordinal);
+        Assert.Contains(@"LicenseUrl=""""", wxs, StringComparison.Ordinal);
         Assert.DoesNotContain("akisp11", wxs, StringComparison.OrdinalIgnoreCase);
     }
 

@@ -134,10 +134,10 @@ jobs:
       - name: Build MSI and setup.exe
         shell: pwsh
         run: |
-          wix extension add -g WixToolset.Bal.wixext
+          wix extension add -g WixToolset.BootstrapperApplications.wixext/5.0.2
           New-Item -ItemType Directory -Force artifacts/desktop | Out-Null
           wix build artifacts/desktop-wxs/desktop.wxs -o artifacts/desktop/ImzaKit.Desktop.msi
-          wix build artifacts/desktop-wxs/desktop-bundle.wxs -ext WixToolset.Bal.wixext -o artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
+          wix build artifacts/desktop-wxs/desktop-bundle.wxs -ext WixToolset.BootstrapperApplications.wixext -o artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
 
       - name: Import certificate and sign
         shell: pwsh

@@ -38,6 +38,13 @@ $requiredPatterns = [ordered]@{
     'package path from version' = 'ImzaKit\.\$\{\{ env\.IMZAKIT_VERSION \}\}\.nupkg'
     'NuGet.org source' = 'https://api\.nuget\.org/v3/index\.json'
     'needs desktop' = 'needs:\s*\[verify-pack, desktop\]'
+    'wix 5.0.2 tool' = 'dotnet tool install --global wix --version 5\.0\.2'
+    'wix 5 bootstrapper extension' = 'WixToolset\.BootstrapperApplications\.wixext/5\.0\.2'
+    'bundle uses bootstrapper extension' = '-ext WixToolset\.BootstrapperApplications\.wixext'
+}
+
+if ($workflow -match 'WixToolset\.Bal\.wixext') {
+    throw 'Publish workflow must pin WixToolset.BootstrapperApplications.wixext/5.0.2; Bal.wixext is an alias that installs WiX 7 on unversioned add.'
 }
 
 foreach ($requirement in $requiredPatterns.GetEnumerator()) {
