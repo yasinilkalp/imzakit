@@ -33,16 +33,27 @@ public sealed class DesktopInstallerAndUpdateTests
     [Fact]
     public void WixSourceExcludesVendorDllAndRequiresAuthenticode()
     {
-        DesktopInstallerPayload payload = DesktopInstallerLayout.Create("1.0.0-alpha.13", ["win-x64"]);
-        string wxs = DesktopMsiDocument.CreateWixSource(payload);
+        DesktopInstallerPayload payload = DesktopInstallerLayout.Create("1.0.0-alpha.14", ["win-x64"]);
+        string harvest = Path.Combine("artifacts", "desktop-publish");
+        string wxs = DesktopMsiDocument.CreateWixSource(payload, harvest);
 
         Assert.Contains(@"ProgramFiles64Folder", wxs, StringComparison.Ordinal);
         Assert.Contains("Desktop", wxs, StringComparison.Ordinal);
         Assert.Contains("win-x64", wxs, StringComparison.Ordinal);
+        Assert.Contains(@"Version=""1.0.14""", wxs, StringComparison.Ordinal);
+        Assert.DoesNotContain("1.0.0.alpha", wxs, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("akisp11", wxs, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("etpkcs11.dll", wxs, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("AuthenticodeRequired", wxs, StringComparison.Ordinal);
         Assert.Contains(@"SafeNet\Authentication\SAC\x64", wxs, StringComparison.Ordinal);
+        Assert.Contains(Path.Combine(harvest, "ImzaKit.Hosts.Desktop.App.exe"), wxs, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WixSourceRejectsEmptyHarvestDirectory()
+    {
+        DesktopInstallerPayload payload = DesktopInstallerLayout.Create("1.0.0-alpha.14", ["win-x64"]);
+        Assert.Throws<ArgumentException>(() => DesktopMsiDocument.CreateWixSource(payload, " "));
     }
 
     [Fact]

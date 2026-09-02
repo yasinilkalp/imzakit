@@ -88,17 +88,20 @@ public static class AgentMsiDocument
 
 public static class DesktopMsiDocument
 {
-    public static string CreateWixSource(DesktopInstallerPayload payload)
+    public static string CreateWixSource(DesktopInstallerPayload payload, string harvestDirectory)
     {
         ArgumentNullException.ThrowIfNull(payload);
+        ArgumentException.ThrowIfNullOrWhiteSpace(harvestDirectory);
+        string productVersion = WindowsInstallerVersion.FromSemVer(payload.Version);
         StringBuilder xml = new();
         xml.AppendLine(CultureInfo.InvariantCulture, $"""<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">""");
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""  <Package Name="ImzaKit Desktop {payload.Version}" Manufacturer="ImzaKit" Version="{payload.Version.Replace("-", ".", StringComparison.Ordinal)}" Scope="perMachine">""");
+        xml.AppendLine(CultureInfo.InvariantCulture, $"""  <Package Name="ImzaKit Desktop {payload.Version}" Manufacturer="ImzaKit" Version="{productVersion}" Scope="perMachine">""");
         xml.AppendLine("""    <StandardDirectory Id="ProgramFiles64Folder">""");
         xml.AppendLine("""      <Directory Name="ImzaKit"><Directory Name="Desktop" Id="INSTALLFOLDER">""");
         foreach (string file in payload.Files)
         {
-            xml.AppendLine(CultureInfo.InvariantCulture, $"""        <File Source="{file}" />""");
+            string source = Path.Combine(harvestDirectory, file);
+            xml.AppendLine(CultureInfo.InvariantCulture, $"""        <File Source="{source}" />""");
         }
 
         xml.AppendLine("""      </Directory></Directory>""");
