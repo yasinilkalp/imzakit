@@ -115,14 +115,15 @@ public sealed class SignSessionViewModelTests
         viewModel.SelectPdf(original);
         viewModel.RefreshCertificates();
         viewModel.SelectedCertificate = viewModel.Certificates[0];
-        File.SetAttributes(Path.GetDirectoryName(original)!, FileAttributes.ReadOnly);
+        string directory = Path.GetDirectoryName(original)!;
+        MakeDirectoryUnwritable(directory);
         try
         {
             viewModel.Sign();
         }
         finally
         {
-            File.SetAttributes(Path.GetDirectoryName(original)!, FileAttributes.Directory);
+            RestoreDirectoryWritable(directory);
         }
 
         if (viewModel.State is SignSessionState.Ready)
@@ -160,6 +161,30 @@ public sealed class SignSessionViewModelTests
         string path = Path.Combine(directory, "belge.pdf");
         File.WriteAllBytes(path, InMemoryRsaPkcs11Provider.CreateOnePagePdf());
         return path;
+    }
+
+    private static void MakeDirectoryUnwritable(string directory)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            File.SetAttributes(directory, FileAttributes.ReadOnly);
+            return;
+        }
+
+        File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+    }
+
+    private static void RestoreDirectoryWritable(string directory)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            File.SetAttributes(directory, FileAttributes.Directory);
+            return;
+        }
+
+        File.SetUnixFileMode(
+            directory,
+            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
     }
 
     private sealed class FixedPinPrompt(NativePinSession? session) : INativePinPrompt

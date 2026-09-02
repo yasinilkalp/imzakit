@@ -253,7 +253,7 @@ public sealed class SignSessionViewModel : INotifyPropertyChanged
         {
             OutputPath = SignedPdfOutput.Write(FilePath, outcome.SignedPdf);
         }
-        catch (IOException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             ErrorCode = "OUTPUT_UNWRITABLE";
             ErrorMessage = "İmzalı PDF yazılamadı. Farklı konum seçin.";
