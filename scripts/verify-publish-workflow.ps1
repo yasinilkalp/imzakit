@@ -41,6 +41,7 @@ $requiredPatterns = [ordered]@{
     'wix 5.0.2 tool' = 'dotnet tool install --global wix --version 5\.0\.2'
     'wix 5 bootstrapper extension' = 'WixToolset\.BootstrapperApplications\.wixext/5\.0\.2'
     'bundle uses bootstrapper extension' = '-ext WixToolset\.BootstrapperApplications\.wixext'
+    'bundle bindpath finds msi' = '-bindpath artifacts/desktop'
 }
 
 if ($workflow -match 'WixToolset\.Bal\.wixext') {
