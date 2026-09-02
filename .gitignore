@@ -41,3 +41,6 @@ coverage/
 
 # Local tooling
 .superpowers/
+
+# Machine-local ASP.NET debug profiles (ports, launchBrowser)
+**/Properties/launchSettings.json
