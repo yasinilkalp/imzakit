@@ -13,7 +13,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <IsPackable>false</IsPackable>
-    <Version>1.0.0-alpha.13</Version>
+        <Version>1.0.0-alpha.14</Version>
     <PackageProjectUrl>https://github.com/yasinilkalp/imzakit</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yasinilkalp/imzakit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
