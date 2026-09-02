@@ -86,118 +86,9 @@ jobs:
             artifacts/packages/*.snupkg
             artifacts/packages/sbom.cdx.json
 
-  desktop:
-    name: Sign Desktop installer
-    needs: verify-pack
-    runs-on: windows-latest
-    timeout-minutes: 40
-    permissions:
-      contents: read
-    env:
-      IMZAKIT_VERSION: ${{ needs.verify-pack.outputs.version }}
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-
-      - name: Publish Desktop host
-        run: >
-          dotnet publish src/ImzaKit.Hosts.Desktop.App/ImzaKit.Hosts.Desktop.App.csproj
-          -c Release -r win-x64 --self-contained true
-          -o artifacts/desktop-publish
-
-      - name: Copy license files into harvest
-        shell: pwsh
-        run: |
-          Copy-Item LICENSE,NOTICE artifacts/desktop-publish
-          if (-not (Test-Path artifacts/desktop-publish/sbom.cdx.json)) {
-            Set-Content artifacts/desktop-publish/sbom.cdx.json '{}'
-          }
-          if (-not (Test-Path artifacts/desktop-publish/provenance.json)) {
-            Set-Content artifacts/desktop-publish/provenance.json '{}'
-          }
-
-      - name: Emit WiX sources
-        run: >
-          dotnet run --file scripts/emit-desktop-installer.cs --
-          --version ${{ env.IMZAKIT_VERSION }}
-          --publish-dir artifacts/desktop-publish
-          --output-dir artifacts/desktop-wxs
-
-      - name: Install WiX
-        run: dotnet tool install --global wix --version 5.0.2
-
-      - name: Build MSI and setup.exe
-        shell: pwsh
-        run: |
-          wix extension add -g WixToolset.BootstrapperApplications.wixext/5.0.2
-          New-Item -ItemType Directory -Force artifacts/desktop | Out-Null
-          wix build artifacts/desktop-wxs/desktop.wxs -o artifacts/desktop/ImzaKit.Desktop.msi
-          wix build artifacts/desktop-wxs/desktop-bundle.wxs -ext WixToolset.BootstrapperApplications.wixext -bindpath artifacts/desktop -o artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
-
-      - name: Import certificate and sign
-        shell: pwsh
-        env:
-          IMZAKIT_AUTHENTICODE_PFX: ${{ secrets.IMZAKIT_AUTHENTICODE_PFX }}
-          IMZAKIT_AUTHENTICODE_PFX_PASSWORD: ${{ secrets.IMZAKIT_AUTHENTICODE_PFX_PASSWORD }}
-        run: |
-          if ($env:IMZAKIT_VERSION -match '-') {
-            Write-Host 'Prerelease Desktop ships unsigned.'
-            return
-          }
-          if ([string]::IsNullOrWhiteSpace($env:IMZAKIT_AUTHENTICODE_PFX) -or [string]::IsNullOrWhiteSpace($env:IMZAKIT_AUTHENTICODE_PFX_PASSWORD)) {
-            throw 'IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING'
-          }
-          $pfx = Join-Path $env:RUNNER_TEMP 'imzakit.pfx'
-          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:IMZAKIT_AUTHENTICODE_PFX))
-          "IMZAKIT_AUTHENTICODE_PFX=$pfx" | Add-Content $env:GITHUB_ENV
-          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue |
-            Sort-Object FullName -Descending |
-            Select-Object -First 1 -ExpandProperty FullName
-          if ([string]::IsNullOrWhiteSpace($signtool)) {
-            throw 'IMZAKIT.RELEASE.SIGNTOOL_NOT_FOUND'
-          }
-          $files = @(
-            'artifacts/desktop-publish/ImzaKit.Hosts.Desktop.App.exe',
-            'artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe'
-          )
-          foreach ($file in $files) {
-            & $signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $pfx /p $env:IMZAKIT_AUTHENTICODE_PFX_PASSWORD $file
-            if ($LASTEXITCODE -ne 0) { throw "signtool failed for $file" }
-          }
-
-      - name: Authenticode gate
-        run: >
-          dotnet run --file scripts/emit-release-bundle.cs --
-          --package artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
-          --output artifacts/desktop
-          --version ${{ env.IMZAKIT_VERSION }}
-          --commit "${{ github.sha }}"
-          --kind desktop
-          --product ImzaKit.Desktop
-
-      - name: Remove certificate material
-        if: always()
-        shell: pwsh
-        run: |
-          $pfx = Join-Path $env:RUNNER_TEMP 'imzakit.pfx'
-          if (Test-Path $pfx) { Remove-Item $pfx -Force }
-
-      - name: Upload Desktop installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: desktop-installer
-          path: |
-            artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe
-            artifacts/desktop/sbom.cdx.json
-
   publish:
-    name: Publish NuGet and GitHub Release
-    needs: [verify-pack, desktop]
+    name: Publish NuGet
+    needs: verify-pack
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -221,12 +112,6 @@ jobs:
           name: packages
           path: artifacts/packages
 
-      - name: Download Desktop installer
-        uses: actions/download-artifact@v4
-        with:
-          name: desktop-installer
-          path: artifacts/desktop
-
       - name: Publish to GitHub Packages
         shell: bash
         run: |
@@ -249,13 +134,3 @@ jobs:
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --symbol-source https://api.nuget.org/v3/index.json
-
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "v${{ env.IMZAKIT_VERSION }}" \
-            artifacts/desktop/ImzaKit.Desktop-win-x64.setup.exe \
-            artifacts/desktop/sbom.cdx.json \
-            --title "ImzaKit ${{ env.IMZAKIT_VERSION }}" \
-            --notes "Ön sürüm. Desktop setup.exe Authenticode imzasızdır; Windows Unknown publisher gösterebilir. Fiziksel AKİS kabulü iddia edilmez. NuGet paketi Desktop host içermez."

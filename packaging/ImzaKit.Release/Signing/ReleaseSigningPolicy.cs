@@ -4,7 +4,6 @@ public enum ReleaseArtifactKind
 {
     NugetPackage,
     AgentPeOrInstaller,
-    DesktopPeOrInstaller,
     UpdateManifest
 }
 

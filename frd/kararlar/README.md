@@ -11,5 +11,6 @@ Bu dizindeki kararlar İmzaKit MVP tabanı için bağlayıcıdır. Bir karar yal
 | [ADR-005](ADR-005-pdf-motoru-secim-kapisi.md) | PDF motoru seçim kapısı | Kabul edildi |
 | [ADR-006](ADR-006-mvp-kapsami-ve-revocation.md) | MVP kapsamı ve iptal kontrolü | Kabul edildi |
 | [ADR-007](ADR-007-saklama-ve-audit.md) | Saklama ve audit | Kabul edildi |
-| [ADR-008](ADR-008-winui-masaustu-imza-istemcisi.md) | WinUI masaüstü imza istemcisi | Kabul edildi |
+| [ADR-008](ADR-008-winui-masaustu-imza-istemcisi.md) | WinUI masaüstü imza istemcisi | Geçersiz kılındı (ADR-009) |
+| [ADR-009](ADR-009-winui-masaustu-imza-istemcisi-geri-cekildi.md) | WinUI masaüstü imza istemcisinin geri çekilmesi | Kabul edildi |
 

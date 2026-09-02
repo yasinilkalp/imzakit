@@ -5,14 +5,11 @@
 ```mermaid
 flowchart LR
     U[İmzacı] --> W[Müşteri Web/Masaüstü Uygulaması]
-    U --> Desk[İmzaKit Desktop]
     W --> API[İmzaKit API]
     W -->|loopback + operasyon bileti| A[İmzaKit Agent]
     A --> P11[PKCS#11 / AKİS / eToken]
-    Desk --> SDK[İmzaKit SDK]
-    Desk --> P11
     P11 --> K[Kart / Token / HSM]
-    API --> SDK
+    API --> SDK[İmzaKit SDK]
     API --> V[İmzaKit Verify]
     API --> TSA[RFC 3161 TSA]
     API --> E[ESHS OCSP / CRL / AIA]
@@ -20,7 +17,7 @@ flowchart LR
     API --> D[(Belge Saklama)]
 ```
 
-İmzaKit Desktop birinci taraf WinUI host’tur; süreç içinde SDK ve PKCS#11 kullanır. Agent ve API bu yolda zorunlu değildir ([ADR-008](../kararlar/ADR-008-winui-masaustu-imza-istemcisi.md)). Müşteri web/masaüstü uygulaması mevcut bilet + Agent akışını kullanmaya devam eder.
+Müşteri web/masaüstü uygulaması bilet + Agent akışını kullanır. Birinci taraf WinUI host yoktur ([ADR-009](../kararlar/ADR-009-winui-masaustu-imza-istemcisi-geri-cekildi.md)).
 
 ## 2. Modül sınırları
 
@@ -53,7 +50,7 @@ ImzaKit.DependencyInjection
 - `Timestamp`: RFC 3161 request/response ve TSA doğrulaması.
 - `Validation`: format doğrulayıcılarını ve güven politikasını orkestre eder.
 - Format modülleri: imzalanacak byte dizisini hazırlar ve sonuç paketini tamamlar.
-- `Pkcs11`: kart/token/HSM ayrıntılarını Agent ve Desktop dışında gizler.
+- `Pkcs11`: kart/token/HSM ayrıntılarını Agent dışında gizler.
 
 ## 3. Bağımlılık ilkesi
 
@@ -103,8 +100,6 @@ sequenceDiagram
     API-->>App: Sonuç ve doğrulama raporu
 ```
 
-Desktop host aynı PKCS#11 ve PAdES prepare/complete adımlarını süreç içinde çalıştırır; operasyon bileti ve Agent callback yoktur. PIN CredUI native diyaloğundadır.
-
 ## 5. PAdES üretim modeli
 
 - B-B: PDF incremental revision, `/ByteRange`, `/Contents`, detached CMS ve `/SubFilter /ETSI.CAdES.detached`.
@@ -131,7 +126,6 @@ Belge saklama için `IBelgeDeposu` soyutlaması; object key, hash, içerik tür�
 
 - SDK: uygulama içine gömülü NuGet paketleri.
 - Agent: kod imzalı Windows installer, kontrollü auto-update ve rollback.
-- Desktop: kod imzalı WinUI `setup.exe`; GitHub Releases; NuGet ve `site/` ikilisi yok ([ADR-008](../kararlar/ADR-008-winui-masaustu-imza-istemcisi.md)).
 - API/Verify: stateless servisler; Redis ve belge deposuyla yatay ölçeklenir.
 - Ağ erişimi: TSA, OCSP, CRL ve AIA için merkezi, kısıtlı `IExternalResourceFetcher`.
 
@@ -143,4 +137,3 @@ Belge saklama için `IBelgeDeposu` soyutlaması; object key, hash, içerik tür�
 - Türkiye Trust Store ayrı, imzalı ve atomik güncellenen bir paket deposudur.
 - Tamamlanmamış operasyon metadata’sı 24 saat; tamamlanan çıktı ve doğrulama raporu 7 gün saklanır. Redis ham belge tutmaz.
 - Audit append-only yazılır ve her olay önceki olay hash’ini bağlar.
-- İmzaKit Desktop süreç içi PAdES B-B üretir; PIN CredUI’dedir; Agent bileti yoktur ([ADR-008](../kararlar/ADR-008-winui-masaustu-imza-istemcisi.md)).

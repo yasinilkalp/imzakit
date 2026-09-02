@@ -12,7 +12,6 @@
 | CAdES | CMS tabanlı gelişmiş elektronik imza |
 | CMS | Cryptographic Message Syntax; SignedData/SignerInfo yapılarının standardı |
 | CRL / SİL | İptal edilmiş sertifikalar listesi |
-| Desktop | Birinci taraf WinUI 3 Windows imza host’u; PDF seçer, native PIN ile PAdES B-B üretir; NuGet paketine girmez |
 | DataToBeSigned | İmza cihazına gönderilen kesin byte dizisi |
 | DER | ASN.1 için deterministik/canonical kodlama kuralları |
 | DocMDP | PDF’de sertifikasyon imzasının izin verdiği sonraki değişiklikleri tanımlar |

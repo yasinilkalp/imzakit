@@ -17,15 +17,8 @@ $requiredPatterns = [ordered]@{
     'test suite' = 'dotnet test ImzaKit\.slnx -c Release --no-build'
     'single package build' = 'dotnet pack packaging/ImzaKit/ImzaKit\.csproj -c Release --no-build --output artifacts/packages'
     'release bundle emit' = 'scripts/emit-release-bundle\.cs'
-    'desktop installer emit' = 'scripts/emit-desktop-installer\.cs'
-    'desktop kind' = '--kind desktop'
     'sbom artifact' = 'artifacts/packages/sbom\.cdx\.json'
     'provenance key env' = 'IMZAKIT_RELEASE_ECDSA_KEY'
-    'authenticode pfx secret' = 'secrets\.IMZAKIT_AUTHENTICODE_PFX'
-    'authenticode password secret' = 'secrets\.IMZAKIT_AUTHENTICODE_PFX_PASSWORD'
-    'windows desktop job' = 'windows-latest'
-    'setup exe name' = 'ImzaKit\.Desktop-win-x64\.setup\.exe'
-    'gh release' = 'gh release create'
     'package contract' = 'scripts/verify-nuget-package\.ps1'
     'OIDC permission' = '(?m)^\s+id-token:\s*write\s*$'
     'packages write permission' = '(?m)^\s+packages:\s+write\s*$'
@@ -37,21 +30,6 @@ $requiredPatterns = [ordered]@{
     'GitHub Packages source' = 'nuget\.pkg\.github\.com'
     'package path from version' = 'ImzaKit\.\$\{\{ env\.IMZAKIT_VERSION \}\}\.nupkg'
     'NuGet.org source' = 'https://api\.nuget\.org/v3/index\.json'
-    'needs desktop' = 'needs:\s*\[verify-pack, desktop\]'
-    'wix 5.0.2 tool' = 'dotnet tool install --global wix --version 5\.0\.2'
-    'wix 5 bootstrapper extension' = 'WixToolset\.BootstrapperApplications\.wixext/5\.0\.2'
-    'bundle uses bootstrapper extension' = '-ext WixToolset\.BootstrapperApplications\.wixext'
-    'bundle bindpath finds msi' = '-bindpath artifacts/desktop'
-    'signtool from Windows Kits' = 'Windows Kits\\10\\bin'
-    'prerelease unsigned desktop' = 'Prerelease Desktop ships unsigned'
-}
-
-if ($workflow -match 'WixToolset\.Bal\.wixext') {
-    throw 'Publish workflow must pin WixToolset.BootstrapperApplications.wixext/5.0.2; Bal.wixext is an alias that installs WiX 7 on unversioned add.'
-}
-
-if ($workflow -match '(?m)& signtool ') {
-    throw 'Publish workflow must resolve signtool.exe from Windows Kits; it is not on PATH on windows-latest.'
 }
 
 foreach ($requirement in $requiredPatterns.GetEnumerator()) {
@@ -74,6 +52,10 @@ if ($workflow -match '(?i)(api[_-]?key|nuget[_-]?key)\s*:\s*[''\"][^$]') {
 
 if ($workflow -match 'ImzaKit\.1\.0\.0-alpha\.13\.nupkg') {
     throw 'Publish workflow must not hardcode 1.0.0-alpha.13 package paths.'
+}
+
+if ($workflow -match '(?i)Hosts\.Desktop|desktop-installer|setup\.exe|WixToolset') {
+    throw 'Publish workflow must not build or publish a Windows Desktop installer.'
 }
 
 Write-Output 'Publish workflow verification passed.'

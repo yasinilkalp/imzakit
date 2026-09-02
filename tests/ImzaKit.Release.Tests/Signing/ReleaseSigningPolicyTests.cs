@@ -40,27 +40,6 @@ public sealed class ReleaseSigningPolicyTests
     }
 
     [Fact]
-    public void PrereleaseDesktopMayPublishWithoutAuthenticode()
-    {
-        ReleaseSigningPolicy.AssertCanPublish(
-            "1.0.0-alpha.14",
-            ReleaseArtifactKind.DesktopPeOrInstaller,
-            Empty);
-    }
-
-    [Fact]
-    public void StableDesktopNeverPublishesWithoutAuthenticode()
-    {
-        InvalidOperationException stable = Assert.Throws<InvalidOperationException>(() =>
-            ReleaseSigningPolicy.AssertCanPublish(
-                "1.0.0",
-                ReleaseArtifactKind.DesktopPeOrInstaller,
-                new(AuthenticodeCertificatePresent: false, ReleaseEcdsaKeyPresent: true)));
-
-        Assert.Equal("IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING", stable.Message);
-    }
-
-    [Fact]
     public void StableReleaseRequiresAuthenticodeAndProvenanceKey()
     {
         InvalidOperationException authenticode = Assert.Throws<InvalidOperationException>(() =>

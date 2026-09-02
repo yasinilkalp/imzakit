@@ -22,7 +22,6 @@
 
 - Core, Cryptography, CMS, Certificate, Pkcs11, PAdES ve temel Validation
 - Windows Agent + AKİS + eToken profili + native onay/PIN
-- Windows WinUI Desktop host (süreç içi PAdES B-B, paket dışı); MVP kabul kapısını değiştirmez
 - API state machine, Redis metadata ve belge deposu
 - PAdES B-B, görünür/görünmez imza ve temel çoklu revision
 - Türkiye NES politika iskeleti, temel trust chain
@@ -34,7 +33,7 @@
 ### MVP geliştirme giriş kapısı
 
 - ADR-001–ADR-007 kabul edilmiştir.
-- ADR-008 WinUI Desktop host’unu tanımlar; MVP kabul kapısını değiştirmez.
+- ADR-008 WinUI Desktop host’u [ADR-009](../kararlar/ADR-009-winui-masaustu-imza-istemcisi-geri-cekildi.md) ile geçersizdir.
 - MVP OpenAPI 3.1 sözleşmesi doğrulanmıştır.
 - PDF, AKİS ve Agent Faz 0 çalışma planları ile ölçüm girdileri hazırdır.
 - Tüm MVP engelleyici gereksinimler tekil test ve kabul kanıtına bağlıdır.

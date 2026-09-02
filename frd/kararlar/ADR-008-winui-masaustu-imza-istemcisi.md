@@ -2,7 +2,7 @@
 
 ## Durum
 
-Kabul edildi — 31 Ağustos 2026
+Geçersiz kılındı — 3 Eylül 2026 ([ADR-009](ADR-009-winui-masaustu-imza-istemcisi-geri-cekildi.md))
 
 ## Tarih
 

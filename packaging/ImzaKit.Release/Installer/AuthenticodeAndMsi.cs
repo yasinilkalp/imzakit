@@ -85,35 +85,3 @@ public static class AgentMsiDocument
         return xml.ToString();
     }
 }
-
-public static class DesktopMsiDocument
-{
-    public const string UpgradeCode = "E1B47A62-9C3D-4F80-A6D1-5E8C2B9F0147";
-
-    public static string CreateWixSource(DesktopInstallerPayload payload, string harvestDirectory)
-    {
-        ArgumentNullException.ThrowIfNull(payload);
-        ArgumentException.ThrowIfNullOrWhiteSpace(harvestDirectory);
-        string productVersion = WindowsInstallerVersion.FromSemVer(payload.Version);
-        StringBuilder xml = new();
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">""");
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""  <Package Name="ImzaKit Desktop {payload.Version}" Manufacturer="ImzaKit" Version="{productVersion}" UpgradeCode="{UpgradeCode}" Scope="perMachine">""");
-        xml.AppendLine("""    <StandardDirectory Id="ProgramFiles64Folder">""");
-        xml.AppendLine("""      <Directory Name="ImzaKit"><Directory Name="Desktop" Id="INSTALLFOLDER">""");
-        foreach (string file in payload.Files)
-        {
-            string source = Path.Combine(harvestDirectory, file);
-            xml.AppendLine(CultureInfo.InvariantCulture, $"""        <File Source="{source}" />""");
-        }
-
-        xml.AppendLine("""      </Directory></Directory>""");
-        xml.AppendLine("""    </StandardDirectory>""");
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="AuthenticodeRequired" Value="{payload.AuthenticodeRequired}" />""");
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="RuntimeIdentifiers" Value="{string.Join(';', payload.RuntimeIdentifiers)}" />""");
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="Pkcs11AllowlistRoots" Value="{string.Join(';', payload.Pkcs11AllowlistRoots)}" />""");
-        xml.AppendLine(CultureInfo.InvariantCulture, $"""    <Property Id="EtokenPkcs11AllowlistRoots" Value="{string.Join(';', payload.EtokenPkcs11AllowlistRoots)}" />""");
-        xml.AppendLine("""  </Package>""");
-        xml.AppendLine("</Wix>");
-        return xml.ToString();
-    }
-}

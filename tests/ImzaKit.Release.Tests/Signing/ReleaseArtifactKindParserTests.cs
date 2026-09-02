@@ -8,7 +8,6 @@ public sealed class ReleaseArtifactKindParserTests
     [InlineData(null, ReleaseArtifactKind.NugetPackage)]
     [InlineData("nuget", ReleaseArtifactKind.NugetPackage)]
     [InlineData("agent", ReleaseArtifactKind.AgentPeOrInstaller)]
-    [InlineData("desktop", ReleaseArtifactKind.DesktopPeOrInstaller)]
     [InlineData("manifest", ReleaseArtifactKind.UpdateManifest)]
     public void ParsesKnownKinds(string? value, ReleaseArtifactKind expected)
     {
@@ -18,8 +17,11 @@ public sealed class ReleaseArtifactKindParserTests
     [Fact]
     public void RejectsUnknownKind()
     {
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+        InvalidOperationException unknown = Assert.Throws<InvalidOperationException>(
             () => ReleaseArtifactKindParser.Parse("msi"));
-        Assert.Contains("Unknown --kind", ex.Message, StringComparison.Ordinal);
+        InvalidOperationException desktop = Assert.Throws<InvalidOperationException>(
+            () => ReleaseArtifactKindParser.Parse("desktop"));
+        Assert.Contains("Unknown --kind", unknown.Message, StringComparison.Ordinal);
+        Assert.Contains("Unknown --kind", desktop.Message, StringComparison.Ordinal);
     }
 }

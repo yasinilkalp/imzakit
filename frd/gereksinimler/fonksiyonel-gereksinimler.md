@@ -21,7 +21,6 @@ Her gereksinimin tekil fazı, önceliği ve MVP engelleyici durumu [izlenebilirl
 | Preservation CAdES/XAdES | FR-116 | Sonraki | 6 | Hayır |
 | Preservation host tetikleyici | FR-117 | Sonraki | 6 | Hayır |
 | Unix Agent HostReady | FR-118 | Sonraki | 6 | Hayır |
-| Windows Desktop host | FR-119–121 | Yüksek | 1 | Hayır |
 
 ## 1. Ortak SDK
 
@@ -131,13 +130,7 @@ Faz 1’de çevrimiçi OCSP/CRL sorgusu yapılmaz. Gerekli gömülü/yerel iptal
 - **FR-117:** Host, due preservation nesnelerini yapılandırılmış aralıkla tetikleyen bir zamanlayıcı (hosted service veya eşdeğer) çalıştırmalıdır. Yalnız çağıranın `PreservationScheduler.Run` çağırması yeterli sayılmaz.
 - **FR-118:** Unix Agent’ta `HostReady` true ise native PIN ve onay işletim sisteminin güvenli deposu (macOS Keychain, Linux secret-service veya eşdeğeri) üzerinden alınmalıdır. `HostReady` false iken imza oturumu açılmamalıdır. Üretim Windows Agent hedefi [ADR-002](../kararlar/ADR-002-dotnet-platform-tabani.md) ile değişmez.
 
-## 11. Windows Desktop host
-
-- **FR-119:** İmzaKit Desktop, WinUI 3 unpackaged host olarak Windows’ta yerel PAdES B-B imzası üretmelidir. Host `ImzaKit.Hosts.Desktop` adıyla NuGet paketine girmez. Agent bileti, loopback ve API host zorunlu değildir ([ADR-008](../kararlar/ADR-008-winui-masaustu-imza-istemcisi.md)).
-- **FR-120:** Kullanıcı PDF seçmeli, PKCS#11 sertifikasını seçmeli ve PIN’i native CredUI ile girmelidir. İmzalama `InProcessPadesSigningOrchestrator` ile yapılmalı; imzalı PDF `{ad}-imzali.pdf` olarak yazılmalı ve indirme/açma bağlantısı gösterilmelidir. WinUI `PasswordBox` PIN yedek değildir. Vendor PKCS#11 DLL paketlenmemelidir.
-- **FR-121:** Desktop `setup.exe` Authenticode imzalı olmalı, GitHub Releases’te yayımlanmalı ve `site/index.html` bu özelliği sergilemelidir. `setup.exe` ikilisi `site/` klasörüne veya git kaynağına gömülmemelidir. Authenticode yoksa masaüstü installer yayımlanmamalıdır.
-
-## 12. Fonksiyonel olmayan gereksinimler
+## 11. Fonksiyonel olmayan gereksinimler
 
 - **NFR-001 Performans:** 10 MB tipik PDF için sunucu hazırlama/tamamlama hedefi, dış ağ gecikmesi hariç p95 2 saniyenin altında olmalıdır.
 - **NFR-002 Ölçeklenebilirlik:** API ve Verify stateless yatay ölçeklenmelidir.

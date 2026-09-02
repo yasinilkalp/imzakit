@@ -54,13 +54,11 @@ catch (InvalidOperationException exception)
     return 1;
 }
 
-if (kind is ReleaseArtifactKind.AgentPeOrInstaller or ReleaseArtifactKind.DesktopPeOrInstaller)
+if (kind is ReleaseArtifactKind.AgentPeOrInstaller)
 {
     try
     {
-        AuthenticodeGate.RequireFile(
-            package,
-            required: ReleaseSigningPolicy.RequiresAuthenticode(version, kind));
+        AuthenticodeGate.RequireFile(package, required: true);
     }
     catch (InvalidOperationException exception)
     {

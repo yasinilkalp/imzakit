@@ -40,11 +40,6 @@ $required = [ordered]@{
     'Technical guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/docs/imzakit-teknik-kullanim-rehberi.html'
     'Security policy' = 'https://github.com/yasinilkalp/imzakit/blob/main/SECURITY.md'
     'Contribution guide' = 'https://github.com/yasinilkalp/imzakit/blob/main/CONTRIBUTING.md'
-    'Windows app heading' = 'Windows uygulaması'
-    'Windows app English' = 'Sign a PDF with'
-    'Desktop setup download' = 'setup.exe indir'
-    'GitHub Releases latest' = 'https://github.com/yasinilkalp/imzakit/releases/latest'
-    'Desktop not in NuGet' = 'NuGet paketinde yoktur'
     'Skip link' = 'class="skip"'
     'Main landmark' = '<main'
     'Navigation landmark' = '<nav'
@@ -68,6 +63,7 @@ $forbiddenPatterns = [ordered]@{
     'remote image' = '<img\s+[^>]*src\s*=\s*["'']https?://'
     'analytics' = 'google-analytics|googletagmanager|gtag\(|plausible\.io|analytics\.'
     'inline event handler' = '\son(click|change|input|submit)\s*='
+    'Windows desktop app' = 'Windows uygulaması|setup\.exe indir|ImzaKit Desktop'
 }
 foreach ($entry in $forbiddenPatterns.GetEnumerator()) {
     if ($html -match $entry.Value) {
