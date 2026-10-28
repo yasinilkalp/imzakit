@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly run so newly published NuGet advisories fail the build even without code changes.
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build ImzaKit.slnx -c Release
+
+      - name: Test
+        run: dotnet test ImzaKit.slnx -c Release --no-build
+
+      - name: Check vulnerable packages
+        shell: pwsh
+        run: |
+          $report = dotnet list ImzaKit.slnx package --vulnerable --include-transitive 2>&1 | Out-String
+          Write-Output $report
+          if ($LASTEXITCODE -ne 0) { throw 'dotnet list package failed.' }
+          if ($report -match '(?m)^\s+>\s') { throw 'Vulnerable NuGet packages found.' }
