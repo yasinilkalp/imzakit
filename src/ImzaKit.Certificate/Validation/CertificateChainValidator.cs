@@ -73,7 +73,10 @@ public sealed class CertificateChainValidator : ICertificateChainValidator
         X509KeyUsageExtension? leafUsage = certificates[0].Extensions
             .OfType<X509KeyUsageExtension>()
             .FirstOrDefault();
-        if (leafUsage is null || !leafUsage.KeyUsages.HasFlag(X509KeyUsageFlags.DigitalSignature))
+        // Qualified (NES) signing certificates usually assert only nonRepudiation (contentCommitment),
+        // per ETSI EN 319 412-2, so either signing usage is accepted for the leaf.
+        if (leafUsage is null ||
+            (leafUsage.KeyUsages & (X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation)) == 0)
         {
             failures.Add(CertificateValidationFailure.LeafDigitalSignatureMissing);
         }

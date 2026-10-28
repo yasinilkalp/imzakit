@@ -50,21 +50,95 @@ public sealed class PadesValidationService : IPadesValidationService
             };
         }
 
-        if (!TryExtractCms(pdf, out SignedCms? cms)
-            || cms is null
-            || cms.SignerInfos.Count == 0
-            || cms.SignerInfos[0].Certificate is not X509Certificate2 signer)
+        // Every signature gets its own chain, trust, policy and revocation decision; the document
+        // passes only when all of them pass, so a trusted later signer cannot mask an untrusted one.
+        IReadOnlyList<PdfCadesLocatedSignature> located = PdfCadesSignatureReader.ReadAll(pdf);
+        List<ValidationFinding> findings = [.. integrity.Findings.Where(finding => finding.Code != "TrustNotEvaluated")];
+        findings.Add(new("ValidationTimeUntrusted", "Validation uses the configured system time.")
         {
-            return integrity with
+            ReasonCode = ValidationReasonCode.ValidationTimeUntrusted
+        });
+        List<PadesSignatureRevisionReport> signatures = [];
+        List<RevocationEvidenceSource> evidenceSources = [];
+        for (int index = 0; index < integrity.Signatures.Count; index++)
+        {
+            PadesSignatureRevisionReport revision = integrity.Signatures[index];
+            SignatureTrust trust = EvaluateTrust(located[index], context);
+            ValidationStatus status = _decisionEngine.Decide(new(
+                revision.ByteRangeStatus,
+                revision.CryptographicStatus,
+                trust.ChainStatus,
+                trust.TrustStatus,
+                trust.PolicyStatus,
+                trust.RevocationStatus));
+            if (revision.ModificationPolicyStatus == ValidationStatus.Failed)
             {
-                Status = ValidationStatus.Indeterminate,
-                Findings = [new("SignerCertificateMissing", "The signer certificate is not embedded in the CMS container.")],
-                ValidationTime = context.ValidationTimeUtc,
-                ValidationTimeSource = context.ValidationTimeSource,
-                ValidationProfile = context.Profile,
-                TrustStoreVersion = context.TrustStore.Version,
-                PolicyCatalogVersion = context.PolicyCatalog.Version
-            };
+                status = ValidationStatus.Failed;
+            }
+            else if (revision.ModificationPolicyStatus == ValidationStatus.Indeterminate && status == ValidationStatus.Passed)
+            {
+                status = ValidationStatus.Indeterminate;
+            }
+
+            signatures.Add(revision with
+            {
+                Status = status,
+                ChainStatus = trust.ChainStatus,
+                TrustStatus = trust.TrustStatus,
+                PolicyStatus = trust.PolicyStatus,
+                RevocationStatus = trust.RevocationStatus,
+                Findings = [.. revision.Findings, .. trust.Findings]
+            });
+            foreach (ValidationFinding finding in trust.Findings)
+            {
+                if (!findings.Any(existing => existing.Code == finding.Code && existing.Message == finding.Message))
+                {
+                    findings.Add(finding);
+                }
+            }
+
+            evidenceSources.AddRange(trust.EvidenceSources);
+        }
+
+        ValidationStatus overall = Worst(signatures.Select(signature => signature.Status));
+        if (integrity.ModificationPolicyStatus == ValidationStatus.Failed)
+        {
+            overall = ValidationStatus.Failed;
+        }
+
+        return new(
+            overall,
+            integrity.ByteRangeStatus,
+            integrity.CryptographicStatus,
+            Worst(signatures.Select(signature => signature.TrustStatus)),
+            integrity.SignerCertificateSha256,
+            findings)
+        {
+            ChainStatus = Worst(signatures.Select(signature => signature.ChainStatus)),
+            PolicyStatus = Worst(signatures.Select(signature => signature.PolicyStatus)),
+            RevocationStatus = signatures
+                .Select(signature => signature.RevocationStatus ?? RevocationStatus.Unavailable)
+                .MaxBy(RevocationSeverity),
+            ValidationTime = context.ValidationTimeUtc,
+            ValidationTimeSource = context.ValidationTimeSource,
+            ValidationProfile = context.Profile,
+            TrustStoreVersion = context.TrustStore.Version,
+            PolicyCatalogVersion = context.PolicyCatalog.Version,
+            EvidenceSources = [.. evidenceSources.Distinct()],
+            SignatureLevel = integrity.SignatureLevel,
+            ModificationPolicyStatus = integrity.ModificationPolicyStatus,
+            Signatures = signatures
+        };
+    }
+
+    private SignatureTrust EvaluateTrust(PdfCadesLocatedSignature located, ValidationContext context)
+    {
+        SignedCms cms = new(new ContentInfo(located.SignedBytes), detached: true);
+        cms.Decode(located.Cms);
+        if (cms.SignerInfos.Count == 0 || cms.SignerInfos[0].Certificate is not X509Certificate2 signer)
+        {
+            return SignatureTrust.Unavailable(
+                new ValidationFinding("SignerCertificateMissing", "The signer certificate is not embedded in the CMS container."));
         }
 
         CertificateDescriptor leaf = Describe(signer, CertificateSource.Embedded);
@@ -79,29 +153,14 @@ public sealed class PadesValidationService : IPadesValidationService
             .Concat(context.TrustStore.Anchors.Select(anchor => anchor.Certificate))
             .ToArray();
         CertificateChainBuildResult build = _chainBuilder.Build(new(leaf, embedded, local));
-        List<ValidationFinding> findings = integrity.Findings
-            .Where(finding => finding.Code != "TrustNotEvaluated")
-            .ToList();
-        findings.Add(new("ValidationTimeUntrusted", "Validation uses the configured system time.")
-        {
-            ReasonCode = ValidationReasonCode.ValidationTimeUntrusted
-        });
-
         if (build.Status != CertificateChainStatus.Complete || build.Candidate is null)
         {
-            findings.Add(Reason(
+            return SignatureTrust.Unavailable(Reason(
                 ValidationReasonCode.CertificateChainIncomplete,
                 "A complete signer certificate chain could not be built."));
-            return CreateReport(
-                integrity,
-                context,
-                ValidationStatus.Indeterminate,
-                ValidationStatus.Indeterminate,
-                ValidationStatus.Indeterminate,
-                RevocationStatus.Unavailable,
-                findings,
-                []);
         }
+
+        List<ValidationFinding> findings = [];
 
         CertificateChainValidationResult chainValidation = _chainValidator.Validate(new(
             build.Candidate,
@@ -148,64 +207,53 @@ public sealed class PadesValidationService : IPadesValidationService
             findings.Add(MapRevocationFinding(code));
         }
 
-        return CreateReport(
-            integrity,
-            context,
+        return new(
             chainStatus,
             trustStatus,
             policyStatus,
             revocation.Status,
             findings,
-            revocation.Certificates
+            [.. revocation.Certificates
                 .Where(result => result.EvidenceSource is not null)
                 .Select(result => result.EvidenceSource!.Value)
-                .Distinct()
-                .ToArray());
+                .Distinct()]);
     }
 
-    private PadesValidationReport CreateReport(
-        PadesValidationReport integrity,
-        ValidationContext context,
-        ValidationStatus chainStatus,
-        ValidationStatus trustStatus,
-        ValidationStatus policyStatus,
-        RevocationStatus revocationStatus,
-        IReadOnlyList<ValidationFinding> findings,
-        IReadOnlyList<RevocationEvidenceSource> evidenceSources)
-    {
-        ValidationStatus status = _decisionEngine.Decide(new(
-            integrity.ByteRangeStatus,
-            integrity.CryptographicStatus,
-            chainStatus,
-            trustStatus,
-            policyStatus,
-            revocationStatus));
-        if (integrity.ModificationPolicyStatus == ValidationStatus.Failed)
-        {
-            status = ValidationStatus.Failed;
-        }
+    private static ValidationStatus Worst(IEnumerable<ValidationStatus> statuses) =>
+        statuses.Aggregate(ValidationStatus.Passed, (worst, next) => Severity(next) > Severity(worst) ? next : worst);
 
-        return new(
-            status,
-            integrity.ByteRangeStatus,
-            integrity.CryptographicStatus,
-            trustStatus,
-            integrity.SignerCertificateSha256,
-            findings)
-        {
-            ChainStatus = chainStatus,
-            PolicyStatus = policyStatus,
-            RevocationStatus = revocationStatus,
-            ValidationTime = context.ValidationTimeUtc,
-            ValidationTimeSource = context.ValidationTimeSource,
-            ValidationProfile = context.Profile,
-            TrustStoreVersion = context.TrustStore.Version,
-            PolicyCatalogVersion = context.PolicyCatalog.Version,
-            EvidenceSources = evidenceSources,
-            SignatureLevel = integrity.SignatureLevel,
-            ModificationPolicyStatus = integrity.ModificationPolicyStatus,
-            Signatures = integrity.Signatures
-        };
+    private static int Severity(ValidationStatus status) => status switch
+    {
+        ValidationStatus.Failed => 2,
+        ValidationStatus.Indeterminate => 1,
+        _ => 0
+    };
+
+    private static int RevocationSeverity(RevocationStatus status) => status switch
+    {
+        RevocationStatus.Revoked => 5,
+        RevocationStatus.Suspended => 4,
+        RevocationStatus.Invalid => 3,
+        RevocationStatus.Stale => 2,
+        RevocationStatus.Unavailable => 1,
+        _ => 0
+    };
+
+    private sealed record SignatureTrust(
+        ValidationStatus ChainStatus,
+        ValidationStatus TrustStatus,
+        ValidationStatus PolicyStatus,
+        RevocationStatus RevocationStatus,
+        IReadOnlyList<ValidationFinding> Findings,
+        IReadOnlyList<RevocationEvidenceSource> EvidenceSources)
+    {
+        public static SignatureTrust Unavailable(ValidationFinding finding) => new(
+            ValidationStatus.Indeterminate,
+            ValidationStatus.Indeterminate,
+            ValidationStatus.Indeterminate,
+            RevocationStatus.Unavailable,
+            [finding],
+            []);
     }
 
     private static ValidationFinding MapCertificateFailure(CertificateValidationFailure failure) => failure switch
@@ -238,18 +286,4 @@ public sealed class PadesValidationService : IPadesValidationService
 
     private static CertificateDescriptor Describe(X509Certificate2 certificate, CertificateSource source) =>
         CertificateDescriptor.FromDer(certificate.RawData, source);
-
-    private static bool TryExtractCms(ReadOnlySpan<byte> pdf, out SignedCms? cms)
-    {
-        cms = null;
-        if (PdfCadesSignatureReader.TryRead(pdf, out _, out byte[] cmsDer, out byte[] signedBytes)
-            != PdfCadesReadStatus.Success)
-        {
-            return false;
-        }
-
-        cms = new SignedCms(new ContentInfo(signedBytes), detached: true);
-        cms.Decode(cmsDer);
-        return true;
-    }
 }

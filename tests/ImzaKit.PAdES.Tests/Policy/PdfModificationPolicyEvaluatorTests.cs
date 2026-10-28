@@ -100,6 +100,168 @@ public sealed class PdfModificationPolicyEvaluatorTests
             violation => violation.Code == "FieldMdpViolation" && violation.FieldName == "Name");
     }
 
+    [Fact]
+    public void ApprovalSignatureDetectsReplacedContentStream()
+    {
+        byte[] covered = SignedDocument();
+        byte[] tail = Encoding.ASCII.GetBytes(
+            "4 0 obj\n<< /Length 25 >>\nstream\nBT (PAID IN FULL) Tj ET\n\nendstream\nendobj\n" +
+            "trailer\n<< /Size 6 /Root 1 0 R >>\n%%EOF\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        PdfModificationPolicyViolation violation = Assert.Single(result.Violations);
+        Assert.Equal("ContentModifiedAfterSigning", violation.Code);
+        Assert.Contains("object 4", violation.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ApprovalSignatureAllowsSecondSignatureWidgetAndMetadataUpdates()
+    {
+        byte[] covered = SignedDocument();
+        byte[] tail = Encoding.ASCII.GetBytes(
+            "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Annots [8 0 R] >>\nendobj\n" +
+            "5 0 obj\n<< /Fields [6 0 R 8 0 R] /SigFlags 3 >>\nendobj\n" +
+            "7 0 obj\n<< /Type /Sig /SubFilter /ETSI.CAdES.detached >>\nendobj\n" +
+            "8 0 obj\n<< /FT /Sig /Type /Annot /Subtype /Widget /Rect [0 0 10 10] /T (Signature2) /V 7 0 R >>\nendobj\n" +
+            "9 0 obj\n<< /Producer (Other tool) /ModDate (D:20261029) >>\nendobj\n" +
+            "trailer\n<< /Size 10 /Root 1 0 R /Info 9 0 R >>\n%%EOF\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Empty(result.Violations);
+        Assert.True(result.IsComplete);
+    }
+
+    [Fact]
+    public void CommentedDssMarkerDoesNotHideContentChangeUnderNoChanges()
+    {
+        byte[] covered = SignedDocument("/TransformMethod /DocMDP /TransformParams << /P 1 >>");
+        byte[] tail = Encoding.ASCII.GetBytes(
+            "% /Type /DSS\n4 0 obj\n<< /Length 9 >>\nstream\nBT (x) ET\nendstream\nendobj\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Contains(result.Violations, violation => violation.Code == "DocMdpViolation");
+    }
+
+    [Fact]
+    public void CompactDocMdpSyntaxIsRecognised()
+    {
+        byte[] pdf = Covered("/Reference [<</Type/SigRef/TransformMethod/DocMDP/TransformParams<</Type/TransformParams/P 1/V/1.2>>>>]");
+
+        Assert.Equal(PdfCertificationChangeLevel.NoChanges, PdfModificationPolicyInspector.Inspect(pdf).CertificationPermission);
+    }
+
+    [Fact]
+    public void DocMdpWithoutParametersDefaultsToFormFillAndSign()
+    {
+        byte[] pdf = Covered("/Reference [<< /Type /SigRef /TransformMethod /DocMDP >>]");
+
+        Assert.Equal(PdfCertificationChangeLevel.FormFillAndSign, PdfModificationPolicyInspector.Inspect(pdf).CertificationPermission);
+    }
+
+    [Theory]
+    [InlineData("2", true)]
+    [InlineData("3", false)]
+    public void NewPageAnnotationIsForbiddenOnlyBelowAnnotateLevel(string permission, bool forbidden)
+    {
+        byte[] covered = SignedDocument($"/TransformMethod /DocMDP /TransformParams << /P {permission} >>");
+        byte[] tail = Encoding.ASCII.GetBytes(
+            "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Annots [10 0 R] >>\nendobj\n" +
+            "10 0 obj\n<< /Type /Annot /Subtype /Text /Rect [0 0 10 10] /Contents (Approved) >>\nendobj\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Equal(forbidden, result.Violations.Any(violation => violation.Code == "DocMdpViolation"));
+    }
+
+    [Fact]
+    public void ChangesInsideObjectStreamsAreInspected()
+    {
+        byte[] covered = SignedDocument();
+        byte[] tail = ObjectStream(
+            11,
+            (3, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] /Contents 4 0 R >>"));
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Contains(result.Violations, violation => violation.Code == "ContentModifiedAfterSigning");
+        Assert.True(result.IsComplete);
+    }
+
+    [Fact]
+    public void UndecodableObjectStreamMakesAnalysisIncomplete()
+    {
+        byte[] covered = SignedDocument();
+        byte[] tail = Encoding.ASCII.GetBytes(
+            "11 0 obj\n<< /Type /ObjStm /N 1 /First 4 /Filter /FlateDecode /Length 6 >>\nstream\ngarbag\nendstream\nendobj\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Empty(result.Violations);
+        Assert.False(result.IsComplete);
+    }
+
+    [Fact]
+    public void DeletedObjectAndReplacedCatalogAreContentChanges()
+    {
+        byte[] covered = SignedDocument();
+        byte[] deleted = Encoding.ASCII.GetBytes("xref\n4 1\n0000000000 00001 f \ntrailer\n<< /Size 8 /Root 1 0 R >>\n");
+        byte[] replacedRoot = Encoding.ASCII.GetBytes(
+            "12 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\ntrailer\n<< /Size 13 /Root 12 0 R >>\n");
+
+        Assert.Contains(
+            PdfModificationPolicyEvaluator.Evaluate(Concat(covered, deleted), covered.Length).Violations,
+            violation => violation.Message.Contains("deleted", StringComparison.Ordinal));
+        Assert.Contains(
+            PdfModificationPolicyEvaluator.Evaluate(Concat(covered, replacedRoot), covered.Length).Violations,
+            violation => violation.Message.Contains("catalog replaced", StringComparison.Ordinal));
+    }
+
+    // A one-page document with a content stream, an AcroForm and one signature (objects 1-7).
+    private static byte[] SignedDocument(string policy = "") =>
+        Encoding.ASCII.GetBytes(
+            "%PDF-1.7\n" +
+            "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 5 0 R >>\nendobj\n" +
+            "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n" +
+            "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>\nendobj\n" +
+            "4 0 obj\n<< /Length 18 >>\nstream\nBT (Invoice) Tj ET\nendstream\nendobj\n" +
+            "5 0 obj\n<< /Fields [6 0 R] /SigFlags 3 >>\nendobj\n" +
+            "6 0 obj\n<< /FT /Sig /T (Signature1) /V 7 0 R >>\nendobj\n" +
+            $"7 0 obj\n<< /Type /Sig /SubFilter /ETSI.CAdES.detached {policy} >>\nendobj\n" +
+            "trailer\n<< /Size 8 /Root 1 0 R >>\n%%EOF\n");
+
+    private static byte[] ObjectStream(int number, params (int Number, string Body)[] objects)
+    {
+        StringBuilder header = new();
+        StringBuilder bodies = new();
+        foreach ((int objectNumber, string body) in objects)
+        {
+            header.Append(objectNumber).Append(' ').Append(bodies.Length).Append(' ');
+            bodies.Append(body).Append('\n');
+        }
+
+        byte[] plain = Encoding.ASCII.GetBytes(header.ToString() + bodies);
+        using MemoryStream compressed = new();
+        using (System.IO.Compression.ZLibStream deflater = new(compressed, System.IO.Compression.CompressionMode.Compress))
+        {
+            deflater.Write(plain);
+        }
+
+        byte[] data = compressed.ToArray();
+        byte[] prefix = Encoding.ASCII.GetBytes(
+            $"{number} 0 obj\n<< /Type /ObjStm /N {objects.Length} /First {header.Length} /Filter /FlateDecode /Length {data.Length} >>\nstream\n");
+        byte[] suffix = Encoding.ASCII.GetBytes("\nendstream\nendobj\n");
+        return [.. prefix, .. data, .. suffix];
+    }
+
     private static byte[] Covered(string policy) =>
         Encoding.ASCII.GetBytes($"%PDF-1.7\n{policy}\n%%EOF\n");
 

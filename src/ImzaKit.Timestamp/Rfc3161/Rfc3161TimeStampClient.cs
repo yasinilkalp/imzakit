@@ -1,9 +1,7 @@
 using System.Security.Cryptography;
 using ImzaKit.Core.Net;
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Tsp;
-using Org.BouncyCastle.X509;
 
 namespace ImzaKit.Timestamp.Rfc3161;
 
@@ -11,7 +9,6 @@ public sealed class Rfc3161TimeStampClient(
     IExternalResourceFetcher fetcher,
     ITsaCredentialStore? credentials = null)
 {
-    private const string TimeStampingEku = "1.3.6.1.5.5.7.3.8";
     private const int Granted = 0;
     private const int GrantedWithMods = 1;
 
@@ -117,39 +114,12 @@ public sealed class Rfc3161TimeStampClient(
 
         TimeStampToken token = response.TimeStampToken
             ?? throw new InvalidOperationException("IMZAKIT.TS.INVALID_TOKEN");
-        if (!HasTimeStampingEku(token))
+        if (Rfc3161TimeStampTokenVerifier.VerifySignature(token) is not null)
         {
             throw new InvalidOperationException("IMZAKIT.TS.INVALID_TOKEN");
         }
 
         return new Rfc3161TimeStampResult(token.GetEncoded(), nonce);
-    }
-
-    private static bool HasTimeStampingEku(TimeStampToken token)
-    {
-        foreach (object match in token.GetCertificates().EnumerateMatches(null))
-        {
-            if (match is not X509Certificate certificate)
-            {
-                continue;
-            }
-
-            IList<DerObjectIdentifier>? eku = certificate.GetExtendedKeyUsage();
-            if (eku is null)
-            {
-                continue;
-            }
-
-            foreach (DerObjectIdentifier oid in eku)
-            {
-                if (string.Equals(oid.Id, TimeStampingEku, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     private static bool IsTransient(string code) =>

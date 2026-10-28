@@ -12,37 +12,55 @@ public static class PdfModificationPolicyEvaluator
 
         PdfModificationPolicy policy = PdfModificationPolicyInspector.Inspect(pdf);
         string tail = Encoding.ASCII.GetString(pdf[coveredLength..]);
+        if (IsEmptyTail(tail))
+        {
+            return new PdfModificationPolicyEvaluation(policy, []);
+        }
+
+        PdfRevisionChanges changes = PdfRevisionChanges.Compare(pdf, coveredLength);
         List<PdfModificationPolicyViolation> violations = [];
-        AddDocMdpViolations(policy, tail, violations);
+        AddDocMdpViolations(policy, changes, violations);
         AddFieldMdpViolations(policy, tail, violations);
-        return new PdfModificationPolicyEvaluation(policy, violations);
+        return new PdfModificationPolicyEvaluation(policy, violations, changes.Complete);
     }
 
     private static void AddDocMdpViolations(
         PdfModificationPolicy policy,
-        string tail,
+        PdfRevisionChanges changes,
         List<PdfModificationPolicyViolation> violations)
     {
-        if (policy.CertificationPermission != PdfCertificationChangeLevel.NoChanges
-            || IsEmptyTail(tail))
+        // P=1 forbids every addition except DSS and document time-stamps. Higher levels and
+        // approval-only documents are judged by what changed in objects the signer saw.
+        PdfChange? forbidden = policy.CertificationPermission switch
+        {
+            PdfCertificationChangeLevel.NoChanges => changes.Changes
+                .FirstOrDefault(change => change.Kind > PdfChangeKind.Preservation),
+            PdfCertificationChangeLevel.FormFillAndSign => FirstModification(changes, PdfChangeKind.Annotation),
+            _ => FirstModification(changes, PdfChangeKind.Content),
+        };
+        if (forbidden is null)
         {
             return;
         }
 
-        if (!IsPreservationTail(tail))
-        {
-            violations.Add(new(
+        violations.Add(policy.CertificationPermission == PdfCertificationChangeLevel.None
+            ? new(
+                "ContentModifiedAfterSigning",
+                $"The signed document content was changed by a later revision ({forbidden.Description}).")
+            : new(
                 "DocMdpViolation",
-                "The document was changed after a DocMDP certification that forbids changes."));
-        }
+                $"The document was changed after a DocMDP certification that does not permit it ({forbidden.Description})."));
     }
+
+    private static PdfChange? FirstModification(PdfRevisionChanges changes, PdfChangeKind minimum) =>
+        changes.Changes.FirstOrDefault(change => change.ModifiesExistingObject && change.Kind >= minimum);
 
     private static void AddFieldMdpViolations(
         PdfModificationPolicy policy,
         string tail,
         List<PdfModificationPolicyViolation> violations)
     {
-        if (policy.FieldLockAction == PdfFieldLockAction.None || IsEmptyTail(tail))
+        if (policy.FieldLockAction == PdfFieldLockAction.None)
         {
             return;
         }
@@ -64,16 +82,6 @@ public static class PdfModificationPolicyEvaluator
                 fieldName));
         }
     }
-
-    private static bool IsPreservationTail(string tail) =>
-        !tail.Contains("/SubFilter /ETSI.CAdES.detached", StringComparison.Ordinal)
-        && !tail.Contains("/FT /Tx", StringComparison.Ordinal)
-        && !tail.Contains("/FT /Btn", StringComparison.Ordinal)
-        && !tail.Contains("/FT /Ch", StringComparison.Ordinal)
-        && !tail.Contains("/Type /Page", StringComparison.Ordinal)
-        && (tail.Contains("/Type /DSS", StringComparison.Ordinal)
-            || tail.Contains("/Type /DocTimeStamp", StringComparison.Ordinal)
-            || tail.Contains("/SubFilter /ETSI.RFC3161", StringComparison.Ordinal));
 
     private static bool Locks(PdfModificationPolicy policy, string fieldName)
     {

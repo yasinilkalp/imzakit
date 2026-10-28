@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using ImzaKit.Certificate.Building;
 using ImzaKit.Certificate.Validation;
 using ImzaKit.Revocation.Evaluation;
@@ -89,6 +90,68 @@ public sealed class PadesValidationServiceTests
         Assert.Equal(ValidationStatus.Indeterminate, report.ChainStatus);
         Assert.Contains(report.Findings, finding =>
             finding.ReasonCode == ValidationReasonCode.CertificateChainIncomplete);
+    }
+
+    [Fact]
+    public void UntrustedEarlierSignatureIsNotMaskedByTrustedLaterSignature()
+    {
+        using SignedPdfFixture fixture = SignedPdfFixture.Create();
+        using X509Certificate2 untrusted = fixture.CreateUntrustedSigner();
+        byte[] pdf = SignedPdfFixture.Sign(
+            SignedPdfFixture.Sign(SignedPdfFixture.CreateUnsignedPdf(), untrusted),
+            fixture.Pki.Leaf);
+
+        PadesValidationReport report = CreateService().Validate(pdf, fixture.CreateContext(includeGoodCrl: true));
+
+        Assert.Equal(2, report.Signatures.Count);
+        Assert.NotEqual(ValidationStatus.Passed, report.Signatures[0].Status);
+        Assert.Equal(ValidationStatus.Passed, report.Signatures[1].Status);
+        Assert.Equal(ValidationStatus.Failed, report.Signatures[0].TrustStatus);
+        Assert.Equal(ValidationStatus.Failed, report.TrustStatus);
+        Assert.Equal(ValidationStatus.Failed, report.Status);
+        Assert.Contains(report.Findings, finding => finding.ReasonCode == ValidationReasonCode.TrustAnchorNotFound);
+    }
+
+    [Fact]
+    public void UntrustedLaterSignatureFailsDocumentSignedByTrustedSigner()
+    {
+        using SignedPdfFixture fixture = SignedPdfFixture.Create();
+        using X509Certificate2 untrusted = fixture.CreateUntrustedSigner();
+        byte[] pdf = SignedPdfFixture.Sign(fixture.Pdf, untrusted);
+
+        PadesValidationReport report = CreateService().Validate(pdf, fixture.CreateContext(includeGoodCrl: true));
+
+        Assert.Equal(ValidationStatus.Passed, report.Signatures[0].Status);
+        Assert.NotEqual(ValidationStatus.Passed, report.Signatures[1].Status);
+        Assert.NotEqual(ValidationStatus.Passed, report.Status);
+    }
+
+    [Fact]
+    public void EverySignatureByTrustedSignerPassesIndividually()
+    {
+        using SignedPdfFixture fixture = SignedPdfFixture.Create();
+        byte[] pdf = SignedPdfFixture.Sign(fixture.Pdf, fixture.Pki.Leaf);
+
+        PadesValidationReport report = CreateService().Validate(pdf, fixture.CreateContext(includeGoodCrl: true));
+
+        Assert.All(report.Signatures, signature =>
+        {
+            Assert.Equal(ValidationStatus.Passed, signature.Status);
+            Assert.Equal(ValidationStatus.Passed, signature.TrustStatus);
+            Assert.Equal(RevocationStatus.Good, signature.RevocationStatus);
+        });
+        Assert.Equal(ValidationStatus.Passed, report.Status);
+    }
+
+    [Fact]
+    public void QualifiedSignerWithOnlyNonRepudiationUsagePasses()
+    {
+        using SignedPdfFixture fixture = SignedPdfFixture.Create(nonRepudiationOnlySigner: true);
+
+        PadesValidationReport report = CreateService().Validate(fixture.Pdf, fixture.CreateContext(includeGoodCrl: true));
+
+        Assert.Equal(ValidationStatus.Passed, report.ChainStatus);
+        Assert.Equal(ValidationStatus.Passed, report.Status);
     }
 
     private static PadesValidationService CreateService() => new(

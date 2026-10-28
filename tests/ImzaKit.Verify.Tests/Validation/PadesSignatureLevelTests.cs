@@ -94,6 +94,46 @@ public sealed class PadesSignatureLevelTests
     }
 
     [Fact]
+    public async Task TamperedSignatureTimeStampDoesNotCountAsBaselineT()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit Verify forged B-T");
+        using TestTsaResponder tsa = new();
+        byte[] pdf = FlipLastCmsByte(await SignBaselineT(rsa, certificate.Export(X509ContentType.Cert), tsa));
+
+        PadesValidationReport report = PadesValidator.Validate(pdf);
+
+        Assert.Equal(ValidationStatus.Passed, report.CryptographicStatus);
+        Assert.Equal(PadesBaselineLevel.BB, report.SignatureLevel);
+        Assert.Contains(report.Findings, finding => finding.Code == "SignatureTimeStampInvalid");
+    }
+
+    [Fact]
+    public async Task TamperedDocumentTimeStampDoesNotCountAsBaselineLta()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit Verify forged B-LTA");
+        byte[] certificateDer = certificate.Export(X509ContentType.Cert);
+        using TestTsaResponder tsa = new();
+        byte[] longTerm = PadesSignatureCompleter.EmbedBaselineLt(
+            await SignBaselineT(rsa, certificateDer, tsa),
+            new PadesValidationMaterial([certificateDer, tsa.CertificateDer]));
+        byte[] archived = await PadesSignatureCompleter.CompleteBaselineLta(
+            longTerm,
+            new Rfc3161TimeStampClient(new ScriptedFetcher((_, body) => tsa.Grant(body))),
+            [new TimeStampAuthority("archive", new Uri("https://tsa.example/rfc3161"))],
+            tokenCapacity: 8192,
+            CancellationToken.None);
+        byte[] pdf = FlipLastCmsByte(archived);
+
+        PadesValidationReport report = PadesValidator.Validate(pdf);
+
+        Assert.Equal(ValidationStatus.Passed, report.CryptographicStatus);
+        Assert.Equal(PadesBaselineLevel.BLT, report.SignatureLevel);
+        Assert.Contains(report.Findings, finding => finding.Code == "DocumentTimeStampInvalid");
+    }
+
+    [Fact]
     public void DssWithoutSignatureTimestampRemainsBB()
     {
         using RSA rsa = RSA.Create(2048);
@@ -110,6 +150,25 @@ public sealed class PadesSignatureLevelTests
         Assert.Equal(ValidationStatus.Passed, report.CryptographicStatus);
         Assert.Equal(PadesBaselineLevel.BB, report.SignatureLevel);
         Assert.Contains("/Type /DSS", Encoding.ASCII.GetString(pdf), StringComparison.Ordinal);
+    }
+
+    // Flips the final byte of the last /Contents CMS: the time-stamp authority's signature, which sits in
+    // an unsigned attribute (B-T) or is the document time-stamp itself, so the outer signature stays valid.
+    private static byte[] FlipLastCmsByte(byte[] pdf)
+    {
+        string text = Encoding.ASCII.GetString(pdf);
+        int hexStart = text.LastIndexOf("/Contents <", StringComparison.Ordinal) + "/Contents <".Length;
+        byte[] header = Convert.FromHexString(text.AsSpan(hexStart, 12));
+        int length = header[1] switch
+        {
+            0x82 => 4 + ((header[2] << 8) | header[3]),
+            0x81 => 3 + header[2],
+            _ => 2 + header[1],
+        };
+        int lastHexDigit = hexStart + (length * 2) - 1;
+        byte[] tampered = pdf.ToArray();
+        tampered[lastHexDigit] = (byte)(tampered[lastHexDigit] == (byte)'0' ? '1' : '0');
+        return tampered;
     }
 
     private static byte[] SignBaselineB(RSA rsa, byte[] certificateDer)

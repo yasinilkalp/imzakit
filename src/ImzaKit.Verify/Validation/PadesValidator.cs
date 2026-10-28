@@ -41,6 +41,12 @@ public static class PadesValidator
         }
 
         PadesValidationReport combined = last! with { Signatures = signatures };
+        if (signatures.Any(signature => signature.CryptographicStatus == ValidationStatus.Passed
+                && signature.ModificationPolicyStatus == ValidationStatus.Indeterminate))
+        {
+            combined = combined with { ModificationPolicyStatus = ValidationStatus.Indeterminate };
+        }
+
         if (signatures.Any(signature =>
                 signature.ByteRangeStatus == ValidationStatus.Failed
                 || signature.CryptographicStatus == ValidationStatus.Failed
@@ -144,7 +150,17 @@ public static class PadesValidator
             }
 
             bool modificationFailed = modification.Violations.Count > 0;
-            string? level = PdfCadesSignatureReader.DetectLevel(pdf, cms);
+            ValidationStatus modificationStatus = modificationFailed
+                ? ValidationStatus.Failed
+                : modification.IsComplete ? ValidationStatus.Passed : ValidationStatus.Indeterminate;
+            if (modificationStatus == ValidationStatus.Indeterminate)
+            {
+                findings.Add(new(
+                    "ModificationAnalysisIncomplete",
+                    "Later revisions contain objects that could not be analysed, so changes after signing cannot be ruled out."));
+            }
+
+            string? level = PdfCadesSignatureReader.DetectLevel(pdf, cms, findings);
             PadesValidationReport passed = new(
                 modificationFailed ? ValidationStatus.Failed : ValidationStatus.Indeterminate,
                 ValidationStatus.Passed,
@@ -154,7 +170,7 @@ public static class PadesValidator
                 findings)
             {
                 SignatureLevel = level,
-                ModificationPolicyStatus = modificationFailed ? ValidationStatus.Failed : ValidationStatus.Passed
+                ModificationPolicyStatus = modificationStatus
             };
             revision = ToRevision(
                 index,
@@ -225,7 +241,14 @@ public static class PadesValidator
             modificationPolicyStatus,
             fingerprint,
             signatureLevel,
-            findings);
+            findings)
+        {
+            Status = byteRangeStatus == ValidationStatus.Failed
+                || cryptographicStatus == ValidationStatus.Failed
+                || modificationPolicyStatus == ValidationStatus.Failed
+                    ? ValidationStatus.Failed
+                    : ValidationStatus.Indeterminate
+        };
 
     private static PadesValidationReport FailedByteRange(string code, string message) =>
         new(ValidationStatus.Failed, ValidationStatus.Failed, ValidationStatus.Indeterminate,

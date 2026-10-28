@@ -12,6 +12,12 @@ namespace ImzaKit.Revocation.Parsing;
 
 public sealed class BouncyCastleRevocationEvidenceParser : IRevocationEvidenceParser
 {
+    private static readonly HashSet<string> SupportedCriticalCrlExtensions =
+    [
+        X509Extensions.IssuingDistributionPoint.Id,
+        X509Extensions.DeltaCrlIndicator.Id
+    ];
+
     public ParsedRevocationEvidence Parse(
         RevocationEvidence evidence,
         CertificateDescriptor certificate,
@@ -106,7 +112,30 @@ public sealed class BouncyCastleRevocationEvidenceParser : IRevocationEvidencePa
         }
 
         X509CrlEntry? entry = crl.GetRevokedCertificate(targetCertificate.SerialNumber);
+        IssuingDistributionPoint? scope = ReadIssuingDistributionPoint(crl);
+
+        // RFC 5280: a CRL with critical extensions we cannot process must not be used, and indirect
+        // CRLs need per-entry issuer tracking that is not implemented.
+        if (HasUnsupportedCriticalExtension(crl.GetCriticalExtensionOids(), SupportedCriticalCrlExtensions)
+            || (entry is not null && HasUnsupportedCriticalExtension(entry.GetCriticalExtensionOids(), [])
+            || scope?.IsIndirectCrl == true))
+        {
+            return new(RevocationStatus.Invalid, true, signatureValid, false, AsUtc(crl.ThisUpdate),
+                crl.NextUpdate is DateTime unusableNextUpdate ? AsUtc(unusableNextUpdate) : null, null);
+        }
+
         int? reasonCode = entry is null ? null : ReadCrlReason(entry);
+
+        // A missing entry only proves the certificate is not revoked when the CRL is a complete list
+        // for it; a delta CRL or a partitioned/reason-limited CRL leaves the question to other evidence.
+        bool complete = crl.GetExtensionValue(X509Extensions.DeltaCrlIndicator) is null
+            && Covers(scope, targetCertificate);
+        if ((entry is null && !complete) || reasonCode == CrlReason.RemoveFromCrl)
+        {
+            return new(RevocationStatus.Unavailable, false, signatureValid, false, AsUtc(crl.ThisUpdate),
+                crl.NextUpdate is DateTime partialNextUpdate ? AsUtc(partialNextUpdate) : null, null);
+        }
+
         RevocationStatus status = entry switch
         {
             null => RevocationStatus.Good,
@@ -124,6 +153,45 @@ public sealed class BouncyCastleRevocationEvidenceParser : IRevocationEvidencePa
             crl.NextUpdate is DateTime nextUpdate ? AsUtc(nextUpdate) : null,
             reasonCode is int value ? ReasonName(value) : null);
     }
+
+    private static IssuingDistributionPoint? ReadIssuingDistributionPoint(X509Crl crl)
+    {
+        Asn1OctetString? extension = crl.GetExtensionValue(X509Extensions.IssuingDistributionPoint);
+        return extension is null
+            ? null
+            : IssuingDistributionPoint.GetInstance(Asn1Object.FromByteArray(extension.GetOctets()));
+    }
+
+    private static bool Covers(IssuingDistributionPoint? scope, BcX509Certificate certificate)
+    {
+        if (scope is null)
+        {
+            return true;
+        }
+
+        bool isCa = certificate.GetBasicConstraints() >= 0;
+        if (scope.OnlySomeReasons is not null
+            || scope.OnlyContainsAttributeCerts
+            || (scope.OnlyContainsUserCerts && isCa)
+            || (scope.OnlyContainsCACerts && !isCa))
+        {
+            return false;
+        }
+
+        if (scope.DistributionPoint is null)
+        {
+            return true;
+        }
+
+        Asn1OctetString? points = certificate.GetExtensionValue(X509Extensions.CrlDistributionPoints);
+        return points is not null
+            && CrlDistPoint.GetInstance(Asn1Object.FromByteArray(points.GetOctets()))
+                .GetDistributionPoints()
+                .Any(point => scope.DistributionPoint.Equals(point.DistributionPointName));
+    }
+
+    private static bool HasUnsupportedCriticalExtension(IEnumerable<string>? critical, HashSet<string> supported) =>
+        critical?.Any(oid => !supported.Contains(oid)) == true;
 
     private static bool CrlAuthorityKeyMatchesIssuer(X509Crl crl, CertificateDescriptor issuer)
     {

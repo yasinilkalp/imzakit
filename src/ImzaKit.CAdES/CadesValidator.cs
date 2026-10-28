@@ -1,12 +1,12 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using ImzaKit.Timestamp.Rfc3161;
 
 namespace ImzaKit.CAdES;
 
 public static class CadesValidator
 {
-    private const string SignatureTimeStampOid = "1.2.840.113549.1.9.16.2.14";
     private const string CertificateValuesOid = "1.2.840.113549.1.9.16.2.23";
     private const string RevocationValuesOid = "1.2.840.113549.1.9.16.2.24";
     private const string ArchiveTimeStampOid = "1.2.840.113549.1.9.16.2.48";
@@ -74,13 +74,20 @@ public static class CadesValidator
             index,
             crypto,
             fingerprint,
-            DetectLevel(signer),
+            DetectLevel(signer, findings),
             findings);
     }
 
-    private static string DetectLevel(SignerInfo signer)
+    // A time-stamp only lifts the level when its token verifies over this signature value.
+    private static string DetectLevel(SignerInfo signer, List<string> findings)
     {
-        bool timestamp = HasOid(signer, SignatureTimeStampOid);
+        Rfc3161TimeStampTokenVerification? signatureTimeStamp = CadesSignatureTimeStampVerifier.Verify(signer);
+        if (signatureTimeStamp is { IsValid: false })
+        {
+            findings.Add("SignatureTimeStampInvalid");
+        }
+
+        bool timestamp = signatureTimeStamp is { IsValid: true };
         bool longTerm = HasOid(signer, CertificateValuesOid) || HasOid(signer, RevocationValuesOid);
         bool archive = HasOid(signer, ArchiveTimeStampOid);
         return (timestamp, longTerm, archive) switch

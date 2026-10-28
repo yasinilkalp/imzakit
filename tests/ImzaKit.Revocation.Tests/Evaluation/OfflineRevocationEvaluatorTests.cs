@@ -25,6 +25,23 @@ public sealed class OfflineRevocationEvaluatorTests
     }
 
     [Fact]
+    public void DeltaCrlAloneFailsClosedButFullCrlStillDecides()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create();
+        RevocationEvidence delta = Evidence(RevocationEvidenceType.Crl, RevocationEvidenceSource.Embedded,
+            RevocationEvidenceFixture.CreateCrl(pki, delta: true));
+        RevocationEvidence full = Evidence(RevocationEvidenceType.Crl, RevocationEvidenceSource.Local,
+            RevocationEvidenceFixture.CreateCrl(pki));
+
+        OfflineRevocationResult deltaOnly = Evaluate(pki, [delta]);
+        OfflineRevocationResult withFull = Evaluate(pki, [delta, full]);
+
+        Assert.Equal(RevocationStatus.Unavailable, deltaOnly.Status);
+        Assert.Equal(RevocationStatus.Good, withFull.Status);
+        Assert.Equal(RevocationEvidenceSource.Local, withFull.Certificates[0].EvidenceSource);
+    }
+
+    [Fact]
     public void EmbeddedOcspWinsOverLocalOcspAndEmbeddedCrl()
     {
         using TestCertificateAuthority pki = TestCertificateAuthority.Create();

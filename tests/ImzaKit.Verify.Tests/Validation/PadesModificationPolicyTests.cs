@@ -6,6 +6,7 @@ using ImzaKit.Cms.Preparation;
 using ImzaKit.Core.Net;
 using ImzaKit.Core.Signing;
 using ImzaKit.Cryptography.Digests;
+using ImzaKit.PAdES.Appearance;
 using ImzaKit.PAdES.Completion;
 using ImzaKit.PAdES.Dss;
 using ImzaKit.PAdES.Preparation;
@@ -90,7 +91,39 @@ public sealed class PadesModificationPolicyTests
         Assert.DoesNotContain(report.Findings, finding => finding.Code is "DocMdpViolation" or "FieldMdpViolation");
     }
 
-    private static byte[] Sign(byte[] originalPdf)
+    [Fact]
+    public void ShadowAttackSwappingPageContentAfterApprovalSignatureFails()
+    {
+        byte[] signed = Sign(CreateOnePagePdf());
+        byte[] pdf = Append(
+            signed,
+            "\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 20 0 R >>\nendobj\n" +
+            "20 0 obj\n<< /Length 30 >>\nstream\nBT /F1 24 Tf (PAID IN FULL) Tj ET\nendstream\nendobj\n" +
+            "trailer\n<< /Size 21 /Root 1 0 R >>\n%%EOF\n");
+
+        PadesValidationReport report = PadesValidator.Validate(pdf);
+
+        Assert.Equal(ValidationStatus.Passed, report.CryptographicStatus);
+        Assert.Equal(ValidationStatus.Failed, report.ModificationPolicyStatus);
+        Assert.Equal(ValidationStatus.Failed, report.Status);
+        Assert.Contains(report.Findings, finding => finding.Code == "ContentModifiedAfterSigning");
+    }
+
+    [Fact]
+    public void VisibleSecondSignatureDoesNotCountAsContentChange()
+    {
+        byte[] first = Sign(CreateOnePagePdf());
+        byte[] pdf = Sign(first, PadesSignatureAppearance.Visible(1, 50, 50, 250, 100, "Ikinci imza"));
+
+        PadesValidationReport report = PadesValidator.Validate(pdf);
+
+        Assert.Equal(2, report.Signatures.Count);
+        Assert.All(report.Signatures, signature =>
+            Assert.Equal(ValidationStatus.Passed, signature.ModificationPolicyStatus));
+        Assert.DoesNotContain(report.Findings, finding => finding.Code == "ContentModifiedAfterSigning");
+    }
+
+    private static byte[] Sign(byte[] originalPdf, PadesSignatureAppearance? appearance = null)
     {
         using RSA rsa = RSA.Create(2048);
         using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit Verify MDP");
@@ -105,7 +138,8 @@ public sealed class PadesModificationPolicyTests
                 cmsCapacity: 4096,
                 certificateDer,
                 fingerprint,
-                prepareVersion: 1);
+                prepareVersion: 1,
+                appearance);
         byte[] signature = rsa.SignData(
             preparation.SignaturePreparation.DataToBeSigned.Span,
             HashAlgorithmName.SHA256,

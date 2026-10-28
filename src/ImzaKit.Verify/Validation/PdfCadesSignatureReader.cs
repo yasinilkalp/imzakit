@@ -1,7 +1,9 @@
 using System.Globalization;
-using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Text;
+using System.Text.RegularExpressions;
+using ImzaKit.CAdES;
+using ImzaKit.Timestamp.Rfc3161;
 
 namespace ImzaKit.Verify.Validation;
 
@@ -21,49 +23,21 @@ internal sealed record PdfCadesLocatedSignature(
     int CoveredLength,
     string? FieldName);
 
-internal static class PdfCadesSignatureReader
+internal static partial class PdfCadesSignatureReader
 {
-    private const string CadesSubFilter = "/SubFilter /ETSI.CAdES.detached";
-    private const string ByteRangeMarker = "/ByteRange [";
-    private const string SignatureTimeStampOid = "1.2.840.113549.1.9.16.2.14";
+    internal static IReadOnlyList<PdfCadesLocatedSignature> ReadAll(ReadOnlySpan<byte> pdf) =>
+        ReadAll(pdf, CadesSubFilter());
 
-    internal static PdfCadesReadStatus TryRead(
-        ReadOnlySpan<byte> pdf,
-        out long[] byteRange,
-        out byte[] cms,
-        out byte[] signedBytes)
-    {
-        IReadOnlyList<PdfCadesLocatedSignature> signatures = ReadAll(pdf);
-        if (signatures.Count == 0)
-        {
-            byteRange = [];
-            cms = [];
-            signedBytes = [];
-            return PdfCadesReadStatus.NotFound;
-        }
+    internal static IReadOnlyList<PdfCadesLocatedSignature> ReadDocumentTimeStamps(ReadOnlySpan<byte> pdf) =>
+        ReadAll(pdf, DocumentTimeStampSubFilter());
 
-        PdfCadesLocatedSignature last = signatures[^1];
-        byteRange = last.ByteRange;
-        cms = last.Cms;
-        signedBytes = last.SignedBytes;
-        return last.Status;
-    }
-
-    internal static IReadOnlyList<PdfCadesLocatedSignature> ReadAll(ReadOnlySpan<byte> pdf)
+    private static IReadOnlyList<PdfCadesLocatedSignature> ReadAll(ReadOnlySpan<byte> pdf, Regex subFilter)
     {
         string text = Encoding.ASCII.GetString(pdf);
         List<PdfCadesLocatedSignature> signatures = [];
-        int search = 0;
-        while (true)
+        foreach (Match match in subFilter.Matches(text))
         {
-            int subFilter = text.IndexOf(CadesSubFilter, search, StringComparison.Ordinal);
-            if (subFilter < 0)
-            {
-                break;
-            }
-
-            search = subFilter + CadesSubFilter.Length;
-            signatures.Add(ReadOne(pdf, text, subFilter));
+            signatures.Add(ReadOne(pdf, text, match.Index));
         }
 
         return [.. signatures.OrderBy(signature => signature.CoveredLength)
@@ -86,13 +60,24 @@ internal static class PdfCadesSignatureReader
         return count;
     }
 
-    internal static string DetectLevel(ReadOnlySpan<byte> pdf, SignedCms cms)
+    // Time-stamps only count towards a level when their tokens verify: the signature time-stamp
+    // over this signature value, and every document time-stamp over its own ByteRange.
+    internal static string DetectLevel(ReadOnlySpan<byte> pdf, SignedCms cms, List<ValidationFinding> findings)
     {
         string text = Encoding.ASCII.GetString(pdf);
-        bool hasTimestamp = HasSignatureTimeStamp(cms);
-        bool hasDss = text.Contains("/Type /DSS", StringComparison.Ordinal);
-        bool hasDocTimeStamp = text.Contains("/Type /DocTimeStamp", StringComparison.Ordinal)
-            && text.Contains("/SubFilter /ETSI.RFC3161", StringComparison.Ordinal);
+        Rfc3161TimeStampTokenVerification? signatureTimeStamp = cms.SignerInfos.Count == 0
+            ? null
+            : CadesSignatureTimeStampVerifier.Verify(cms.SignerInfos[0]);
+        if (signatureTimeStamp is { IsValid: false })
+        {
+            findings.Add(new(
+                "SignatureTimeStampInvalid",
+                $"The signature time-stamp does not verify ({signatureTimeStamp.FailureCode})."));
+        }
+
+        bool hasTimestamp = signatureTimeStamp is { IsValid: true };
+        bool hasDss = DssDictionary().IsMatch(text);
+        bool hasDocTimeStamp = HasValidDocumentTimeStamps(pdf, findings);
         return (hasTimestamp, hasDss, hasDocTimeStamp) switch
         {
             (true, true, true) => PadesBaselineLevel.BLTA,
@@ -102,15 +87,33 @@ internal static class PdfCadesSignatureReader
         };
     }
 
+    private static bool HasValidDocumentTimeStamps(ReadOnlySpan<byte> pdf, List<ValidationFinding> findings)
+    {
+        IReadOnlyList<PdfCadesLocatedSignature> timeStamps = ReadDocumentTimeStamps(pdf);
+        foreach (PdfCadesLocatedSignature timeStamp in timeStamps)
+        {
+            string? failure = timeStamp.Status != PdfCadesReadStatus.Success
+                ? "IMZAKIT.TS.TOKEN_MALFORMED"
+                : Rfc3161TimeStampTokenVerifier.Verify(timeStamp.Cms, timeStamp.SignedBytes).FailureCode;
+            if (failure is not null)
+            {
+                findings.Add(new(
+                    "DocumentTimeStampInvalid",
+                    $"A document time-stamp does not verify over its ByteRange ({failure})."));
+                return false;
+            }
+        }
+
+        return timeStamps.Count > 0;
+    }
+
     private static PdfCadesLocatedSignature ReadOne(ReadOnlySpan<byte> pdf, string text, int subFilter)
     {
         string? fieldName = ReadFieldName(text, subFilter);
         int dictionaryStart = text.LastIndexOf("<<", subFilter, StringComparison.Ordinal);
-        int markerIndex = dictionaryStart < 0
-            ? -1
-            : text.IndexOf(ByteRangeMarker, dictionaryStart, StringComparison.Ordinal);
-        if (markerIndex < 0
-            || !TryReadByteRange(text, markerIndex + ByteRangeMarker.Length, out long[] byteRange)
+        Match marker = dictionaryStart < 0 ? Match.Empty : ByteRangeMarker().Match(text, dictionaryStart);
+        if (!marker.Success
+            || !TryReadByteRange(text, marker.Index + marker.Length, out long[] byteRange)
             || !TryValidateByteRange(pdf.Length, byteRange, out int firstLength, out int secondOffset, out int secondLength))
         {
             return new(PdfCadesReadStatus.InvalidByteRange, [], [], [], pdf.Length, fieldName);
@@ -165,24 +168,6 @@ internal static class PdfCadesSignatureReader
         int nameStart = nameToken + 4;
         int nameEnd = text.IndexOf(')', nameStart);
         return nameEnd < 0 || nameEnd > windowEnd ? null : text[nameStart..nameEnd];
-    }
-
-    private static bool HasSignatureTimeStamp(SignedCms cms)
-    {
-        if (cms.SignerInfos.Count == 0)
-        {
-            return false;
-        }
-
-        foreach (CryptographicAttributeObject attribute in cms.SignerInfos[0].UnsignedAttributes)
-        {
-            if (attribute.Oid?.Value == SignatureTimeStampOid)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static bool TryReadByteRange(string text, int start, out long[] values)
@@ -280,4 +265,16 @@ internal static class PdfCadesSignatureReader
         totalLength = 2 + lengthByteCount + contentLength;
         return totalLength <= encoded.Length;
     }
+
+    [GeneratedRegex(@"/SubFilter\s*/ETSI\.CAdES\.detached\b")]
+    private static partial Regex CadesSubFilter();
+
+    [GeneratedRegex(@"/SubFilter\s*/ETSI\.RFC3161\b")]
+    private static partial Regex DocumentTimeStampSubFilter();
+
+    [GeneratedRegex(@"/ByteRange\s*\[")]
+    private static partial Regex ByteRangeMarker();
+
+    [GeneratedRegex(@"/Type\s*/DSS\b")]
+    private static partial Regex DssDictionary();
 }

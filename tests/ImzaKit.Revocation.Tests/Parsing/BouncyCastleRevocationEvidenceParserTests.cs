@@ -151,6 +151,79 @@ public sealed class BouncyCastleRevocationEvidenceParserTests
         Assert.False(result.ResponderAuthorized);
     }
 
+    [Fact]
+    public void DeltaCrlWithoutEntryDoesNotProveCertificateGood()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create();
+
+        ParsedRevocationEvidence result = Parse(Crl(RevocationEvidenceFixture.CreateCrl(pki, delta: true)), pki);
+
+        Assert.NotEqual(RevocationStatus.Good, result.Status);
+        Assert.False(result.TargetMatches);
+    }
+
+    [Fact]
+    public void DeltaCrlListingCertificateStillRevokesIt()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create();
+
+        ParsedRevocationEvidence result = Parse(
+            Crl(RevocationEvidenceFixture.CreateCrl(pki, CrlReason.KeyCompromise, delta: true)), pki);
+
+        Assert.Equal(RevocationStatus.Revoked, result.Status);
+        Assert.True(result.TargetMatches);
+    }
+
+    [Theory]
+    [InlineData("reasons")]
+    [InlineData("ca-only")]
+    [InlineData("other-partition")]
+    public void PartialScopeCrlWithoutEntryDoesNotProveCertificateGood(string partition)
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(crlDistributionUri: "http://crl.example/leaf.crl");
+        IssuingDistributionPoint scope = partition switch
+        {
+            "reasons" => new(null, false, false, new ReasonFlags(ReasonFlags.KeyCompromise), false, false),
+            "ca-only" => new(null, false, true, null, false, false),
+            _ => new(DistributionPoint("http://crl.example/other.crl"), false, false, null, false, false),
+        };
+
+        ParsedRevocationEvidence result = Parse(Crl(RevocationEvidenceFixture.CreateCrl(pki, scope: scope)), pki);
+
+        Assert.NotEqual(RevocationStatus.Good, result.Status);
+        Assert.False(result.TargetMatches);
+    }
+
+    [Fact]
+    public void PartitionedCrlForCertificateDistributionPointProvesGood()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(crlDistributionUri: "http://crl.example/leaf.crl");
+        IssuingDistributionPoint scope = new(DistributionPoint("http://crl.example/leaf.crl"), true, false, null, false, false);
+
+        ParsedRevocationEvidence result = Parse(Crl(RevocationEvidenceFixture.CreateCrl(pki, scope: scope)), pki);
+
+        Assert.Equal(RevocationStatus.Good, result.Status);
+        Assert.True(result.TargetMatches);
+    }
+
+    [Fact]
+    public void CrlWithUnknownCriticalExtensionIsNotUsed()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create();
+
+        ParsedRevocationEvidence result = Parse(
+            Crl(RevocationEvidenceFixture.CreateCrl(pki, unknownCriticalExtension: true)), pki);
+
+        Assert.Equal(RevocationStatus.Invalid, result.Status);
+        Assert.False(result.ResponderAuthorized);
+    }
+
+    private static RevocationEvidence Crl(byte[] encoded) =>
+        new(RevocationEvidenceType.Crl, RevocationEvidenceSource.Local, encoded);
+
+    private static DistributionPointName DistributionPoint(string uri) =>
+        new(new GeneralNames(new GeneralName(GeneralName.UniformResourceIdentifier, uri)));
+
     private static ParsedRevocationEvidence Parse(RevocationEvidence evidence, TestCertificateAuthority pki) =>
         new BouncyCastleRevocationEvidenceParser().Parse(
             evidence,

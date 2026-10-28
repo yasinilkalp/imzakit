@@ -50,7 +50,8 @@ public sealed class TestCertificateAuthority : IDisposable
         bool useSha1Signatures = false,
         string? ocspUri = null,
         string? crlDistributionUri = null,
-        bool includeQcCompliance = false)
+        bool includeQcCompliance = false,
+        bool leafHasNonRepudiation = false)
     {
         DateTimeOffset now = new(2026, 8, 23, 12, 0, 0, TimeSpan.Zero);
         if (useSha1Signatures)
@@ -84,8 +85,11 @@ public sealed class TestCertificateAuthority : IDisposable
             signatureHash,
             RSASignaturePadding.Pkcs1);
         leafRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
+        X509KeyUsageFlags leafUsage =
+            (leafHasDigitalSignature ? X509KeyUsageFlags.DigitalSignature : X509KeyUsageFlags.None) |
+            (leafHasNonRepudiation ? X509KeyUsageFlags.NonRepudiation : X509KeyUsageFlags.None);
         leafRequest.CertificateExtensions.Add(new X509KeyUsageExtension(
-            leafHasDigitalSignature ? X509KeyUsageFlags.DigitalSignature : X509KeyUsageFlags.KeyEncipherment,
+            leafUsage == X509KeyUsageFlags.None ? X509KeyUsageFlags.KeyEncipherment : leafUsage,
             true));
         leafRequest.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(leafRequest.PublicKey, false));
         leafRequest.CertificateExtensions.Add(CreateCertificatePoliciesExtension(leafPolicyOid));

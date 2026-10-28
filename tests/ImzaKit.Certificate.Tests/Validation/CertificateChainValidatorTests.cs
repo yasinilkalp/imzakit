@@ -104,6 +104,20 @@ public sealed class CertificateChainValidatorTests
     }
 
     [Fact]
+    public void ValidateAcceptsQualifiedLeafWithOnlyNonRepudiationUsage()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(
+            leafHasDigitalSignature: false,
+            leafHasNonRepudiation: true);
+
+        CertificateChainValidationResult result = new CertificateChainValidator().Validate(
+            new CertificateChainValidationRequest(CreateCandidate(pki), pki.ReferenceTimeUtc));
+
+        Assert.DoesNotContain(CertificateValidationFailure.LeafDigitalSignatureMissing, result.Failures);
+        Assert.Equal(CertificateChainStatus.Valid, result.Status);
+    }
+
+    [Fact]
     public void ValidateRejectsSha1CertificateSignatures()
     {
         using TestCertificateAuthority pki = TestCertificateAuthority.Create(useSha1Signatures: true);

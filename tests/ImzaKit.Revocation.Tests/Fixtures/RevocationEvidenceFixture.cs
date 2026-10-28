@@ -99,7 +99,10 @@ internal static class RevocationEvidenceFixture
         int? reason = null,
         bool wrongSerial = false,
         bool mismatchedIssuerName = false,
-        bool mismatchedAuthorityKey = false)
+        bool mismatchedAuthorityKey = false,
+        bool delta = false,
+        IssuingDistributionPoint? scope = null,
+        bool unknownCriticalExtension = false)
     {
         BcX509Certificate issuer = DotNetUtilities.FromX509Certificate(pki.Intermediate);
         BcX509Certificate leaf = DotNetUtilities.FromX509Certificate(pki.Leaf);
@@ -124,6 +127,21 @@ internal static class RevocationEvidenceFixture
                 X509Extensions.AuthorityKeyIdentifier,
                 false,
                 new AuthorityKeyIdentifier(RandomNumberGenerator.GetBytes(20)));
+        }
+
+        if (delta)
+        {
+            generator.AddExtension(X509Extensions.DeltaCrlIndicator, true, new CrlNumber(Org.BouncyCastle.Math.BigInteger.One));
+        }
+
+        if (scope is not null)
+        {
+            generator.AddExtension(X509Extensions.IssuingDistributionPoint, true, scope);
+        }
+
+        if (unknownCriticalExtension)
+        {
+            generator.AddExtension(new DerObjectIdentifier("1.3.6.1.4.1.99999.1"), true, DerNull.Instance);
         }
 
         X509Crl crl = generator.Generate(new Asn1SignatureFactory(

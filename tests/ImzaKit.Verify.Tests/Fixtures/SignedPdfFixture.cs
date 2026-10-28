@@ -30,32 +30,48 @@ internal sealed class SignedPdfFixture : IDisposable
 
     internal byte[] Pdf { get; }
 
-    internal static SignedPdfFixture Create()
+    internal static SignedPdfFixture Create(bool nonRepudiationOnlySigner = false)
     {
-        TestCertificateAuthority pki = TestCertificateAuthority.Create();
-        byte[] certificateDer = pki.Leaf.Export(X509ContentType.Cert);
+        TestCertificateAuthority pki = nonRepudiationOnlySigner
+            ? TestCertificateAuthority.Create(leafHasDigitalSignature: false, leafHasNonRepudiation: true)
+            : TestCertificateAuthority.Create();
+        return new(pki, Sign(CreateOnePagePdf(), pki.Leaf));
+    }
+
+    internal static byte[] Sign(byte[] pdf, X509Certificate2 signer)
+    {
+        byte[] certificateDer = signer.Export(X509ContentType.Cert);
         string fingerprint = Convert.ToHexString(SHA256.HashData(certificateDer));
         Guid operationId = Guid.NewGuid();
         PadesSignaturePreparation preparation = new PadesSignaturePreparer(
             new CmsSignaturePreparer(new ImzaKit.Cryptography.Digests.DefaultDigestCalculator())).Prepare(
                 operationId,
                 "OFFLINE-TRUST-TEST",
-                CreateOnePagePdf(),
+                pdf,
                 4096,
                 certificateDer,
                 fingerprint,
                 1);
-        using RSA leafKey = pki.Leaf.GetRSAPrivateKey()!;
-        byte[] signature = leafKey.SignData(
+        using RSA signerKey = signer.GetRSAPrivateKey()!;
+        byte[] signature = signerKey.SignData(
             preparation.SignaturePreparation.DataToBeSigned.Span,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
-        byte[] pdf = PadesSignatureCompleter.Complete(
+        return PadesSignatureCompleter.Complete(
             preparation,
             SignatureCompletion.Create(operationId, 1, fingerprint, signature),
             certificateDer);
-        return new(pki, pdf);
     }
+
+    internal X509Certificate2 CreateUntrustedSigner()
+    {
+        RSA key = RSA.Create(2048);
+        CertificateRequest request = new("CN=Ahmet Yilmaz", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, true));
+        return request.CreateSelfSigned(Pki.ReferenceTimeUtc.AddDays(-1), Pki.ReferenceTimeUtc.AddDays(30));
+    }
+
+    internal static byte[] CreateUnsignedPdf() => CreateOnePagePdf();
 
     internal ValidationContext CreateContext(bool includeGoodCrl, bool includeIntermediate = true)
     {

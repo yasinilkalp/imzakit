@@ -1,103 +1,90 @@
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ImzaKit.PAdES.Policy;
 
-public static class PdfModificationPolicyInspector
+public static partial class PdfModificationPolicyInspector
 {
     public static PdfModificationPolicy Inspect(ReadOnlySpan<byte> pdf)
     {
         string source = Encoding.ASCII.GetString(pdf);
         PdfCertificationChangeLevel certification = ReadCertificationPermission(source);
-        PdfFieldLockAction fieldAction = ReadFieldLockAction(source);
-        string[] fieldNames = fieldAction == PdfFieldLockAction.None
+        IReadOnlyDictionary<string, string>? fieldParameters = ReadTransformParameters(source, FieldMdpTransform());
+        PdfFieldLockAction fieldAction = ReadFieldLockAction(fieldParameters);
+        string[] fieldNames = fieldAction == PdfFieldLockAction.None || fieldParameters is null
             ? []
-            : ReadFieldNames(source);
+            : [.. PdfSyntax.LiteralStrings(fieldParameters.GetValueOrDefault("/Fields") ?? "")];
         return new PdfModificationPolicy(certification, fieldAction, fieldNames);
     }
 
     private static PdfCertificationChangeLevel ReadCertificationPermission(string source)
     {
-        int transformIndex = source.IndexOf("/TransformMethod /DocMDP", StringComparison.Ordinal);
-        if (transformIndex < 0)
+        if (!DocMdpTransform().IsMatch(source))
         {
             return PdfCertificationChangeLevel.None;
         }
 
-        int parametersIndex = source.IndexOf("/TransformParams", transformIndex, StringComparison.Ordinal);
-        int permissionIndex = source.IndexOf("/P", parametersIndex, StringComparison.Ordinal);
-        if (parametersIndex < 0 || permissionIndex < 0)
+        // ISO 32000: /P defaults to 2 when the transform parameters or the entry are absent.
+        IReadOnlyDictionary<string, string>? parameters = ReadTransformParameters(source, DocMdpTransform());
+        return parameters?.GetValueOrDefault("/P") switch
         {
-            return PdfCertificationChangeLevel.NoChanges;
-        }
-
-        ReadOnlySpan<char> value = source.AsSpan(permissionIndex + 2).TrimStart();
-        return value.Length == 0 ? PdfCertificationChangeLevel.NoChanges : value[0] switch
-        {
-            '2' => PdfCertificationChangeLevel.FormFillAndSign,
-            '3' => PdfCertificationChangeLevel.FormFillSignAndAnnotate,
-            _ => PdfCertificationChangeLevel.NoChanges,
+            "1" => PdfCertificationChangeLevel.NoChanges,
+            "3" => PdfCertificationChangeLevel.FormFillSignAndAnnotate,
+            _ => PdfCertificationChangeLevel.FormFillAndSign,
         };
     }
 
-    private static PdfFieldLockAction ReadFieldLockAction(string source)
+    private static PdfFieldLockAction ReadFieldLockAction(IReadOnlyDictionary<string, string>? parameters)
     {
-        int transformIndex = source.IndexOf("/TransformMethod /FieldMDP", StringComparison.Ordinal);
-        if (transformIndex < 0)
+        if (parameters is null)
         {
             return PdfFieldLockAction.None;
         }
 
-        int actionIndex = source.IndexOf("/Action /", transformIndex, StringComparison.Ordinal);
-        if (actionIndex < 0)
+        return parameters.GetValueOrDefault("/Action") switch
         {
-            return PdfFieldLockAction.All;
-        }
-
-        ReadOnlySpan<char> action = source.AsSpan(actionIndex + "/Action /".Length);
-        if (action.StartsWith("Include", StringComparison.Ordinal))
-        {
-            return PdfFieldLockAction.Include;
-        }
-
-        return action.StartsWith("Exclude", StringComparison.Ordinal)
-            ? PdfFieldLockAction.Exclude
-            : PdfFieldLockAction.All;
+            "/Include" => PdfFieldLockAction.Include,
+            "/Exclude" => PdfFieldLockAction.Exclude,
+            _ => PdfFieldLockAction.All,
+        };
     }
 
-    private static string[] ReadFieldNames(string source)
+    // Returns the /TransformParams dictionary that follows the first matching transform method,
+    // an empty dictionary when the method has no parameters, or null when the method is absent.
+    private static IReadOnlyDictionary<string, string>? ReadTransformParameters(string source, Regex transform)
     {
-        int fieldsIndex = source.IndexOf("/Fields [", StringComparison.Ordinal);
-        if (fieldsIndex < 0)
+        Match method = transform.Match(source);
+        if (!method.Success)
         {
-            return [];
+            return null;
         }
 
-        int endIndex = source.IndexOf(']', fieldsIndex);
-        if (endIndex < 0)
+        // Dictionary keys are unordered, so the parameters may precede or follow the method.
+        Match parameters = TransformParams().Match(source, method.Index + method.Length);
+        if (!parameters.Success || parameters.Index - method.Index > 1024)
         {
-            return [];
+            int windowStart = Math.Max(0, method.Index - 1024);
+            parameters = TransformParams().Matches(source[windowStart..method.Index]) is { Count: > 0 } before
+                ? TransformParams().Match(source, windowStart + before[^1].Index)
+                : Match.Empty;
         }
 
-        List<string> fields = [];
-        int index = fieldsIndex + "/Fields [".Length;
-        while (index < endIndex)
+        if (!parameters.Success)
         {
-            int start = source.IndexOf('(', index, endIndex - index);
-            if (start < 0)
-            {
-                break;
-            }
-
-            int end = source.IndexOf(')', start + 1, endIndex - start - 1);
-            if (end < 0)
-            {
-                break;
-            }
-
-            fields.Add(source[(start + 1)..end]);
-            index = end + 1;
+            return new Dictionary<string, string>();
         }
 
-        return fields.ToArray();
+        int start = parameters.Index + parameters.Length;
+        int end = PdfSyntax.FindDictionaryEnd(source, start);
+        return end < 0 ? new Dictionary<string, string>() : PdfSyntax.ParseDictionary(source[start..end]);
     }
+
+    [GeneratedRegex(@"/TransformMethod\s*/DocMDP\b")]
+    private static partial Regex DocMdpTransform();
+
+    [GeneratedRegex(@"/TransformMethod\s*/FieldMDP\b")]
+    private static partial Regex FieldMdpTransform();
+
+    [GeneratedRegex(@"/TransformParams\s*(?=<<)")]
+    private static partial Regex TransformParams();
 }
