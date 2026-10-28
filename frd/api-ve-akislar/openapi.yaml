@@ -387,10 +387,16 @@ components:
     TimeStampAuthority:
       type: object
       additionalProperties: false
-      required: [name, url]
+      description: >-
+        Selects a TSA from the server-side registry (IMZAKIT_TSA_AUTHORITIES) by name.
+        Unknown names are rejected with 422; the endpoint and credentials always come from the registry.
+      required: [name]
       properties:
         name: { type: string, minLength: 1, maxLength: 128 }
-        url: { type: string, format: uri }
+        url:
+          type: string
+          format: uri
+          description: Optional; when present it must equal the registered URL for the name.
     SignatureExtension:
       type: object
       required: [extensionId, fromLevel, toLevel, result]

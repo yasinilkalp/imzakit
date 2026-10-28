@@ -161,9 +161,70 @@ public sealed class SignatureExtendRequestHandlerTests
         Assert.Equal(200, response.StatusCode);
     }
 
-    private static string CreateExtendBody(string targetLevel = "B-T", string validationProfile = "TurkiyeNes") =>
+    [Fact]
+    public void UnregisteredTimeStampAuthorityIsRejectedBeforeExtension()
+    {
+        HandlerFixture fixture = new();
+
+        ApiHttpResponse response = fixture.Handler.Handle(HandlerFixture.Post(
+            "/v1/signatures/extend",
+            CreateExtendBody(authorities: """[{"name":"attacker","url":"https://attacker.example/collect"}]""")));
+
+        Assert.Equal(422, response.StatusCode);
+        Assert.Equal(0, fixture.Extensions.Calls);
+    }
+
+    [Fact]
+    public void RegisteredTimeStampAuthorityWithForeignUrlIsRejected()
+    {
+        HandlerFixture fixture = new();
+
+        ApiHttpResponse response = fixture.Handler.Handle(HandlerFixture.Post(
+            "/v1/signatures/extend",
+            CreateExtendBody(authorities: """[{"name":"primary","url":"http://attacker.example/rfc3161"}]""")));
+
+        Assert.Equal(422, response.StatusCode);
+        Assert.Equal(0, fixture.Extensions.Calls);
+    }
+
+    [Fact]
+    public void TimeStampAuthorityNameResolvesToRegisteredEndpoint()
+    {
+        HandlerFixture fixture = new();
+
+        fixture.Handler.Handle(HandlerFixture.Post(
+            "/v1/signatures/extend",
+            CreateExtendBody(authorities: """[{"name":"PRIMARY"}]""")));
+
+        SignatureExtensionAuthority authority = Assert.Single(fixture.Extensions.LastRequest!.TimeStampAuthorities);
+        Assert.Equal("primary", authority.Name);
+        Assert.Equal(new Uri("https://tsa.example/rfc3161"), authority.Url);
+    }
+
+    [Fact]
+    public void RegistryFromEnvironmentParsesEntriesAndRejectsMalformedOnes()
+    {
+        TimeStampAuthorityRegistry registry = TimeStampAuthorityRegistry.FromEnvironment(name =>
+            name == "IMZAKIT_TSA_AUTHORITIES" ? "kamusm=http://tzd.kamusm.gov.tr; backup = https://tsa.example/rfc3161" : null);
+
+        Assert.True(registry.TryResolve("backup", out SignatureExtensionAuthority? backup));
+        Assert.Equal(new Uri("https://tsa.example/rfc3161"), backup.Url);
+        Assert.Equal(2, registry.Authorities.Count);
+        Assert.Same(TimeStampAuthorityRegistry.Empty, TimeStampAuthorityRegistry.FromEnvironment(_ => null));
+        Assert.Throws<InvalidOperationException>(() => TimeStampAuthorityRegistry.FromEnvironment(_ => "no-url"));
+        Assert.Throws<InvalidOperationException>(() => TimeStampAuthorityRegistry.FromEnvironment(_ => "a=ftp://tsa.example"));
+        Assert.Throws<InvalidOperationException>(() =>
+            TimeStampAuthorityRegistry.FromEnvironment(_ => "a=https://one.example;A=https://two.example"));
+    }
+
+    private const string DefaultAuthorities = """[{"name":"primary","url":"https://tsa.example/rfc3161"}]""";
+
+    private static string CreateExtendBody(
+        string targetLevel = "B-T",
+        string validationProfile = "TurkiyeNes",
+        string authorities = DefaultAuthorities) =>
         $$"""
-        {"document":{"objectKey":"tenant-a/uploads/signed.pdf","sha256":"{{Digest}}","size":2048},"targetLevel":"{{targetLevel}}","validationProfile":"{{validationProfile}}","timeStampAuthorities":[{"name":"primary","url":"https://tsa.example/rfc3161"}]}
+        {"document":{"objectKey":"tenant-a/uploads/signed.pdf","sha256":"{{Digest}}","size":2048},"targetLevel":"{{targetLevel}}","validationProfile":"{{validationProfile}}","timeStampAuthorities":{{authorities}}}
         """;
 
     private sealed class HandlerFixture
@@ -181,7 +242,9 @@ public sealed class SignatureExtendRequestHandlerTests
                 new SignatureOperationService(new InMemoryIdempotencyStore()),
                 new StaticApiCallerResolver(new ApiCallerIdentity(authenticated, "tenant-1", "app-1")),
                 issuer,
-                extensions: extensions ?? Extensions);
+                extensions: extensions ?? Extensions,
+                timeStampAuthorities: new TimeStampAuthorityRegistry(
+                    [new SignatureExtensionAuthority("primary", new Uri("https://tsa.example/rfc3161"))]));
         }
 
         public static ApiHttpRequest Post(
@@ -209,10 +272,13 @@ public sealed class SignatureExtendRequestHandlerTests
     {
         public int Calls { get; private set; }
 
+        public SignatureExtensionRequest? LastRequest { get; private set; }
+
         public SignatureExtensionOutcome Extend(SignatureExtensionRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);
             Calls++;
+            LastRequest = request;
             return next;
         }
     }

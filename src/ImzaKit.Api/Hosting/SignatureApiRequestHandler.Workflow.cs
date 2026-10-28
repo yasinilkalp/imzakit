@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using ImzaKit.Api.Idempotency;
 using ImzaKit.Api.Problems;
@@ -7,7 +8,11 @@ namespace ImzaKit.Api.Hosting;
 
 public sealed partial class SignatureApiRequestHandler
 {
-    private ApiHttpResponse HandleEnvelopeResource(ApiHttpRequest request, string correlationId, string tail)
+    private ApiHttpResponse HandleEnvelopeResource(
+        ApiHttpRequest request,
+        ApiCallerIdentity caller,
+        string correlationId,
+        string tail)
     {
         string[] parts = tail.Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0 || !Guid.TryParse(parts[0], out Guid envelopeId))
@@ -17,7 +22,7 @@ public sealed partial class SignatureApiRequestHandler
 
         if (parts.Length == 1 && string.Equals(request.Method, "GET", StringComparison.OrdinalIgnoreCase))
         {
-            return _envelopes.TryGetValue(envelopeId, out SignatureEnvelope? envelope)
+            return TryGetEnvelope(envelopeId, caller, out SignatureEnvelope? envelope)
                 ? JsonResult(200, SerializeEnvelope(envelope), correlationId)
                 : Problem(ApiProblemKind.NotFound, correlationId);
         }
@@ -26,7 +31,7 @@ public sealed partial class SignatureApiRequestHandler
             && string.Equals(parts[1], "report", StringComparison.OrdinalIgnoreCase)
             && string.Equals(request.Method, "GET", StringComparison.OrdinalIgnoreCase))
         {
-            if (!_envelopes.TryGetValue(envelopeId, out SignatureEnvelope? envelope))
+            if (!TryGetEnvelope(envelopeId, caller, out SignatureEnvelope? envelope))
             {
                 return Problem(ApiProblemKind.NotFound, correlationId);
             }
@@ -51,24 +56,26 @@ public sealed partial class SignatureApiRequestHandler
             return missingKey!;
         }
 
+        idempotencyKey = ScopeIdempotencyKey(caller.TenantId, idempotencyKey);
         return parts[3] switch
         {
-            "prepare" => MutateEnvelope(request, correlationId, envelopeId, idempotencyKey, 200,
+            "prepare" => MutateEnvelope(request, caller, correlationId, envelopeId, idempotencyKey, 200,
                 envelope => SignatureFlowCoordinator.PrepareStep(envelope, stepIndex, DateTimeOffset.UtcNow)),
-            "complete" => CompleteEnvelopeStep(request, correlationId, envelopeId, stepIndex, idempotencyKey),
-            "reject" => MutateEnvelope(request, correlationId, envelopeId, idempotencyKey, 200,
+            "complete" => CompleteEnvelopeStep(request, caller, correlationId, envelopeId, stepIndex, idempotencyKey),
+            "reject" => MutateEnvelope(request, caller, correlationId, envelopeId, idempotencyKey, 200,
                 envelope => SignatureFlowCoordinator.RejectStep(envelope, stepIndex, DateTimeOffset.UtcNow)),
             _ => Problem(ApiProblemKind.NotFound, correlationId)
         };
     }
 
-    private ApiHttpResponse CreateEnvelope(ApiHttpRequest request, string correlationId)
+    private ApiHttpResponse CreateEnvelope(ApiHttpRequest request, ApiCallerIdentity caller, string correlationId)
     {
         if (!TryReadIdempotencyKey(request, out string idempotencyKey, out ApiHttpResponse? missingKey))
         {
             return missingKey!;
         }
 
+        idempotencyKey = ScopeIdempotencyKey(caller.TenantId, idempotencyKey);
         string hash = CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body);
         if (TryReplay(idempotencyKey, hash, correlationId, out ApiHttpResponse? replayed))
         {
@@ -94,11 +101,12 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(ApiProblemKind.Unprocessable, correlationId);
         }
 
-        return StoreEnvelope(idempotencyKey, hash, envelope, 201, correlationId);
+        return StoreEnvelope(caller.TenantId, idempotencyKey, hash, envelope, 201, correlationId);
     }
 
     private ApiHttpResponse CompleteEnvelopeStep(
         ApiHttpRequest request,
+        ApiCallerIdentity caller,
         string correlationId,
         Guid envelopeId,
         int stepIndex,
@@ -109,7 +117,7 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(ApiProblemKind.Unprocessable, correlationId);
         }
 
-        return MutateEnvelope(request, correlationId, envelopeId, idempotencyKey, 200,
+        return MutateEnvelope(request, caller, correlationId, envelopeId, idempotencyKey, 200,
             envelope => SignatureFlowCoordinator.CompleteStep(
                 envelope,
                 stepIndex,
@@ -121,6 +129,7 @@ public sealed partial class SignatureApiRequestHandler
 
     private ApiHttpResponse MutateEnvelope(
         ApiHttpRequest request,
+        ApiCallerIdentity caller,
         string correlationId,
         Guid envelopeId,
         string idempotencyKey,
@@ -133,7 +142,7 @@ public sealed partial class SignatureApiRequestHandler
             return replayed!;
         }
 
-        if (!_envelopes.TryGetValue(envelopeId, out SignatureEnvelope? envelope))
+        if (!TryGetEnvelope(envelopeId, caller, out SignatureEnvelope? envelope))
         {
             return Problem(ApiProblemKind.NotFound, correlationId);
         }
@@ -144,7 +153,18 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(MapWorkflowProblem(result.ProblemCode), correlationId);
         }
 
-        return StoreEnvelope(idempotencyKey, hash, result.Envelope, successStatus, correlationId);
+        return StoreEnvelope(caller.TenantId, idempotencyKey, hash, result.Envelope, successStatus, correlationId);
+    }
+
+    private bool TryGetEnvelope(
+        Guid envelopeId,
+        ApiCallerIdentity caller,
+        [NotNullWhen(true)] out SignatureEnvelope? envelope)
+    {
+        envelope = _envelopes.TryGetValue(envelopeId, out OwnedEnvelope? owned) && IsOwner(owned.TenantId, caller)
+            ? owned.Envelope
+            : null;
+        return envelope is not null;
     }
 
     private bool TryReplay(string idempotencyKey, string hash, string correlationId, out ApiHttpResponse? response)
@@ -167,6 +187,7 @@ public sealed partial class SignatureApiRequestHandler
     }
 
     private ApiHttpResponse StoreEnvelope(
+        string tenantId,
         string idempotencyKey,
         string hash,
         SignatureEnvelope envelope,
@@ -174,7 +195,7 @@ public sealed partial class SignatureApiRequestHandler
         string correlationId)
     {
         string body = SerializeEnvelope(envelope);
-        _envelopes[envelope.Id] = envelope;
+        _envelopes[envelope.Id] = new OwnedEnvelope(tenantId, envelope);
         _envelopeIdempotency.Store(idempotencyKey, hash, new EnvelopeReplay(statusCode, body));
         return JsonResult(statusCode, body, correlationId);
     }

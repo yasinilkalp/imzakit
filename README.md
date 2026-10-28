@@ -115,6 +115,8 @@ AKİS quirk’leri `NativePkcs11ProviderOptions.ForAkis()`, eToken quirk’leri 
 
 MVP HTTP sözleşmesi `SignatureApiRequestHandler` ile uygulanır. Üretim Kestrel host (`ImzaKit.Hosts.Api`) paket dışındadır; HTTPS üzerinde `AllowCertificate` mTLS kullanır, özel cihaz CA’sini OS store ile doğrulamaz ve client sertifikasını `MutualTlsRequestMapper` ile işler. Redis benzeri `RedisMetadataStore` belge tutmaz; `FileSystemBlobStore` object-store bağları içindir. PIN yalnız `AddImzaKitWindowsAgent()` native penceresinde alınır.
 
+İşlem, doğrulama ve zarf kayıtları çağıranın tenant’ına bağlıdır; başka tenant’ın kaydı `404` döner ve idempotency anahtarları tenant başına ayrılır. Completion token yalnız üretildiği işlem için, süresi dolmadan ve bir kez geçerlidir. `/v1/signatures/extend` TSA’yı yalnız sunucu kaydından adla seçer (`IMZAKIT_TSA_AUTHORITIES="kamusm=http://tzd.kamusm.gov.tr;yedek=https://tsa.example/rfc3161"`); `IMZAKIT_TSA_{AD}_USER/_PASSWORD/_BEARER` kimlik bilgileri istemcinin verdiği adrese gönderilmez.
+
 Saklama varsayılanları (ADR-007): Agent bileti 120 saniye, tamamlanmamış operasyon metadata’sı 24 saat, tamamlanan çıktı ve doğrulama raporu 7 gün. Redis benzeri `IMetadataStore` belge tutmaz ve TTL’siz kayıt kabul etmez. Belgeler `IDocumentStore` altında tenant izole, AES-GCM şifreli ve süreli URL ile okunur. Audit append-only hash-chain’dir; PIN, private key, ham belge ve credential yazılmaz.
 
 ### İmzalı PDF doğrulama

@@ -13,6 +13,7 @@ public sealed partial class SignatureApiRequestHandler
             return missingKey!;
         }
 
+        idempotencyKey = ScopeIdempotencyKey(caller.TenantId, idempotencyKey);
         string hash = CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body);
         IdempotencyLookup replay = _extendIdempotency.Find(idempotencyKey, hash);
         if (replay.Status == IdempotencyLookupStatus.Conflict)
@@ -83,7 +84,7 @@ public sealed partial class SignatureApiRequestHandler
             },
             Json);
 
-    private static bool TryReadExtendBody(string body, out ExtendBody parsed, out ApiProblemKind? problem)
+    private bool TryReadExtendBody(string body, out ExtendBody parsed, out ApiProblemKind? problem)
     {
         parsed = default!;
         problem = ApiProblemKind.Unprocessable;
@@ -138,7 +139,10 @@ public sealed partial class SignatureApiRequestHandler
         }
     }
 
-    private static bool TryReadAuthorities(JsonElement root, out List<SignatureExtensionAuthority> authorities)
+    // Callers may only pick TSAs by name from the server-side registry. The endpoint and the
+    // credentials sent to it are never taken from the request, so a tenant cannot redirect
+    // the operator's TSA credentials to a host it controls.
+    private bool TryReadAuthorities(JsonElement root, out List<SignatureExtensionAuthority> authorities)
     {
         authorities = [];
         if (!root.TryGetProperty("timeStampAuthorities", out JsonElement array))
@@ -154,14 +158,20 @@ public sealed partial class SignatureApiRequestHandler
         foreach (JsonElement item in array.EnumerateArray())
         {
             if (!TryString(item, "name", out string? name)
-                || !TryString(item, "url", out string? url)
-                || !Uri.TryCreate(url, UriKind.Absolute, out Uri? uri)
-                || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+                || !_timeStampAuthorities.TryResolve(name!, out SignatureExtensionAuthority? registered))
             {
                 return false;
             }
 
-            authorities.Add(new SignatureExtensionAuthority(name!, uri));
+            if (item.TryGetProperty("url", out _)
+                && (!TryString(item, "url", out string? url)
+                    || !Uri.TryCreate(url, UriKind.Absolute, out Uri? requested)
+                    || requested != registered.Url))
+            {
+                return false;
+            }
+
+            authorities.Add(registered);
         }
 
         return true;

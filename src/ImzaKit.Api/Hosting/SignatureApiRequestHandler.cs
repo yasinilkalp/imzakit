@@ -6,6 +6,7 @@ using ImzaKit.Api.Idempotency;
 using ImzaKit.Api.Mtls;
 using ImzaKit.Api.Operations;
 using ImzaKit.Api.Problems;
+using ImzaKit.Api.Storage;
 using ImzaKit.Api.Workflow;
 
 namespace ImzaKit.Api.Hosting;
@@ -28,11 +29,13 @@ public sealed partial class SignatureApiRequestHandler
     private readonly ISignatureExtensionWorkflow _extensions;
     private readonly DeviceEnrollmentAuthority _devices;
     private readonly AgentTicketValidator _callbackTickets;
+    private readonly TimeStampAuthorityRegistry _timeStampAuthorities;
+    private readonly TimeProvider _timeProvider;
     private readonly InMemoryIdempotencyStore _extendIdempotency = new();
     private readonly InMemoryIdempotencyStore _envelopeIdempotency = new();
-    private readonly Dictionary<Guid, SignatureEnvelope> _envelopes = [];
+    private readonly Dictionary<Guid, OwnedEnvelope> _envelopes = [];
     private readonly Dictionary<Guid, OperationSidecar> _sidecars = [];
-    private readonly Dictionary<Guid, StoredValidationReport> _validations = [];
+    private readonly Dictionary<Guid, OwnedValidation> _validations = [];
 
     public SignatureApiRequestHandler(
         SignatureOperationService operations,
@@ -40,7 +43,9 @@ public sealed partial class SignatureApiRequestHandler
         AgentTicketIssuer tickets,
         ISignatureWorkflow? workflow = null,
         DeviceEnrollmentAuthority? devices = null,
-        ISignatureExtensionWorkflow? extensions = null)
+        ISignatureExtensionWorkflow? extensions = null,
+        TimeStampAuthorityRegistry? timeStampAuthorities = null,
+        TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(operations);
         ArgumentNullException.ThrowIfNull(callers);
@@ -48,9 +53,11 @@ public sealed partial class SignatureApiRequestHandler
         _operations = operations;
         _callers = callers;
         _tickets = tickets;
-        _workflow = workflow ?? new InMemorySignatureWorkflow();
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _workflow = workflow ?? new InMemorySignatureWorkflow(_timeProvider);
         _devices = devices ?? new DeviceEnrollmentAuthority();
         _extensions = extensions ?? new UnavailableSignatureExtensionWorkflow();
+        _timeStampAuthorities = timeStampAuthorities ?? TimeStampAuthorityRegistry.Empty;
         _callbackTickets = new AgentTicketValidator(tickets.PublicKey, new InMemoryNonceStore());
     }
 
@@ -89,7 +96,7 @@ public sealed partial class SignatureApiRequestHandler
         if (TryMatch(request.Path, "/v1/validations", out _) &&
             string.Equals(request.Method, "POST", StringComparison.OrdinalIgnoreCase))
         {
-            return CreateValidation(request, correlationId);
+            return CreateValidation(request, caller, correlationId);
         }
 
         if (TryMatch(request.Path, "/v1/signatures/extend", out _) &&
@@ -101,20 +108,21 @@ public sealed partial class SignatureApiRequestHandler
         if (string.Equals(request.Path, "/v1/signature-envelopes", StringComparison.Ordinal) &&
             string.Equals(request.Method, "POST", StringComparison.OrdinalIgnoreCase))
         {
-            return CreateEnvelope(request, correlationId);
+            return CreateEnvelope(request, caller, correlationId);
         }
 
         if (TryMatch(request.Path, "/v1/signature-envelopes/", out string envelopeTail))
         {
-            return HandleEnvelopeResource(request, correlationId, envelopeTail);
+            return HandleEnvelopeResource(request, caller, correlationId, envelopeTail);
         }
 
         if (TryMatch(request.Path, "/v1/validations/", out string validationTail) &&
             string.Equals(request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
             Guid.TryParse(validationTail, out Guid validationId))
         {
-            return _validations.TryGetValue(validationId, out StoredValidationReport? report)
-                ? JsonResult(200, JsonSerializer.Serialize(ToValidationJson(report), Json), correlationId)
+            return _validations.TryGetValue(validationId, out OwnedValidation? owned) &&
+                   IsOwner(owned.TenantId, caller)
+                ? JsonResult(200, JsonSerializer.Serialize(ToValidationJson(owned.Report), Json), correlationId)
                 : Problem(ApiProblemKind.NotFound, correlationId);
         }
 
@@ -140,7 +148,7 @@ public sealed partial class SignatureApiRequestHandler
 
         if (parts.Length == 1 && string.Equals(request.Method, "GET", StringComparison.OrdinalIgnoreCase))
         {
-            SignatureOperation? operation = _operations.Get(operationId);
+            SignatureOperation? operation = _operations.Get(operationId, caller.TenantId);
             return operation is null
                 ? Problem(ApiProblemKind.NotFound, correlationId, operationId)
                 : JsonResult(200, SerializeOperation(operation), correlationId);
@@ -156,13 +164,14 @@ public sealed partial class SignatureApiRequestHandler
             return missingKey!;
         }
 
+        idempotencyKey = ScopeIdempotencyKey(caller.TenantId, idempotencyKey);
         return parts[1] switch
         {
             "agent-ticket" => IssueTicket(request, caller, correlationId, operationId, idempotencyKey),
-            "certificate" => BindCertificate(request, correlationId, operationId, idempotencyKey),
-            "prepare" => Prepare(request, correlationId, operationId, idempotencyKey),
-            "complete" => Complete(request, correlationId, operationId, idempotencyKey),
-            "cancel" => Cancel(request, correlationId, operationId, idempotencyKey),
+            "certificate" => BindCertificate(request, caller.TenantId, correlationId, operationId, idempotencyKey),
+            "prepare" => Prepare(request, caller.TenantId, correlationId, operationId, idempotencyKey),
+            "complete" => Complete(request, caller.TenantId, correlationId, operationId, idempotencyKey),
+            "cancel" => Cancel(request, caller.TenantId, correlationId, operationId, idempotencyKey),
             _ => Problem(ApiProblemKind.NotFound, correlationId, operationId)
         };
     }
@@ -179,9 +188,9 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(problem!.Value, correlationId);
         }
 
-        _ = caller;
         string hash = CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body);
-        SignatureOperationResult result = _operations.Create(idempotencyKey, hash, body.Sha256);
+        SignatureOperationResult result = _operations.Create(
+            ScopeIdempotencyKey(caller.TenantId, idempotencyKey), hash, body.Sha256, caller.TenantId);
         if (result.Status == OperationMutationStatus.IdempotencyConflict)
         {
             return Problem(ApiProblemKind.IdempotencyConflict, correlationId);
@@ -199,7 +208,7 @@ public sealed partial class SignatureApiRequestHandler
         Guid operationId,
         string idempotencyKey)
     {
-        SignatureOperation? current = _operations.Get(operationId);
+        SignatureOperation? current = _operations.Get(operationId, caller.TenantId);
         if (current is null)
         {
             return Problem(ApiProblemKind.NotFound, correlationId, operationId);
@@ -218,7 +227,8 @@ public sealed partial class SignatureApiRequestHandler
                 SignatureOperationState.WaitingForClient,
                 current.Version,
                 idempotencyKey,
-                CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body));
+                CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body),
+                caller.TenantId);
             if (transition.Status is OperationMutationStatus.InvalidTransition or OperationMutationStatus.TerminalState)
             {
                 return Problem(ApiProblemKind.InvalidStateTransition, correlationId, operationId);
@@ -246,9 +256,14 @@ public sealed partial class SignatureApiRequestHandler
         return JsonResult(200, JsonSerializer.Serialize(new { ticket = encoded, expiresAt = ticket.ExpiresAt }, Json), correlationId);
     }
 
-    private ApiHttpResponse BindCertificate(ApiHttpRequest request, string correlationId, Guid operationId, string idempotencyKey)
+    private ApiHttpResponse BindCertificate(
+        ApiHttpRequest request,
+        string tenantId,
+        string correlationId,
+        Guid operationId,
+        string idempotencyKey)
     {
-        SignatureOperation? current = _operations.Get(operationId);
+        SignatureOperation? current = _operations.Get(operationId, tenantId);
         if (current is null)
         {
             return Problem(ApiProblemKind.NotFound, correlationId, operationId);
@@ -261,7 +276,8 @@ public sealed partial class SignatureApiRequestHandler
 
         if (current.State == SignatureOperationState.WaitingForClient)
         {
-            SignatureOperationResult connected = Move(current, SignatureOperationState.ClientConnected, idempotencyKey + ":connected", request);
+            SignatureOperationResult connected = Move(
+                current, SignatureOperationState.ClientConnected, idempotencyKey + ":connected", request, tenantId);
             if (!connected.OperationMutationSucceeded() && connected.Status != OperationMutationStatus.Replayed)
             {
                 return MapMutation(connected, correlationId, operationId);
@@ -270,7 +286,7 @@ public sealed partial class SignatureApiRequestHandler
             current = connected.Operation ?? current;
         }
 
-        SignatureOperationResult bound = Move(current, SignatureOperationState.CertificateSelected, idempotencyKey, request);
+        SignatureOperationResult bound = Move(current, SignatureOperationState.CertificateSelected, idempotencyKey, request, tenantId);
         if (!bound.OperationMutationSucceeded() && bound.Status != OperationMutationStatus.Replayed)
         {
             return MapMutation(bound, correlationId, operationId);
@@ -285,15 +301,20 @@ public sealed partial class SignatureApiRequestHandler
         return JsonResult(200, SerializeOperation(bound.Operation ?? current), correlationId);
     }
 
-    private ApiHttpResponse Prepare(ApiHttpRequest request, string correlationId, Guid operationId, string idempotencyKey)
+    private ApiHttpResponse Prepare(
+        ApiHttpRequest request,
+        string tenantId,
+        string correlationId,
+        Guid operationId,
+        string idempotencyKey)
     {
-        SignatureOperation? current = _operations.Get(operationId);
+        SignatureOperation? current = _operations.Get(operationId, tenantId);
         if (current is null)
         {
             return Problem(ApiProblemKind.NotFound, correlationId, operationId);
         }
 
-        SignatureOperationResult prepared = Move(current, SignatureOperationState.Prepared, idempotencyKey, request);
+        SignatureOperationResult prepared = Move(current, SignatureOperationState.Prepared, idempotencyKey, request, tenantId);
         if (!prepared.OperationMutationSucceeded() && prepared.Status != OperationMutationStatus.Replayed)
         {
             return MapMutation(prepared, correlationId, operationId);
@@ -308,12 +329,28 @@ public sealed partial class SignatureApiRequestHandler
         SignaturePrepareResult prepare = _workflow.Prepare(operationId, sidecar.CertificateDerBase64, sidecar.Fingerprint);
         sidecar.CompletionToken = prepare.CompletionToken;
         sidecar.PrepareVersion = prepare.PrepareVersion;
+        sidecar.CompletionTokenExpiresAt = prepare.ExpiresAt;
         return JsonResult(200, JsonSerializer.Serialize(prepare, Json), correlationId);
     }
 
-    private ApiHttpResponse Complete(ApiHttpRequest request, string correlationId, Guid operationId, string idempotencyKey)
+    private ApiHttpResponse Complete(
+        ApiHttpRequest request,
+        string tenantId,
+        string correlationId,
+        Guid operationId,
+        string idempotencyKey)
     {
-        SignatureOperation? current = _operations.Get(operationId);
+        SignatureOperationResult? replay = _operations.TryReplay(
+            idempotencyKey,
+            CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body + ":" + SignatureOperationState.Signed));
+        if (replay is not null)
+        {
+            return replay.Status == OperationMutationStatus.IdempotencyConflict
+                ? Problem(ApiProblemKind.IdempotencyConflict, correlationId, operationId)
+                : JsonResult(200, SerializeOperation(replay.Operation!), correlationId);
+        }
+
+        SignatureOperation? current = _operations.Get(operationId, tenantId);
         if (current is null)
         {
             return Problem(ApiProblemKind.NotFound, correlationId, operationId);
@@ -324,14 +361,16 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(ApiProblemKind.Unprocessable, correlationId, operationId);
         }
 
-        if (!_workflow.Complete(complete.CompletionToken, complete.PrepareVersion, complete.CertificateFingerprintSha256))
+        if (!_sidecars.TryGetValue(operationId, out OperationSidecar? sidecar) ||
+            !IsCompletionAccepted(sidecar, complete.CompletionToken, complete.PrepareVersion, complete.CertificateFingerprintSha256))
         {
             return Problem(ApiProblemKind.Unprocessable, correlationId, operationId);
         }
 
         if (current.State == SignatureOperationState.Prepared)
         {
-            SignatureOperationResult signing = Move(current, SignatureOperationState.Signing, idempotencyKey + ":signing", request);
+            SignatureOperationResult signing = Move(
+                current, SignatureOperationState.Signing, idempotencyKey + ":signing", request, tenantId);
             if (!signing.OperationMutationSucceeded() && signing.Status != OperationMutationStatus.Replayed)
             {
                 return MapMutation(signing, correlationId, operationId);
@@ -340,24 +379,30 @@ public sealed partial class SignatureApiRequestHandler
             current = signing.Operation ?? current;
         }
 
-        SignatureOperationResult signed = Move(current, SignatureOperationState.Signed, idempotencyKey, request);
+        SignatureOperationResult signed = Move(current, SignatureOperationState.Signed, idempotencyKey, request, tenantId);
         if (!signed.OperationMutationSucceeded() && signed.Status != OperationMutationStatus.Replayed)
         {
             return MapMutation(signed, correlationId, operationId);
         }
 
+        sidecar.CompletionToken = null;
         return JsonResult(200, SerializeOperation(signed.Operation ?? current), correlationId);
     }
 
-    private ApiHttpResponse Cancel(ApiHttpRequest request, string correlationId, Guid operationId, string idempotencyKey)
+    private ApiHttpResponse Cancel(
+        ApiHttpRequest request,
+        string tenantId,
+        string correlationId,
+        Guid operationId,
+        string idempotencyKey)
     {
-        SignatureOperation? current = _operations.Get(operationId);
+        SignatureOperation? current = _operations.Get(operationId, tenantId);
         if (current is null)
         {
             return Problem(ApiProblemKind.NotFound, correlationId, operationId);
         }
 
-        SignatureOperationResult cancelled = Move(current, SignatureOperationState.Cancelled, idempotencyKey, request);
+        SignatureOperationResult cancelled = Move(current, SignatureOperationState.Cancelled, idempotencyKey, request, tenantId);
         if (!cancelled.OperationMutationSucceeded() && cancelled.Status != OperationMutationStatus.Replayed)
         {
             return MapMutation(cancelled, correlationId, operationId);
@@ -366,7 +411,7 @@ public sealed partial class SignatureApiRequestHandler
         return JsonResult(200, SerializeOperation(cancelled.Operation ?? current), correlationId);
     }
 
-    private ApiHttpResponse CreateValidation(ApiHttpRequest request, string correlationId)
+    private ApiHttpResponse CreateValidation(ApiHttpRequest request, ApiCallerIdentity caller, string correlationId)
     {
         if (!TryReadIdempotencyKey(request, out _, out ApiHttpResponse? missingKey))
         {
@@ -379,21 +424,52 @@ public sealed partial class SignatureApiRequestHandler
         }
 
         StoredValidationReport report = _workflow.Validate(body.ObjectKey, body.Sha256, body.Profile);
-        _validations[report.ValidationId] = report;
+        _validations[report.ValidationId] = new OwnedValidation(caller.TenantId, report);
         return JsonResult(202, JsonSerializer.Serialize(ToValidationJson(report), Json), correlationId);
+    }
+
+    // The token is checked against the operation's own sidecar so a token minted for one
+    // operation can never complete another; it is single-use and expires with its prepare.
+    private bool IsCompletionAccepted(
+        OperationSidecar sidecar,
+        string completionToken,
+        int prepareVersion,
+        string certificateFingerprintSha256)
+    {
+        if (sidecar.CompletionToken is null ||
+            sidecar.Fingerprint is null ||
+            sidecar.PrepareVersion != prepareVersion ||
+            sidecar.CompletionTokenExpiresAt <= _timeProvider.GetUtcNow() ||
+            !string.Equals(sidecar.Fingerprint, certificateFingerprintSha256, StringComparison.OrdinalIgnoreCase) ||
+            !CryptographicOperations.FixedTimeEquals(
+                System.Text.Encoding.UTF8.GetBytes(sidecar.CompletionToken),
+                System.Text.Encoding.UTF8.GetBytes(completionToken)))
+        {
+            return false;
+        }
+
+        return _workflow.Complete(sidecar.CompletionToken, sidecar.PrepareVersion, sidecar.Fingerprint);
     }
 
     private SignatureOperationResult Move(
         SignatureOperation current,
         SignatureOperationState target,
         string idempotencyKey,
-        ApiHttpRequest request) =>
+        ApiHttpRequest request,
+        string tenantId) =>
         _operations.Transition(
             current.Id,
             target,
             current.Version,
             idempotencyKey,
-            CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body + ":" + target));
+            CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body + ":" + target),
+            tenantId);
+
+    private static string ScopeIdempotencyKey(string tenantId, string idempotencyKey) =>
+        MetadataKey.Idempotency(tenantId, idempotencyKey);
+
+    private static bool IsOwner(string ownerTenantId, ApiCallerIdentity caller) =>
+        string.Equals(ownerTenantId, caller.TenantId, StringComparison.Ordinal);
 
     private static ApiHttpResponse MapMutation(SignatureOperationResult result, string correlationId, Guid operationId) =>
         result.Status switch
@@ -627,5 +703,10 @@ public sealed partial class SignatureApiRequestHandler
         public string? Fingerprint { get; set; }
         public string? CompletionToken { get; set; }
         public int PrepareVersion { get; set; }
+        public DateTimeOffset CompletionTokenExpiresAt { get; set; }
     }
+
+    private sealed record OwnedValidation(string TenantId, StoredValidationReport Report);
+
+    private sealed record OwnedEnvelope(string TenantId, SignatureEnvelope Envelope);
 }

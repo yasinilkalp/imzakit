@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using ImzaKit.Agent.Security;
 using ImzaKit.Api.Mtls;
@@ -32,6 +33,8 @@ public sealed partial class SignatureApiRequestHandler
             return missingKey!;
         }
 
+        DeviceRegistration registration = device.Device!;
+        idempotencyKey = ScopeIdempotencyKey(registration.TenantId, idempotencyKey);
         string signedHash = CanonicalRequestHasher.Hash(
             request.Method, request.Path, request.Body + ":" + SignatureOperationState.Signed);
         SignatureOperationResult? replay = _operations.TryReplay(idempotencyKey, signedHash);
@@ -47,29 +50,34 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(ApiProblemKind.Unprocessable, correlationId);
         }
 
-        SignatureOperation? current = _operations.Get(body.OperationId);
+        if (!TryDecodeTicket(body, registration, out AgentTicket? ticket))
+        {
+            return Problem(ApiProblemKind.TicketRejected, correlationId, body.OperationId);
+        }
+
+        SignatureOperation? current = _operations.Get(body.OperationId, registration.TenantId);
         if (current is null)
         {
             return Problem(ApiProblemKind.NotFound, correlationId, body.OperationId);
         }
 
-        if (!TryAcceptTicket(body, current, device.Device!, correlationId, out ApiHttpResponse? ticketProblem))
+        if (_callbackTickets.ValidateAndConsume(ticket, ticket.Origin, current.DocumentDigest, "sign").Status
+            != AgentTicketValidationStatus.Passed)
         {
-            return ticketProblem!;
+            return Problem(ApiProblemKind.TicketRejected, correlationId, body.OperationId);
         }
 
         if (!_sidecars.TryGetValue(body.OperationId, out OperationSidecar? sidecar) ||
             sidecar.CompletionToken is null ||
-            sidecar.Fingerprint is null ||
-            !string.Equals(sidecar.Fingerprint, body.CertificateFingerprintSha256, StringComparison.OrdinalIgnoreCase) ||
-            !_workflow.Complete(sidecar.CompletionToken, sidecar.PrepareVersion, body.CertificateFingerprintSha256))
+            !IsCompletionAccepted(sidecar, sidecar.CompletionToken, sidecar.PrepareVersion, body.CertificateFingerprintSha256))
         {
             return Problem(ApiProblemKind.Unprocessable, correlationId, body.OperationId);
         }
 
         if (current.State == SignatureOperationState.Prepared)
         {
-            SignatureOperationResult signing = Move(current, SignatureOperationState.Signing, idempotencyKey + ":signing", request);
+            SignatureOperationResult signing = Move(
+                current, SignatureOperationState.Signing, idempotencyKey + ":signing", request, registration.TenantId);
             if (!signing.OperationMutationSucceeded() && signing.Status != OperationMutationStatus.Replayed)
             {
                 return MapMutation(signing, correlationId, body.OperationId);
@@ -78,45 +86,35 @@ public sealed partial class SignatureApiRequestHandler
             current = signing.Operation ?? current;
         }
 
-        SignatureOperationResult signed = Move(current, SignatureOperationState.Signed, idempotencyKey, request);
+        SignatureOperationResult signed = Move(
+            current, SignatureOperationState.Signed, idempotencyKey, request, registration.TenantId);
         if (!signed.OperationMutationSucceeded() && signed.Status != OperationMutationStatus.Replayed)
         {
             return MapMutation(signed, correlationId, body.OperationId);
         }
 
+        sidecar.CompletionToken = null;
         return JsonResult(200, SerializeOperation(signed.Operation ?? current), correlationId);
     }
 
-    private bool TryAcceptTicket(
+    private static bool TryDecodeTicket(
         CallbackBody body,
-        SignatureOperation operation,
         DeviceRegistration device,
-        string correlationId,
-        out ApiHttpResponse? problem)
+        [NotNullWhen(true)] out AgentTicket? ticket)
     {
-        problem = Problem(ApiProblemKind.TicketRejected, correlationId, body.OperationId);
-        AgentTicket ticket;
         try
         {
             ticket = AgentTicketCodec.Decode(body.Ticket);
         }
         catch (Exception exception) when (exception is FormatException or JsonException or ArgumentException)
         {
+            ticket = null;
             return false;
         }
 
-        if (ticket.OperationId != body.OperationId ||
-            ticket.OperationId != operation.Id ||
-            !string.Equals(ticket.TenantId, device.TenantId, StringComparison.Ordinal) ||
-            !string.Equals(ticket.ApplicationId, device.ApplicationId, StringComparison.Ordinal) ||
-            _callbackTickets.ValidateAndConsume(ticket, ticket.Origin, operation.DocumentDigest, "sign").Status
-                != AgentTicketValidationStatus.Passed)
-        {
-            return false;
-        }
-
-        problem = null;
-        return true;
+        return ticket.OperationId == body.OperationId &&
+               string.Equals(ticket.TenantId, device.TenantId, StringComparison.Ordinal) &&
+               string.Equals(ticket.ApplicationId, device.ApplicationId, StringComparison.Ordinal);
     }
 
     private static ApiHttpResponse? MapDevice(DeviceAuthenticationStatus status, string correlationId) => status switch

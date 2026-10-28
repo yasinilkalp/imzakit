@@ -77,6 +77,7 @@ public static class ImzaKitServiceCollectionExtensions
         services.AddSingleton(new AgentTicketIssuer(key));
         services.AddSingleton<DeviceEnrollmentAuthority>();
         services.AddSingleton<ISignatureWorkflow, InMemorySignatureWorkflow>();
+        services.AddSingleton(_ => TimeStampAuthorityRegistry.FromEnvironment());
         services.AddSingleton<SignatureApiRequestHandler>();
         return services;
     }
