@@ -14,9 +14,9 @@ $expectedModules = @(
 )
 $expectedDependencies = [ordered]@{
     'BouncyCastle.Cryptography' = '2.7.0'
-    'Microsoft.Extensions.DependencyInjection.Abstractions' = '10.0.11'
-    'System.Security.Cryptography.Pkcs' = '10.0.11'
-    'System.Security.Cryptography.Xml' = '10.0.11'
+    'Microsoft.Extensions.DependencyInjection.Abstractions' = '10.0.14'
+    'System.Security.Cryptography.Pkcs' = '10.0.14'
+    'System.Security.Cryptography.Xml' = '10.0.14'
 }
 
 $packages = @(Get-ChildItem -LiteralPath $PackageDirectory -Filter '*.nupkg' |

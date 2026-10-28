@@ -133,17 +133,17 @@ static SoftwareComponent[] RuntimeComponents(string version) =>
     new("BouncyCastle.Cryptography", "2.7.0", "MIT", "pkg:nuget/BouncyCastle.Cryptography@2.7.0"),
     new(
         "Microsoft.Extensions.DependencyInjection.Abstractions",
-        "10.0.11",
+        "10.0.14",
         "MIT",
-        "pkg:nuget/Microsoft.Extensions.DependencyInjection.Abstractions@10.0.11"),
+        "pkg:nuget/Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14"),
     new(
         "System.Security.Cryptography.Pkcs",
-        "10.0.11",
+        "10.0.14",
         "MIT",
-        "pkg:nuget/System.Security.Cryptography.Pkcs@10.0.11"),
+        "pkg:nuget/System.Security.Cryptography.Pkcs@10.0.14"),
     new(
         "System.Security.Cryptography.Xml",
-        "10.0.11",
+        "10.0.14",
         "MIT",
-        "pkg:nuget/System.Security.Cryptography.Xml@10.0.11")
+        "pkg:nuget/System.Security.Cryptography.Xml@10.0.14")
 ];
