@@ -104,6 +104,40 @@ public sealed class CadesDetachedTests
         Assert.Equal(CadesBaselineLevel.BT, Assert.Single(report.Signers).SignatureLevel);
     }
 
+    [Fact]
+    public void Sha1DigestSignatureIsRejectedAsDisallowedAlgorithm()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit CAdES SHA-1");
+        byte[] content = "cades-legacy-payload"u8.ToArray();
+        System.Security.Cryptography.Pkcs.SignedCms legacy = new(
+            new System.Security.Cryptography.Pkcs.ContentInfo(content), detached: true);
+        legacy.ComputeSignature(new System.Security.Cryptography.Pkcs.CmsSigner(certificate)
+        {
+            DigestAlgorithm = new Oid("1.3.14.3.2.26")
+        });
+
+        CadesValidationReport report = CadesValidator.ValidateDetached(legacy.Encode(), content);
+
+        CadesSignerReport signer = Assert.Single(report.Signers);
+        Assert.Equal(CadesStatus.Failed, signer.CryptographicStatus);
+        Assert.Contains("AlgorithmDisallowed", signer.Findings);
+        Assert.Equal(CadesStatus.Failed, report.Status);
+    }
+
+    [Fact]
+    public void Rsa1024SignerIsRejectedAsDisallowedAlgorithm()
+    {
+        using RSA rsa = RSA.Create(1024);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit CAdES RSA-1024");
+        byte[] content = "cades-weak-key-payload"u8.ToArray();
+
+        CadesValidationReport report = CadesValidator.ValidateDetached(Sign(rsa, certificate, content), content);
+
+        Assert.Contains("AlgorithmDisallowed", Assert.Single(report.Signers).Findings);
+        Assert.Equal(CadesStatus.Failed, report.Status);
+    }
+
     private static byte[] Sign(RSA rsa, X509Certificate2 certificate, byte[] content)
     {
         SignaturePreparation preparation = Prepare(certificate, content);

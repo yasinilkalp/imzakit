@@ -67,9 +67,8 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(ApiProblemKind.TicketRejected, correlationId, body.OperationId);
         }
 
-        if (!_sidecars.TryGetValue(body.OperationId, out OperationSidecar? sidecar) ||
-            sidecar.CompletionToken is null ||
-            !IsCompletionAccepted(sidecar, sidecar.CompletionToken, sidecar.PrepareVersion, body.CertificateFingerprintSha256))
+        OperationSidecar? sidecar = AcceptCompletion(body.OperationId, null, null, body.CertificateFingerprintSha256);
+        if (sidecar is null)
         {
             return Problem(ApiProblemKind.Unprocessable, correlationId, body.OperationId);
         }
@@ -93,7 +92,7 @@ public sealed partial class SignatureApiRequestHandler
             return MapMutation(signed, correlationId, body.OperationId);
         }
 
-        sidecar.CompletionToken = null;
+        ConsumeCompletionToken(sidecar);
         return JsonResult(200, SerializeOperation(signed.Operation ?? current), correlationId);
     }
 

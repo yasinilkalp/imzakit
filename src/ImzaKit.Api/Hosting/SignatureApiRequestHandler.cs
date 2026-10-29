@@ -31,6 +31,10 @@ public sealed partial class SignatureApiRequestHandler
     private readonly AgentTicketValidator _callbackTickets;
     private readonly TimeStampAuthorityRegistry _timeStampAuthorities;
     private readonly TimeProvider _timeProvider;
+
+    // Guards the in-memory sidecars, validations, envelopes and handler-level idempotency stores;
+    // the handler is a singleton serving concurrent requests. Workflow and network calls stay outside it.
+    private readonly Lock _gate = new();
     private readonly InMemoryIdempotencyStore _extendIdempotency = new();
     private readonly InMemoryIdempotencyStore _envelopeIdempotency = new();
     private readonly Dictionary<Guid, OwnedEnvelope> _envelopes = [];
@@ -120,8 +124,13 @@ public sealed partial class SignatureApiRequestHandler
             string.Equals(request.Method, "GET", StringComparison.OrdinalIgnoreCase) &&
             Guid.TryParse(validationTail, out Guid validationId))
         {
-            return _validations.TryGetValue(validationId, out OwnedValidation? owned) &&
-                   IsOwner(owned.TenantId, caller)
+            OwnedValidation? owned;
+            lock (_gate)
+            {
+                _validations.TryGetValue(validationId, out owned);
+            }
+
+            return owned is not null && IsOwner(owned.TenantId, caller)
                 ? JsonResult(200, JsonSerializer.Serialize(ToValidationJson(owned.Report), Json), correlationId)
                 : Problem(ApiProblemKind.NotFound, correlationId);
         }
@@ -197,7 +206,10 @@ public sealed partial class SignatureApiRequestHandler
         }
 
         SignatureOperation operation = result.Operation!;
-        _sidecars.TryAdd(operation.Id, new OperationSidecar(body.ObjectKey, body.Sha256, body.Size, body.Profile));
+        lock (_gate)
+        {
+            _sidecars.TryAdd(operation.Id, new OperationSidecar(body.ObjectKey, body.Sha256, body.Size, body.Profile));
+        }
         return JsonResult(201, SerializeOperation(operation), correlationId);
     }
 
@@ -292,10 +304,13 @@ public sealed partial class SignatureApiRequestHandler
             return MapMutation(bound, correlationId, operationId);
         }
 
-        if (_sidecars.TryGetValue(operationId, out OperationSidecar? sidecar))
+        lock (_gate)
         {
-            sidecar.CertificateDerBase64 = der;
-            sidecar.Fingerprint = fingerprint;
+            if (_sidecars.TryGetValue(operationId, out OperationSidecar? sidecar))
+            {
+                sidecar.CertificateDerBase64 = der;
+                sidecar.Fingerprint = fingerprint;
+            }
         }
 
         return JsonResult(200, SerializeOperation(bound.Operation ?? current), correlationId);
@@ -320,16 +335,29 @@ public sealed partial class SignatureApiRequestHandler
             return MapMutation(prepared, correlationId, operationId);
         }
 
-        if (!_sidecars.TryGetValue(operationId, out OperationSidecar? sidecar) ||
-            sidecar.CertificateDerBase64 is null || sidecar.Fingerprint is null)
+        OperationSidecar? sidecar;
+        string? certificateDer;
+        string? fingerprint;
+        lock (_gate)
+        {
+            _sidecars.TryGetValue(operationId, out sidecar);
+            certificateDer = sidecar?.CertificateDerBase64;
+            fingerprint = sidecar?.Fingerprint;
+        }
+
+        if (sidecar is null || certificateDer is null || fingerprint is null)
         {
             return Problem(ApiProblemKind.Unprocessable, correlationId, operationId);
         }
 
-        SignaturePrepareResult prepare = _workflow.Prepare(operationId, sidecar.CertificateDerBase64, sidecar.Fingerprint);
-        sidecar.CompletionToken = prepare.CompletionToken;
-        sidecar.PrepareVersion = prepare.PrepareVersion;
-        sidecar.CompletionTokenExpiresAt = prepare.ExpiresAt;
+        SignaturePrepareResult prepare = _workflow.Prepare(operationId, certificateDer, fingerprint);
+        lock (_gate)
+        {
+            sidecar.CompletionToken = prepare.CompletionToken;
+            sidecar.PrepareVersion = prepare.PrepareVersion;
+            sidecar.CompletionTokenExpiresAt = prepare.ExpiresAt;
+        }
+
         return JsonResult(200, JsonSerializer.Serialize(prepare, Json), correlationId);
     }
 
@@ -361,8 +389,9 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(ApiProblemKind.Unprocessable, correlationId, operationId);
         }
 
-        if (!_sidecars.TryGetValue(operationId, out OperationSidecar? sidecar) ||
-            !IsCompletionAccepted(sidecar, complete.CompletionToken, complete.PrepareVersion, complete.CertificateFingerprintSha256))
+        OperationSidecar? sidecar = AcceptCompletion(
+            operationId, complete.CompletionToken, complete.PrepareVersion, complete.CertificateFingerprintSha256);
+        if (sidecar is null)
         {
             return Problem(ApiProblemKind.Unprocessable, correlationId, operationId);
         }
@@ -385,7 +414,7 @@ public sealed partial class SignatureApiRequestHandler
             return MapMutation(signed, correlationId, operationId);
         }
 
-        sidecar.CompletionToken = null;
+        ConsumeCompletionToken(sidecar);
         return JsonResult(200, SerializeOperation(signed.Operation ?? current), correlationId);
     }
 
@@ -424,8 +453,42 @@ public sealed partial class SignatureApiRequestHandler
         }
 
         StoredValidationReport report = _workflow.Validate(body.ObjectKey, body.Sha256, body.Profile);
-        _validations[report.ValidationId] = new OwnedValidation(caller.TenantId, report);
+        lock (_gate)
+        {
+            _validations[report.ValidationId] = new OwnedValidation(caller.TenantId, report);
+        }
+
         return JsonResult(202, JsonSerializer.Serialize(ToValidationJson(report), Json), correlationId);
+    }
+
+    // Returns the operation's sidecar when the token was minted for this operation, is unexpired
+    // and unused; null otherwise. A null completionToken means "use the server-held token" (callbacks).
+    private OperationSidecar? AcceptCompletion(
+        Guid operationId,
+        string? completionToken,
+        int? prepareVersion,
+        string certificateFingerprintSha256)
+    {
+        lock (_gate)
+        {
+            return _sidecars.TryGetValue(operationId, out OperationSidecar? sidecar)
+                && sidecar.CompletionToken is string stored
+                && IsCompletionAccepted(
+                    sidecar,
+                    completionToken ?? stored,
+                    prepareVersion ?? sidecar.PrepareVersion,
+                    certificateFingerprintSha256)
+                    ? sidecar
+                    : null;
+        }
+    }
+
+    private void ConsumeCompletionToken(OperationSidecar sidecar)
+    {
+        lock (_gate)
+        {
+            sidecar.CompletionToken = null;
+        }
     }
 
     // The token is checked against the operation's own sidecar so a token minted for one

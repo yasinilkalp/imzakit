@@ -93,18 +93,71 @@ internal static partial class PdfSyntax
             ? int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture)
             : null;
 
-    public static IReadOnlyList<string> LiteralStrings(string value)
+    // Decodes the literal and hex text strings in a value (e.g. a /Fields array or a /T entry).
+    public static IReadOnlyList<string> TextStrings(string value)
     {
         List<string> strings = [];
         int index = 0;
-        while ((index = value.IndexOf('(', index)) >= 0)
+        while (index < value.Length)
         {
-            int end = SkipLiteralString(value, index);
-            strings.Add(value[(index + 1)..(end - 1)]);
-            index = end;
+            if (value[index] == '(')
+            {
+                int end = SkipLiteralString(value, index);
+                strings.Add(Unescape(value[(index + 1)..Math.Max(index + 1, end - 1)]));
+                index = end;
+            }
+            else if (value[index] == '<' && (index + 1 >= value.Length || value[index + 1] != '<'))
+            {
+                int end = value.IndexOf('>', index + 1);
+                end = end < 0 ? value.Length : end;
+                strings.Add(DecodeHex(value[(index + 1)..end]));
+                index = end + 1;
+            }
+            else
+            {
+                index++;
+            }
         }
 
         return strings;
+    }
+
+    private static string Unescape(string literal)
+    {
+        StringBuilder text = new(literal.Length);
+        for (int index = 0; index < literal.Length; index++)
+        {
+            if (literal[index] != '\\' || index + 1 >= literal.Length)
+            {
+                text.Append(literal[index]);
+                continue;
+            }
+
+            char escaped = literal[++index];
+            text.Append(escaped switch
+            {
+                'n' => '\n',
+                'r' => '\r',
+                't' => '\t',
+                _ => escaped,
+            });
+        }
+
+        return text.ToString();
+    }
+
+    private static string DecodeHex(string hex)
+    {
+        string digits = new([.. hex.Where(Uri.IsHexDigit)]);
+        if (digits.Length % 2 == 1)
+        {
+            digits += "0";
+        }
+
+        byte[] bytes = Convert.FromHexString(digits);
+        return bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF
+            ? Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2)
+            : Encoding.Latin1.GetString(bytes);
     }
 
     public static string Normalize(string value)

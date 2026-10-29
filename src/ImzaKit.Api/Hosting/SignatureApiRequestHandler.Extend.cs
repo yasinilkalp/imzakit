@@ -57,14 +57,30 @@ public sealed partial class SignatureApiRequestHandler
         };
     }
 
+    // The extension runs outside the lock (it may call TSAs), so a concurrent duplicate may have
+    // stored its result first; the first stored result wins and later ones replay it.
     private ApiHttpResponse StoreAndReturn(
         string idempotencyKey,
         string hash,
         SignatureExtensionResult result,
         string correlationId)
     {
-        _extendIdempotency.Store(idempotencyKey, hash, result);
-        return JsonResult(200, SerializeExtension(result), correlationId);
+        lock (_gate)
+        {
+            IdempotencyLookup existing = _extendIdempotency.Find(idempotencyKey, hash);
+            if (existing.Status == IdempotencyLookupStatus.Conflict)
+            {
+                return Problem(ApiProblemKind.IdempotencyConflict, correlationId);
+            }
+
+            if (existing.Status == IdempotencyLookupStatus.Match && existing.Response is SignatureExtensionResult stored)
+            {
+                return JsonResult(200, SerializeExtension(stored), correlationId);
+            }
+
+            _extendIdempotency.Store(idempotencyKey, hash, result);
+            return JsonResult(200, SerializeExtension(result), correlationId);
+        }
     }
 
     private static string SerializeExtension(SignatureExtensionResult result) =>

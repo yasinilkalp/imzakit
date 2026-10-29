@@ -225,6 +225,50 @@ public sealed class PdfModificationPolicyEvaluatorTests
             violation => violation.Message.Contains("catalog replaced", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void FieldMdpDetectsLockedValueChangeEvenWhenTitleIsDropped()
+    {
+        byte[] covered = FormDocument(
+            "8 0 obj\n<< /FT /Tx /T (Amount) /V (100) >>\nendobj\n",
+            "/TransformMethod /FieldMDP /TransformParams << /Action /Include /Fields [(Amount)] >>");
+        byte[] tail = Encoding.ASCII.GetBytes("8 0 obj\n<< /FT /Tx /V (999) >>\nendobj\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Contains(result.Violations, violation => violation.Code == "FieldMdpViolation" && violation.FieldName == "Amount");
+    }
+
+    [Fact]
+    public void FieldMdpMatchesHexEncodedFullyQualifiedNames()
+    {
+        const string invoice = "<FEFF0049006E0076006F006900630065>";
+        const string invoiceAmount = "<FEFF0049006E0076006F006900630065002E0041006D006F0075006E0074>";
+        byte[] covered = FormDocument(
+            $"8 0 obj\n<< /T {invoice} /Kids [9 0 R] >>\nendobj\n" +
+            "9 0 obj\n<< /Parent 8 0 R /FT /Tx /T (Amount) /V (1) >>\nendobj\n",
+            $"/TransformMethod /FieldMDP /TransformParams << /Action /Include /Fields [{invoiceAmount}] >>");
+        byte[] tail = Encoding.ASCII.GetBytes("9 0 obj\n<< /Parent 8 0 R /FT /Tx /T (Amount) /V (2) >>\nendobj\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Equal(["Invoice.Amount"], result.Policy.FieldNames);
+        Assert.Contains(result.Violations, violation => violation.FieldName == "Invoice.Amount");
+    }
+
+    private static byte[] FormDocument(string fields, string policy) =>
+        Encoding.ASCII.GetBytes(
+            "%PDF-1.7\n" +
+            "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 5 0 R >>\nendobj\n" +
+            "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n" +
+            "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n" +
+            "5 0 obj\n<< /Fields [6 0 R 8 0 R] >>\nendobj\n" +
+            "6 0 obj\n<< /FT /Sig /T (Signature1) /V 7 0 R >>\nendobj\n" +
+            $"7 0 obj\n<< /Type /Sig /SubFilter /ETSI.CAdES.detached /Reference [<< {policy} >>] >>\nendobj\n" +
+            fields +
+            "trailer\n<< /Size 10 /Root 1 0 R >>\n%%EOF\n");
+
     // A one-page document with a content stream, an AcroForm and one signature (objects 1-7).
     private static byte[] SignedDocument(string policy = "") =>
         Encoding.ASCII.GetBytes(

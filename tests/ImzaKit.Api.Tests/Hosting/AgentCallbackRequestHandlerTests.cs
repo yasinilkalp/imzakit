@@ -57,7 +57,12 @@ public sealed class AgentCallbackRequestHandlerTests
         string body = CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint);
         Assert.DoesNotContain("BEGIN", body, StringComparison.Ordinal);
         Assert.DoesNotContain("PRIVATE", body, StringComparison.Ordinal);
-        Assert.DoesNotContain("pin", body, StringComparison.OrdinalIgnoreCase);
+        using (JsonDocument payload = JsonDocument.Parse(body))
+        {
+            // Property names only: the base64 ticket may contain "pin" by chance.
+            Assert.DoesNotContain(payload.RootElement.EnumerateObject(), property =>
+                property.Name.Contains("pin", StringComparison.OrdinalIgnoreCase));
+        }
 
         ApiHttpResponse response = fixture.Handler.Handle(CallbackFixture.Post(
             "/v1/agent-callbacks/signature-results",

@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace ImzaKit.PAdES.Policy;
 
@@ -20,7 +19,7 @@ public static class PdfModificationPolicyEvaluator
         PdfRevisionChanges changes = PdfRevisionChanges.Compare(pdf, coveredLength);
         List<PdfModificationPolicyViolation> violations = [];
         AddDocMdpViolations(policy, changes, violations);
-        AddFieldMdpViolations(policy, tail, violations);
+        AddFieldMdpViolations(policy, changes, violations);
         return new PdfModificationPolicyEvaluation(policy, violations, changes.Complete);
     }
 
@@ -57,7 +56,7 @@ public static class PdfModificationPolicyEvaluator
 
     private static void AddFieldMdpViolations(
         PdfModificationPolicy policy,
-        string tail,
+        PdfRevisionChanges changes,
         List<PdfModificationPolicyViolation> violations)
     {
         if (policy.FieldLockAction == PdfFieldLockAction.None)
@@ -65,13 +64,9 @@ public static class PdfModificationPolicyEvaluator
             return;
         }
 
-        HashSet<string> reported = new(StringComparer.Ordinal);
-        foreach (Match match in Regex.Matches(tail, @"/T\s*\(([^)]+)\)"))
+        foreach (string fieldName in changes.ChangedFieldNames.Order(StringComparer.Ordinal))
         {
-            string fieldName = match.Groups[1].Value;
-            if (fieldName.StartsWith("DocTimeStamp", StringComparison.Ordinal)
-                || !Locks(policy, fieldName)
-                || !reported.Add(fieldName))
+            if (fieldName.StartsWith("DocTimeStamp", StringComparison.Ordinal) || !Locks(policy, fieldName))
             {
                 continue;
             }

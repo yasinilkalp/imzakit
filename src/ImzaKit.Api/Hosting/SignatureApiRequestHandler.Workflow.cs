@@ -77,31 +77,34 @@ public sealed partial class SignatureApiRequestHandler
 
         idempotencyKey = ScopeIdempotencyKey(caller.TenantId, idempotencyKey);
         string hash = CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body);
-        if (TryReplay(idempotencyKey, hash, correlationId, out ApiHttpResponse? replayed))
+        lock (_gate)
         {
-            return replayed!;
-        }
+            if (TryReplay(idempotencyKey, hash, correlationId, out ApiHttpResponse? replayed))
+            {
+                return replayed!;
+            }
 
-        if (!TryReadEnvelopeBody(request.Body, out EnvelopeCreateBody body, out ApiProblemKind? problem))
-        {
-            return Problem(problem!.Value, correlationId);
-        }
+            if (!TryReadEnvelopeBody(request.Body, out EnvelopeCreateBody body, out ApiProblemKind? problem))
+            {
+                return Problem(problem!.Value, correlationId);
+            }
 
-        SignatureEnvelope envelope;
-        try
-        {
-            envelope = SignatureFlowCoordinator.Create(
-                body.Flow,
-                body.MergeStrategy,
-                body.Policy,
-                body.ApprovedDocumentSha256);
-        }
-        catch (ArgumentException)
-        {
-            return Problem(ApiProblemKind.Unprocessable, correlationId);
-        }
+            SignatureEnvelope envelope;
+            try
+            {
+                envelope = SignatureFlowCoordinator.Create(
+                    body.Flow,
+                    body.MergeStrategy,
+                    body.Policy,
+                    body.ApprovedDocumentSha256);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(ApiProblemKind.Unprocessable, correlationId);
+            }
 
-        return StoreEnvelope(caller.TenantId, idempotencyKey, hash, envelope, 201, correlationId);
+            return StoreEnvelope(caller.TenantId, idempotencyKey, hash, envelope, 201, correlationId);
+        }
     }
 
     private ApiHttpResponse CompleteEnvelopeStep(
@@ -137,23 +140,28 @@ public sealed partial class SignatureApiRequestHandler
         Func<SignatureEnvelope, WorkflowMutationResult> mutate)
     {
         string hash = CanonicalRequestHasher.Hash(request.Method, request.Path, request.Body);
-        if (TryReplay(idempotencyKey, hash, correlationId, out ApiHttpResponse? replayed))
-        {
-            return replayed!;
-        }
 
-        if (!TryGetEnvelope(envelopeId, caller, out SignatureEnvelope? envelope))
+        // Read, mutate and store as one step so concurrent step updates cannot overwrite each other.
+        lock (_gate)
         {
-            return Problem(ApiProblemKind.NotFound, correlationId);
-        }
+            if (TryReplay(idempotencyKey, hash, correlationId, out ApiHttpResponse? replayed))
+            {
+                return replayed!;
+            }
 
-        WorkflowMutationResult result = mutate(envelope);
-        if (!result.Succeeded)
-        {
-            return Problem(MapWorkflowProblem(result.ProblemCode), correlationId);
-        }
+            if (!TryGetEnvelope(envelopeId, caller, out SignatureEnvelope? envelope))
+            {
+                return Problem(ApiProblemKind.NotFound, correlationId);
+            }
 
-        return StoreEnvelope(caller.TenantId, idempotencyKey, hash, result.Envelope, successStatus, correlationId);
+            WorkflowMutationResult result = mutate(envelope);
+            if (!result.Succeeded)
+            {
+                return Problem(MapWorkflowProblem(result.ProblemCode), correlationId);
+            }
+
+            return StoreEnvelope(caller.TenantId, idempotencyKey, hash, result.Envelope, successStatus, correlationId);
+        }
     }
 
     private bool TryGetEnvelope(
@@ -161,10 +169,13 @@ public sealed partial class SignatureApiRequestHandler
         ApiCallerIdentity caller,
         [NotNullWhen(true)] out SignatureEnvelope? envelope)
     {
-        envelope = _envelopes.TryGetValue(envelopeId, out OwnedEnvelope? owned) && IsOwner(owned.TenantId, caller)
-            ? owned.Envelope
-            : null;
-        return envelope is not null;
+        lock (_gate)
+        {
+            envelope = _envelopes.TryGetValue(envelopeId, out OwnedEnvelope? owned) && IsOwner(owned.TenantId, caller)
+                ? owned.Envelope
+                : null;
+            return envelope is not null;
+        }
     }
 
     private bool TryReplay(string idempotencyKey, string hash, string correlationId, out ApiHttpResponse? response)

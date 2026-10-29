@@ -29,6 +29,7 @@ internal sealed partial class PdfRevisionChanges
     private readonly PdfRevisionObjects _tail;
     private readonly int? _acroFormNumber;
     private readonly List<PdfChange> _changes = [];
+    private readonly HashSet<string> _changedFieldNames = new(StringComparer.Ordinal);
 
     private PdfRevisionChanges(PdfRevisionObjects covered, PdfRevisionObjects tail)
     {
@@ -42,6 +43,9 @@ internal sealed partial class PdfRevisionChanges
     }
 
     public IReadOnlyList<PdfChange> Changes => _changes;
+
+    // Fully qualified names of form fields added or changed after the signature, named as signed.
+    public IReadOnlyCollection<string> ChangedFieldNames => _changedFieldNames;
 
     public bool Complete { get; private set; }
 
@@ -66,6 +70,10 @@ internal sealed partial class PdfRevisionChanges
                 if (kind != PdfChangeKind.Neutral)
                 {
                     _changes.Add(new(kind, updated.Number, true, $"object {updated.Number} {Describe(original)} changed"));
+                    if (IsField(original) || IsField(updated))
+                    {
+                        AddChangedField(original);
+                    }
                 }
             }
             else if (updated.Number < coveredSize && !_covered.Complete)
@@ -74,7 +82,12 @@ internal sealed partial class PdfRevisionChanges
             }
             else
             {
-                _changes.Add(new(ClassifyNew(updated), updated.Number, false, $"object {updated.Number} {Describe(updated)} added"));
+                PdfChangeKind kind = ClassifyNew(updated);
+                _changes.Add(new(kind, updated.Number, false, $"object {updated.Number} {Describe(updated)} added"));
+                if (IsField(updated) && kind != PdfChangeKind.Preservation)
+                {
+                    AddChangedField(updated);
+                }
             }
         }
 
@@ -337,6 +350,32 @@ internal sealed partial class PdfRevisionChanges
 
     private PdfObjectDefinition? Find(int number) =>
         _tail.Objects.GetValueOrDefault(number) ?? _covered.Objects.GetValueOrDefault(number);
+
+    // Widgets without /T take their name (and value) from the parent field.
+    private void AddChangedField(PdfObjectDefinition field)
+    {
+        List<string> parts = [];
+        PdfObjectDefinition? current = field;
+        for (int depth = 0; current is not null && depth < 32; depth++)
+        {
+            if (current.Dictionary.TryGetValue("/T", out string? title) && PdfSyntax.TextStrings(title) is [string name, ..])
+            {
+                parts.Insert(0, name);
+            }
+
+            current = PdfSyntax.SingleReference(current.Dictionary.GetValueOrDefault("/Parent")) is int parent
+                ? _covered.Objects.GetValueOrDefault(parent) ?? _tail.Objects.GetValueOrDefault(parent)
+                : null;
+        }
+
+        if (parts.Count > 0)
+        {
+            _changedFieldNames.Add(string.Join('.', parts));
+        }
+    }
+
+    private static bool IsField(PdfObjectDefinition item) =>
+        item.Has("/T") || item.Has("/FT") || (item.Name("/Subtype") == "/Widget" && item.Has("/Parent"));
 
     private bool IsAcroForm(PdfObjectDefinition item) =>
         item.Number == _acroFormNumber || (item.Has("/Fields") && !item.Has("/Type"));

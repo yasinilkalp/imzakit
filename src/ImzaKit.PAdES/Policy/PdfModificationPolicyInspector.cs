@@ -13,7 +13,7 @@ public static partial class PdfModificationPolicyInspector
         PdfFieldLockAction fieldAction = ReadFieldLockAction(fieldParameters);
         string[] fieldNames = fieldAction == PdfFieldLockAction.None || fieldParameters is null
             ? []
-            : [.. PdfSyntax.LiteralStrings(fieldParameters.GetValueOrDefault("/Fields") ?? "")];
+            : [.. PdfSyntax.TextStrings(fieldParameters.GetValueOrDefault("/Fields") ?? "")];
         return new PdfModificationPolicy(certification, fieldAction, fieldNames);
     }
 

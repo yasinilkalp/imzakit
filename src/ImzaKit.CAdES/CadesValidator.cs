@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using ImzaKit.Core.Cryptography;
 using ImzaKit.Timestamp.Rfc3161;
 
 namespace ImzaKit.CAdES;
@@ -62,6 +63,25 @@ public static class CadesValidator
         }
 
         X509Certificate2? certificate = signer.Certificate;
+        if (crypto == CadesStatus.Passed && !CryptographicAlgorithmPolicy.IsSignerAllowed(
+                signer.DigestAlgorithm.Value,
+                signer.SignatureAlgorithm.Value,
+                certificate))
+        {
+            crypto = CadesStatus.Failed;
+            findings.Add("AlgorithmDisallowed");
+        }
+
+        switch (CmsSigningCertificateVerifier.Verify(signer))
+        {
+            case CmsSigningCertificateBinding.Mismatch:
+                crypto = CadesStatus.Failed;
+                findings.Add("SigningCertificateMismatch");
+                break;
+            case CmsSigningCertificateBinding.AttributeMissing:
+                findings.Add("SigningCertificateAttributeMissing");
+                break;
+        }
         string? fingerprint = certificate is null
             ? null
             : Convert.ToHexString(SHA256.HashData(certificate.RawData));

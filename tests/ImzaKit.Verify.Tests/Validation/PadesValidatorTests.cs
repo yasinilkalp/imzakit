@@ -89,9 +89,19 @@ public sealed class PadesValidatorTests
         Assert.Contains(report.Findings, finding => finding.Code == "UnsupportedPdf");
     }
 
-    private static byte[] CreateSignedPdf()
+    [Fact]
+    public void SignatureWithWeakRsaKeyFailsAsDisallowedAlgorithm()
     {
-        using RSA rsa = RSA.Create(2048);
+        PadesValidationReport report = PadesValidator.Validate(CreateSignedPdf(keySize: 1024));
+
+        Assert.Equal(ValidationStatus.Failed, report.Status);
+        Assert.Equal(ValidationStatus.Failed, report.CryptographicStatus);
+        Assert.Contains(report.Findings, finding => finding.ReasonCode == ValidationReasonCode.AlgorithmDisallowed);
+    }
+
+    private static byte[] CreateSignedPdf(int keySize = 2048)
+    {
+        using RSA rsa = RSA.Create(keySize);
         CertificateRequest request = new("CN=ImzaKit Verify Test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         using X509Certificate2 certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
         byte[] certificateDer = certificate.Export(X509ContentType.Cert);

@@ -217,7 +217,25 @@ public sealed class SignatureExtendRequestHandlerTests
             TimeStampAuthorityRegistry.FromEnvironment(_ => "a=https://one.example;A=https://two.example"));
     }
 
-    private const string DefaultAuthorities = """[{"name":"primary","url":"https://tsa.example/rfc3161"}]""";
+    [Fact]
+    public async Task ConcurrentDuplicateExtendRequestsReplayTheFirstResultInsteadOfFailing()
+    {
+        using Barrier bothInside = new(2);
+        HandlerFixture fixture = new(extensions: new BarrierExtensionWorkflow(bothInside));
+        ApiHttpRequest request = HandlerFixture.Post(
+            "/v1/signatures/extend",
+            CreateExtendBody(),
+            idempotencyKey: "idempotency-key-extend-race");
+
+        ApiHttpResponse[] responses = await Task.WhenAll(
+            Task.Run(() => fixture.Handler.Handle(request)),
+            Task.Run(() => fixture.Handler.Handle(request)));
+
+        Assert.All(responses, response => Assert.Equal(200, response.StatusCode));
+        Assert.Equal(responses[0].Body, responses[1].Body);
+    }
+
+    private const string DefaultAuthorities ="""[{"name":"primary","url":"https://tsa.example/rfc3161"}]""";
 
     private static string CreateExtendBody(
         string targetLevel = "B-T",
@@ -265,6 +283,19 @@ public sealed class SignatureExtendRequestHandlerTests
             }
 
             return new ApiHttpRequest { Method = "POST", Path = path, Body = body, Headers = headers };
+        }
+    }
+
+    // Holds every caller until both concurrent requests are inside Extend, then returns a distinct result.
+    private sealed class BarrierExtensionWorkflow(Barrier barrier) : ISignatureExtensionWorkflow
+    {
+        public SignatureExtensionOutcome Extend(SignatureExtensionRequest request)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            barrier.SignalAndWait(TimeSpan.FromSeconds(10));
+            return new(
+                SignatureExtensionStatus.Succeeded,
+                new SignatureExtensionResult(Guid.NewGuid(), "B-B", "B-T", "tenant-1/extended.pdf", Digest, 2048));
         }
     }
 

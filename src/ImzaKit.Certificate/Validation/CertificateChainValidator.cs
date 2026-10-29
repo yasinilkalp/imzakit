@@ -1,18 +1,11 @@
 using System.Security.Cryptography.X509Certificates;
 using ImzaKit.Certificate.Models;
+using ImzaKit.Core.Cryptography;
 
 namespace ImzaKit.Certificate.Validation;
 
 public sealed class CertificateChainValidator : ICertificateChainValidator
 {
-    private static readonly HashSet<string> DisallowedSignatureAlgorithms = new(StringComparer.Ordinal)
-    {
-        "1.2.840.113549.1.1.4",
-        "1.2.840.113549.1.1.5",
-        "1.2.840.10040.4.3",
-        "1.2.840.10045.4.1"
-    };
-
     public CertificateChainValidationResult Validate(CertificateChainValidationRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -58,8 +51,8 @@ public sealed class CertificateChainValidator : ICertificateChainValidator
                 failures.Add(CertificateValidationFailure.Expired);
             }
 
-            if (certificate.SignatureAlgorithm.Value is string oid
-                && DisallowedSignatureAlgorithms.Contains(oid))
+            if (!CryptographicAlgorithmPolicy.IsSignatureAlgorithmAllowed(certificate.SignatureAlgorithm.Value)
+                || !CryptographicAlgorithmPolicy.IsPublicKeyStrongEnough(certificate))
             {
                 failures.Add(CertificateValidationFailure.AlgorithmDisallowed);
             }

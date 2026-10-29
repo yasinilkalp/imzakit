@@ -51,7 +51,8 @@ public sealed class TestCertificateAuthority : IDisposable
         string? ocspUri = null,
         string? crlDistributionUri = null,
         bool includeQcCompliance = false,
-        bool leafHasNonRepudiation = false)
+        bool leafHasNonRepudiation = false,
+        int leafKeySize = 2048)
     {
         DateTimeOffset now = new(2026, 8, 23, 12, 0, 0, TimeSpan.Zero);
         if (useSha1Signatures)
@@ -61,7 +62,7 @@ public sealed class TestCertificateAuthority : IDisposable
 
         RSA rootKey = RSA.Create(2048);
         RSA intermediateKey = RSA.Create(2048);
-        RSA leafKey = RSA.Create(2048);
+        RSA leafKey = RSA.Create(leafKeySize);
 
         HashAlgorithmName signatureHash = useSha1Signatures ? HashAlgorithmName.SHA1 : HashAlgorithmName.SHA256;
         CertificateRequest rootRequest = CreateCaRequest(

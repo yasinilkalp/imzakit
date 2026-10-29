@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
+using ImzaKit.CAdES;
+using ImzaKit.Core.Cryptography;
 using ImzaKit.PAdES.Policy;
 
 namespace ImzaKit.Verify.Validation;
@@ -137,10 +139,34 @@ public static class PadesValidator
             string? fingerprint = certificate is null
                 ? null
                 : Convert.ToHexString(SHA256.HashData(certificate.RawData));
+            ValidationFinding? rejected = cms.SignerInfos.Count == 0 ? null : RejectSigner(cms.SignerInfos[0], certificate);
+            if (rejected is not null)
+            {
+                ValidationFinding weak = rejected;
+                revision = ToRevision(
+                    index,
+                    located,
+                    coveredRevision,
+                    subsequent,
+                    ValidationStatus.Passed,
+                    ValidationStatus.Failed,
+                    ValidationStatus.Indeterminate,
+                    fingerprint,
+                    null,
+                    [weak]);
+                return new(ValidationStatus.Failed, ValidationStatus.Passed, ValidationStatus.Failed,
+                    ValidationStatus.Indeterminate, fingerprint, [weak]);
+            }
             List<ValidationFinding> findings = [new("TrustNotEvaluated", "Certificate trust and revocation were not evaluated.")];
             if (fingerprint is null)
             {
                 findings.Insert(0, new("SignerCertificateMissing", "The signer certificate is not embedded in the CMS container."));
+            }
+            else if (CmsSigningCertificateVerifier.Verify(cms.SignerInfos[0]) == CmsSigningCertificateBinding.AttributeMissing)
+            {
+                findings.Add(new(
+                    "SigningCertificateAttributeMissing",
+                    "The signature does not bind its certificate with a signing-certificate(-v2) attribute."));
             }
 
             PdfModificationPolicyEvaluation modification = PdfModificationPolicyEvaluator.Evaluate(pdf, located.CoveredLength);
@@ -217,6 +243,28 @@ public static class PadesValidator
                 failed.Findings);
             return failed;
         }
+    }
+
+    private static ValidationFinding? RejectSigner(
+        SignerInfo signer,
+        System.Security.Cryptography.X509Certificates.X509Certificate2? certificate)
+    {
+        if (!CryptographicAlgorithmPolicy.IsSignerAllowed(
+                signer.DigestAlgorithm.Value,
+                signer.SignatureAlgorithm.Value,
+                certificate))
+        {
+            return new(
+                "AlgorithmDisallowed",
+                "The signature uses a digest algorithm, signature algorithm or key size below the accepted minimum.")
+            {
+                ReasonCode = ValidationReasonCode.AlgorithmDisallowed
+            };
+        }
+
+        return CmsSigningCertificateVerifier.Verify(signer) == CmsSigningCertificateBinding.Mismatch
+            ? new("SigningCertificateMismatch", "The signing-certificate attribute does not identify the embedded signer certificate.")
+            : null;
     }
 
     private static PadesSignatureRevisionReport ToRevision(

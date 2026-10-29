@@ -28,6 +28,7 @@ public sealed class InMemorySignatureWorkflow(TimeProvider? timeProvider = null)
 {
     private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
     private readonly Dictionary<string, (int Version, string Fingerprint)> _tokens = [];
+    private readonly Lock _gate = new();
 
     public SignaturePrepareResult Prepare(Guid operationId, string certificateDerBase64, string fingerprintSha256)
     {
@@ -35,7 +36,11 @@ public sealed class InMemorySignatureWorkflow(TimeProvider? timeProvider = null)
         ArgumentException.ThrowIfNullOrWhiteSpace(fingerprintSha256);
         byte[] data = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(operationId.ToString("D") + fingerprintSha256));
         string token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-        _tokens[token] = (1, fingerprintSha256);
+        lock (_gate)
+        {
+            _tokens[token] = (1, fingerprintSha256);
+        }
+
         return new SignaturePrepareResult(
             1,
             Convert.ToBase64String(data),
@@ -47,8 +52,16 @@ public sealed class InMemorySignatureWorkflow(TimeProvider? timeProvider = null)
 
     public bool Complete(string completionToken, int prepareVersion, string certificateFingerprintSha256)
     {
-        return _tokens.TryGetValue(completionToken, out (int Version, string Fingerprint) stored) &&
-               stored.Version == prepareVersion &&
+        (int Version, string Fingerprint) stored;
+        lock (_gate)
+        {
+            if (!_tokens.TryGetValue(completionToken, out stored))
+            {
+                return false;
+            }
+        }
+
+        return stored.Version == prepareVersion &&
                string.Equals(stored.Fingerprint, certificateFingerprintSha256, StringComparison.OrdinalIgnoreCase);
     }
 

@@ -104,6 +104,18 @@ public sealed class CertificateChainValidatorTests
     }
 
     [Fact]
+    public void ValidateRejectsLeafWithRsaKeyBelow2048Bits()
+    {
+        using TestCertificateAuthority pki = TestCertificateAuthority.Create(leafKeySize: 1024);
+
+        CertificateChainValidationResult result = new CertificateChainValidator().Validate(
+            new CertificateChainValidationRequest(CreateCandidate(pki), pki.ReferenceTimeUtc));
+
+        Assert.Contains(CertificateValidationFailure.AlgorithmDisallowed, result.Failures);
+        Assert.Equal(CertificateChainStatus.Invalid, result.Status);
+    }
+
+    [Fact]
     public void ValidateAcceptsQualifiedLeafWithOnlyNonRepudiationUsage()
     {
         using TestCertificateAuthority pki = TestCertificateAuthority.Create(
