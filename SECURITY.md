@@ -2,7 +2,7 @@
 
 ## Desteklenen sürüm
 
-ImzaKit `1.0.0` sürüm adayı aşamasındadır. Güvenlik düzeltmeleri aktif NuGet sürüm adayı `1.0.0-rc.2` ve gerektiğinde onu izleyen en güncel sürüm adayı veya kararlı sürüm için değerlendirilir. Önceki alpha paketleri desteklenmez.
+ImzaKit `1.0.0` kararlı sürümdür. Güvenlik düzeltmeleri en güncel `1.0.x` sürümü için değerlendirilir. Sürüm adayları (`1.0.0-rc.*`) ve alpha paketleri desteklenmez.
 
 ## Güvenlik açığı bildirme
 

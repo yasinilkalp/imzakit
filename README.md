@@ -4,7 +4,7 @@
 
 ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
-> **Sürüm adayı:** `1.0.0-rc.2`, `1.0.0` için sürüm adayıdır; kararlı sürüme kadar yalnız hata ve güvenlik düzeltmeleri hedeflenir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
+> **Kararlı sürüm:** `1.0.0`, ImzaKit’in ilk kararlı sürümüdür; genel API anlamsal sürümlemeye uyar ve kırıcı değişiklikler yalnız yeni ana sürümde yapılır. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
 
 ## Öne çıkan özellikler
 
@@ -33,13 +33,13 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 ## Kurulum
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-rc.2
+dotnet add package ImzaKit --version 1.0.0
 ```
 
 Ya da proje dosyanıza doğrudan ekleyin:
 
 ```xml
-<PackageReference Include="ImzaKit" Version="1.0.0-rc.2" />
+<PackageReference Include="ImzaKit" Version="1.0.0" />
 ```
 
 Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuget/ImzaKit) üzerinde görünür; kurulum kaynağı nuget.org’dur.
@@ -232,7 +232,7 @@ ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature too
 ### Install
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-rc.2
+dotnet add package ImzaKit --version 1.0.0
 ```
 
 ### Included modules
@@ -255,9 +255,9 @@ Operations, validations and envelopes belong to the calling tenant. Completion t
 
 ImzaKit never consults the system trust store automatically. Signature verification stays offline unless the caller supplies evidence. RFC 3161 timestamping and PAdES B-T/B-LT/B-LTA extension fetch TSA/OCSP/CRL only through `IExternalResourceFetcher`. TSA certificate revocation is not checked, XAdES validation does not evaluate TSA trust, and the default `InMemorySignatureWorkflow` is a sample that keeps records in memory and does not embed the verified signature value.
 
-### Release candidate and security notice
+### Stable release and security notice
 
-This is a release candidate for `1.0.0`; until the stable release only bug and security fixes are planned. Integrators must supply deployment-specific PKCS#11 adapters, trusted validation inputs, hardware validation, native user approval, secure transport, and operational controls before production use.
+`1.0.0` is the first stable release; the public API follows semantic versioning and breaking changes ship only in a new major version. Integrators must supply deployment-specific PKCS#11 adapters, trusted validation inputs, hardware validation, native user approval, secure transport, and operational controls before production use.
 
 ### Project and community
 
