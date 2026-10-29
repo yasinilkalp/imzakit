@@ -4,6 +4,7 @@ using ImzaKit.Certificate.Validation;
 using ImzaKit.Revocation.Evaluation;
 using ImzaKit.Revocation.Models;
 using ImzaKit.Revocation.Parsing;
+using ImzaKit.Testing.Timestamp;
 using ImzaKit.Trust.Evaluation;
 using ImzaKit.Verify.Tests.Fixtures;
 using ImzaKit.Verify.Validation;
@@ -152,6 +153,53 @@ public sealed class PadesValidationServiceTests
 
         Assert.Equal(ValidationStatus.Passed, report.ChainStatus);
         Assert.Equal(ValidationStatus.Passed, report.Status);
+    }
+
+    [Fact]
+    public async Task SignatureTimeStampFromTrustedAuthorityCountsAsBaselineT()
+    {
+        using SignedPdfFixture fixture = SignedPdfFixture.Create();
+        using TestTsaResponder tsa = new(fixture.Pki.Intermediate);
+        byte[] pdf = await fixture.SignBaselineTAsync(tsa);
+
+        PadesValidationReport report = CreateService().Validate(pdf, fixture.CreateContext(includeGoodCrl: true));
+
+        Assert.Equal(ValidationStatus.Passed, report.Status);
+        Assert.Equal(PadesBaselineLevel.BT, report.SignatureLevel);
+        Assert.DoesNotContain(report.Findings, finding => finding.Code == "TimeStampAuthorityUntrusted");
+    }
+
+    [Fact]
+    public async Task SignatureTimeStampFromUntrustedAuthorityDoesNotCountAsBaselineT()
+    {
+        using SignedPdfFixture fixture = SignedPdfFixture.Create();
+        using TestTsaResponder tsa = new();
+        byte[] pdf = await fixture.SignBaselineTAsync(tsa);
+
+        PadesValidationReport report = CreateService().Validate(pdf, fixture.CreateContext(includeGoodCrl: true));
+
+        Assert.Equal(PadesBaselineLevel.BT, PadesValidator.Validate(pdf).SignatureLevel);
+        Assert.Equal(ValidationStatus.Passed, report.Status);
+        Assert.Equal(PadesBaselineLevel.BB, report.SignatureLevel);
+        Assert.Equal(PadesBaselineLevel.BB, report.Signatures[0].SignatureLevel);
+        Assert.Contains(report.Signatures[0].Findings, finding => finding.Code == "TimeStampAuthorityUntrusted");
+    }
+
+    [Theory]
+    [InlineData(true, PadesBaselineLevel.BLTA)]
+    [InlineData(false, PadesBaselineLevel.BLT)]
+    public async Task DocumentTimeStampCountsAsBaselineLtaOnlyFromTrustedAuthority(bool trustedArchive, string expected)
+    {
+        using SignedPdfFixture fixture = SignedPdfFixture.Create();
+        using TestTsaResponder signatureTsa = new(fixture.Pki.Intermediate);
+        using TestTsaResponder archiveTsa = trustedArchive ? new(fixture.Pki.Intermediate) : new();
+        byte[] pdf = await fixture.ArchiveAsync(await fixture.SignBaselineTAsync(signatureTsa), archiveTsa);
+
+        PadesValidationReport report = CreateService().Validate(pdf, fixture.CreateContext(includeGoodCrl: true));
+
+        Assert.Equal(ValidationStatus.Passed, report.Status);
+        Assert.Equal(expected, report.SignatureLevel);
+        Assert.Equal(!trustedArchive, report.Findings.Any(finding => finding.Code == "TimeStampAuthorityUntrusted"));
     }
 
     private static PadesValidationService CreateService() => new(

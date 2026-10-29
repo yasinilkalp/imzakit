@@ -61,8 +61,13 @@ internal static partial class PdfCadesSignatureReader
     }
 
     // Time-stamps only count towards a level when their tokens verify: the signature time-stamp
-    // over this signature value, and every document time-stamp over its own ByteRange.
-    internal static string DetectLevel(ReadOnlySpan<byte> pdf, SignedCms cms, List<ValidationFinding> findings)
+    // over this signature value, and every document time-stamp over its own ByteRange. When a trust
+    // check is given, each time-stamp authority must also pass it.
+    internal static string DetectLevel(
+        ReadOnlySpan<byte> pdf,
+        SignedCms cms,
+        List<ValidationFinding> findings,
+        Predicate<Rfc3161TimeStampTokenVerification>? isAuthorityTrusted = null)
     {
         string text = Encoding.ASCII.GetString(pdf);
         Rfc3161TimeStampTokenVerification? signatureTimeStamp = cms.SignerInfos.Count == 0
@@ -75,9 +80,10 @@ internal static partial class PdfCadesSignatureReader
                 $"The signature time-stamp does not verify ({signatureTimeStamp.FailureCode})."));
         }
 
-        bool hasTimestamp = signatureTimeStamp is { IsValid: true };
+        bool hasTimestamp = signatureTimeStamp is { IsValid: true }
+            && IsAuthorityTrusted(signatureTimeStamp, isAuthorityTrusted, "signature", findings);
         bool hasDss = DssDictionary().IsMatch(text);
-        bool hasDocTimeStamp = HasValidDocumentTimeStamps(pdf, findings);
+        bool hasDocTimeStamp = HasValidDocumentTimeStamps(pdf, findings, isAuthorityTrusted);
         return (hasTimestamp, hasDss, hasDocTimeStamp) switch
         {
             (true, true, true) => PadesBaselineLevel.BLTA,
@@ -87,24 +93,49 @@ internal static partial class PdfCadesSignatureReader
         };
     }
 
-    private static bool HasValidDocumentTimeStamps(ReadOnlySpan<byte> pdf, List<ValidationFinding> findings)
+    private static bool HasValidDocumentTimeStamps(
+        ReadOnlySpan<byte> pdf,
+        List<ValidationFinding> findings,
+        Predicate<Rfc3161TimeStampTokenVerification>? isAuthorityTrusted)
     {
         IReadOnlyList<PdfCadesLocatedSignature> timeStamps = ReadDocumentTimeStamps(pdf);
         foreach (PdfCadesLocatedSignature timeStamp in timeStamps)
         {
-            string? failure = timeStamp.Status != PdfCadesReadStatus.Success
-                ? "IMZAKIT.TS.TOKEN_MALFORMED"
-                : Rfc3161TimeStampTokenVerifier.Verify(timeStamp.Cms, timeStamp.SignedBytes).FailureCode;
-            if (failure is not null)
+            Rfc3161TimeStampTokenVerification verification = timeStamp.Status != PdfCadesReadStatus.Success
+                ? new(false, "IMZAKIT.TS.TOKEN_MALFORMED", null)
+                : Rfc3161TimeStampTokenVerifier.Verify(timeStamp.Cms, timeStamp.SignedBytes);
+            if (!verification.IsValid)
             {
                 findings.Add(new(
                     "DocumentTimeStampInvalid",
-                    $"A document time-stamp does not verify over its ByteRange ({failure})."));
+                    $"A document time-stamp does not verify over its ByteRange ({verification.FailureCode})."));
+                return false;
+            }
+
+            if (!IsAuthorityTrusted(verification, isAuthorityTrusted, "document", findings))
+            {
                 return false;
             }
         }
 
         return timeStamps.Count > 0;
+    }
+
+    private static bool IsAuthorityTrusted(
+        Rfc3161TimeStampTokenVerification timeStamp,
+        Predicate<Rfc3161TimeStampTokenVerification>? isAuthorityTrusted,
+        string kind,
+        List<ValidationFinding> findings)
+    {
+        if (isAuthorityTrusted is null || isAuthorityTrusted(timeStamp))
+        {
+            return true;
+        }
+
+        findings.Add(new(
+            "TimeStampAuthorityUntrusted",
+            $"The {kind} time-stamp authority does not chain to a trust anchor enabled for this profile."));
+        return false;
     }
 
     private static PdfCadesLocatedSignature ReadOne(ReadOnlySpan<byte> pdf, string text, int subFilter)

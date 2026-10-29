@@ -3,6 +3,7 @@ using System.Security.Cryptography.Pkcs;
 using ImzaKit.CAdES;
 using ImzaKit.Core.Cryptography;
 using ImzaKit.PAdES.Policy;
+using ImzaKit.Timestamp.Rfc3161;
 
 namespace ImzaKit.Verify.Validation;
 
@@ -10,7 +11,13 @@ public static class PadesValidator
 {
     private const int MaximumPdfSize = 32 * 1024 * 1024;
 
-    public static PadesValidationReport Validate(ReadOnlySpan<byte> pdf)
+    public static PadesValidationReport Validate(ReadOnlySpan<byte> pdf) => ValidateIntegrity(pdf, null);
+
+    // isAuthorityTrusted decides whether a time-stamp's TSA is trusted; without it, any time-stamp
+    // whose token verifies counts towards the level.
+    internal static PadesValidationReport ValidateIntegrity(
+        ReadOnlySpan<byte> pdf,
+        Predicate<Rfc3161TimeStampTokenVerification>? isAuthorityTrusted)
     {
         if (!pdf.StartsWith("%PDF-"u8))
         {
@@ -38,7 +45,7 @@ public static class PadesValidator
         PadesValidationReport? last = null;
         for (int index = 0; index < located.Count; index++)
         {
-            last = Evaluate(pdf, located[index], out PadesSignatureRevisionReport revision, index + 1);
+            last = Evaluate(pdf, located[index], isAuthorityTrusted, out PadesSignatureRevisionReport revision, index + 1);
             signatures.Add(revision);
         }
 
@@ -88,6 +95,7 @@ public static class PadesValidator
     private static PadesValidationReport Evaluate(
         ReadOnlySpan<byte> pdf,
         PdfCadesLocatedSignature located,
+        Predicate<Rfc3161TimeStampTokenVerification>? isAuthorityTrusted,
         out PadesSignatureRevisionReport revision,
         int index)
     {
@@ -186,7 +194,7 @@ public static class PadesValidator
                     "Later revisions contain objects that could not be analysed, so changes after signing cannot be ruled out."));
             }
 
-            string? level = PdfCadesSignatureReader.DetectLevel(pdf, cms, findings);
+            string? level = PdfCadesSignatureReader.DetectLevel(pdf, cms, findings, isAuthorityTrusted);
             PadesValidationReport passed = new(
                 modificationFailed ? ValidationStatus.Failed : ValidationStatus.Indeterminate,
                 ValidationStatus.Passed,

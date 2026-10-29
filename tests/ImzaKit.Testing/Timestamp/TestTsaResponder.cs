@@ -15,7 +15,9 @@ public sealed class TestTsaResponder : IDisposable
     private readonly X509Certificate2 _certificate;
     private readonly TimeStampTokenGenerator _tokenGenerator;
 
-    public TestTsaResponder()
+    // Without an issuer the TSA certificate is self-signed; with one (which must carry its private key)
+    // it chains to that CA, so tests can place the TSA inside or outside a trust store.
+    public TestTsaResponder(X509Certificate2? issuer = null)
     {
         CertificateRequest request = new("CN=ImzaKit Test TSA", _key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         request.CertificateExtensions.Add(
@@ -24,7 +26,15 @@ public sealed class TestTsaResponder : IDisposable
             new OidCollection { new Oid(TimeStampingEku) },
             critical: true));
 
-        _certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(2));
+        DateTimeOffset notBefore = DateTimeOffset.UtcNow.AddDays(-1);
+        DateTimeOffset notAfter = DateTimeOffset.UtcNow.AddYears(2);
+        _certificate = issuer is null
+            ? request.CreateSelfSigned(notBefore, notAfter)
+            : request.Create(
+                issuer,
+                notBefore,
+                notAfter < issuer.NotAfter ? notAfter : issuer.NotAfter,
+                RandomNumberGenerator.GetBytes(16));
         CertificateDer = _certificate.Export(X509ContentType.Cert);
         X509CertificateParser parser = new();
         Org.BouncyCastle.X509.X509Certificate bcCertificate = parser.ReadCertificate(_certificate.RawData);

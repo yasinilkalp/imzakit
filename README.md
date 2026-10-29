@@ -139,7 +139,7 @@ foreach (ValidationFinding finding in report.Findings)
 
 Tek parametreli `PadesValidator.Validate` çağrısı geriye dönük uyumluluk için yalnız PDF/CMS bütünlüğünü denetler; bu nedenle `TrustStatus` değeri `Indeterminate` olabilir.
 
-Birden fazla imzalı belgelerde her imza ayrı değerlendirilir (`report.Signatures[i].Status`, `TrustStatus`, `RevocationStatus`); belge yalnız bütün imzalar geçerse `Passed` olur. İmzadan sonraki revizyonlar nesne düzeyinde karşılaştırılır: sayfa veya içerik değişikliği `ContentModifiedAfterSigning` (DocMDP sertifikalı belgede `DocMdpViolation`) ile `Failed`, okunamayan nesne akışları `ModificationAnalysisIncomplete` ile `Indeterminate` olur. Zaman damgaları seviyeye yalnız token imzası ve kapsadığı veri doğrulanırsa sayılır; aksi halde `SignatureTimeStampInvalid` veya `DocumentTimeStampInvalid` bulgusu eklenir.
+Birden fazla imzalı belgelerde her imza ayrı değerlendirilir (`report.Signatures[i].Status`, `TrustStatus`, `RevocationStatus`); belge yalnız bütün imzalar geçerse `Passed` olur. İmzadan sonraki revizyonlar nesne düzeyinde karşılaştırılır: sayfa veya içerik değişikliği `ContentModifiedAfterSigning` (DocMDP sertifikalı belgede `DocMdpViolation`) ile `Failed`, okunamayan nesne akışları `ModificationAnalysisIncomplete` ile `Indeterminate` olur. Zaman damgaları seviyeye yalnız token imzası ve kapsadığı veri doğrulanırsa sayılır; aksi halde `SignatureTimeStampInvalid` veya `DocumentTimeStampInvalid` bulgusu eklenir. `ValidationContext` ile doğrulamada ayrıca TSA sertifika zinciri, token zamanında geçerli olmalı ve profile açık bir güven çapasına bağlanmalıdır; bağlanmayan damgalar `TimeStampAuthorityUntrusted` bulgusuyla seviyeye sayılmaz.
 
 ### Çevrimdışı güven doğrulaması
 

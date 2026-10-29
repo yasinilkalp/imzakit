@@ -89,9 +89,14 @@ internal sealed partial class PdfRevisionObjects
                 int dataEnd = StreamEnd(text, dictionary, dataStart);
                 string data = text[dataStart..dataEnd];
                 Add(new PdfObjectDefinition(number, dictionaryText + "stream" + data, dictionary, IsStream: true));
-                if (dictionary.TryGetValue("/Type", out string? type) && type == "/ObjStm")
+                switch (dictionary.GetValueOrDefault("/Type"))
                 {
-                    ReadObjectStream(dictionary, data);
+                    case "/ObjStm":
+                        ReadObjectStream(dictionary, data);
+                        break;
+                    case "/XRef":
+                        ReadXrefStream(dictionary, data);
+                        break;
                 }
 
                 endObject = text.IndexOf("endobj", dataEnd, StringComparison.Ordinal);
@@ -138,19 +143,18 @@ internal sealed partial class PdfRevisionObjects
 
     private void ReadObjectStream(IReadOnlyDictionary<string, string> dictionary, string data)
     {
-        if (dictionary.ContainsKey("/DecodeParms")
-            || !dictionary.TryGetValue("/Filter", out string? filter)
-            || filter.Trim('[', ']', ' ') != "/FlateDecode"
-            || !dictionary.TryGetValue("/N", out string? countText)
+        if (!dictionary.TryGetValue("/N", out string? countText)
             || !dictionary.TryGetValue("/First", out string? firstText)
             || !int.TryParse(countText, NumberStyles.None, CultureInfo.InvariantCulture, out int count)
             || !int.TryParse(firstText, NumberStyles.None, CultureInfo.InvariantCulture, out int first)
-            || !TryInflate(Encoding.Latin1.GetBytes(data), out string decoded)
-            || first > decoded.Length)
+            || !TryDecode(dictionary, data, out byte[] bytes)
+            || first > bytes.Length)
         {
             Complete = false;
             return;
         }
+
+        string decoded = Encoding.Latin1.GetString(bytes);
 
         string[] header = decoded[..first].Split((char[])[' ', '\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries);
         if (header.Length < count * 2)
@@ -186,9 +190,185 @@ internal sealed partial class PdfRevisionObjects
         }
     }
 
-    private static bool TryInflate(byte[] compressed, out string decoded)
+    // Free (type 0) entries of a cross-reference stream are deletions, like 'f' entries in a classic table.
+    private void ReadXrefStream(IReadOnlyDictionary<string, string> dictionary, string data)
     {
-        decoded = "";
+        int[] widths = Numbers(dictionary.GetValueOrDefault("/W"));
+        int[] index = dictionary.TryGetValue("/Index", out string? indexText)
+            ? Numbers(indexText)
+            : [0, DeclaredSizeOf(dictionary)];
+        if (widths.Length != 3
+            || widths.Any(width => width is < 0 or > 8)
+            || index.Length % 2 != 0
+            || index.Any(value => value < 0)
+            || !TryDecode(dictionary, data, out byte[] decoded))
+        {
+            Complete = false;
+            return;
+        }
+
+        int entrySize = widths.Sum();
+        int offset = 0;
+        for (int section = 0; section < index.Length; section += 2)
+        {
+            for (int number = index[section]; number < index[section] + index[section + 1]; number++)
+            {
+                if (entrySize == 0 || offset + entrySize > decoded.Length)
+                {
+                    Complete = false;
+                    return;
+                }
+
+                long type = widths[0] == 0 ? 1 : ReadBigEndian(decoded, offset, widths[0]);
+                if (type == 0 && number > 0)
+                {
+                    FreedObjects.Add(number);
+                }
+
+                offset += entrySize;
+            }
+        }
+    }
+
+    private static int DeclaredSizeOf(IReadOnlyDictionary<string, string> dictionary) =>
+        int.TryParse(dictionary.GetValueOrDefault("/Size"), NumberStyles.None, CultureInfo.InvariantCulture, out int size)
+            ? size
+            : -1;
+
+    // Parses an array of non-negative integers such as "[0 8 12 3]"; a malformed item yields [-1].
+    private static int[] Numbers(string? array)
+    {
+        if (array is null || !array.StartsWith('[') || !array.EndsWith(']'))
+        {
+            return [];
+        }
+
+        string[] items = array[1..^1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        int[] numbers = new int[items.Length];
+        for (int item = 0; item < items.Length; item++)
+        {
+            if (!int.TryParse(items[item], NumberStyles.None, CultureInfo.InvariantCulture, out numbers[item]))
+            {
+                return [-1];
+            }
+        }
+
+        return numbers;
+    }
+
+    private static long ReadBigEndian(byte[] data, int offset, int width)
+    {
+        long value = 0;
+        for (int index = 0; index < width; index++)
+        {
+            value = (value << 8) | data[offset + index];
+        }
+
+        return value;
+    }
+
+    // Supports unfiltered and FlateDecode streams, with or without the PNG predictors that
+    // cross-reference streams usually carry. Anything else is reported as undecodable.
+    private static bool TryDecode(IReadOnlyDictionary<string, string> dictionary, string data, out byte[] decoded)
+    {
+        decoded = Encoding.Latin1.GetBytes(data);
+        if (!dictionary.TryGetValue("/Filter", out string? filter))
+        {
+            return !dictionary.ContainsKey("/DecodeParms");
+        }
+
+        if (filter.Trim('[', ']', ' ') != "/FlateDecode" || !TryInflate(decoded, out decoded))
+        {
+            return false;
+        }
+
+        if (!dictionary.TryGetValue("/DecodeParms", out string? parametersText))
+        {
+            return true;
+        }
+
+        string parametersDictionary = parametersText.Trim('[', ']', ' ');
+        if (!parametersDictionary.StartsWith("<<", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        IReadOnlyDictionary<string, string> parameters = PdfSyntax.ParseDictionary(parametersDictionary);
+        int predictor = Parameter(parameters, "/Predictor", 1);
+        if (predictor == 1)
+        {
+            return true;
+        }
+
+        return predictor >= 10
+            && Parameter(parameters, "/Colors", 1) == 1
+            && Parameter(parameters, "/BitsPerComponent", 8) == 8
+            && TryUndoPngPredictor(decoded, Parameter(parameters, "/Columns", 1), out decoded);
+    }
+
+    private static int Parameter(IReadOnlyDictionary<string, string> parameters, string key, int fallback) =>
+        !parameters.TryGetValue(key, out string? value)
+            ? fallback
+            : int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ? number : -1;
+
+    // PNG predictors (ISO 32000-1, 7.4.4.4) with one byte per pixel: each row starts with its filter type.
+    private static bool TryUndoPngPredictor(byte[] encoded, int columns, out byte[] decoded)
+    {
+        decoded = [];
+        if (columns < 1 || encoded.Length % (columns + 1) != 0)
+        {
+            return false;
+        }
+
+        int rows = encoded.Length / (columns + 1);
+        byte[] output = new byte[rows * columns];
+        for (int row = 0; row < rows; row++)
+        {
+            int source = row * (columns + 1);
+            int target = row * columns;
+            byte filter = encoded[source];
+            for (int column = 0; column < columns; column++)
+            {
+                int left = column > 0 ? output[target + column - 1] : 0;
+                int up = row > 0 ? output[target - columns + column] : 0;
+                int upperLeft = row > 0 && column > 0 ? output[target - columns + column - 1] : 0;
+                int raw = encoded[source + 1 + column];
+                int value = filter switch
+                {
+                    0 => raw,
+                    1 => raw + left,
+                    2 => raw + up,
+                    3 => raw + ((left + up) / 2),
+                    4 => raw + Paeth(left, up, upperLeft),
+                    _ => -1
+                };
+                if (value < 0)
+                {
+                    return false;
+                }
+
+                output[target + column] = (byte)value;
+            }
+        }
+
+        decoded = output;
+        return true;
+    }
+
+    private static int Paeth(int left, int up, int upperLeft)
+    {
+        int estimate = left + up - upperLeft;
+        int distanceLeft = Math.Abs(estimate - left);
+        int distanceUp = Math.Abs(estimate - up);
+        int distanceUpperLeft = Math.Abs(estimate - upperLeft);
+        return distanceLeft <= distanceUp && distanceLeft <= distanceUpperLeft
+            ? left
+            : distanceUp <= distanceUpperLeft ? up : upperLeft;
+    }
+
+    private static bool TryInflate(byte[] compressed, out byte[] decoded)
+    {
+        decoded = [];
         try
         {
             using MemoryStream input = new(compressed);
@@ -206,7 +386,7 @@ internal sealed partial class PdfRevisionObjects
                 output.Write(buffer, 0, read);
             }
 
-            decoded = Encoding.Latin1.GetString(output.ToArray());
+            decoded = output.ToArray();
             return true;
         }
         catch (InvalidDataException)

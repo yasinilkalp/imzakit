@@ -4,12 +4,16 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using ImzaKit.Certificate.Models;
 using ImzaKit.Cms.Preparation;
+using ImzaKit.Core.Net;
 using ImzaKit.Core.Signing;
 using ImzaKit.Cryptography.Digests;
 using ImzaKit.PAdES.Completion;
+using ImzaKit.PAdES.Dss;
 using ImzaKit.PAdES.Preparation;
 using ImzaKit.Revocation.Models;
 using ImzaKit.Testing.Certificates;
+using ImzaKit.Testing.Timestamp;
+using ImzaKit.Timestamp.Rfc3161;
 using ImzaKit.Trust.Models;
 using ImzaKit.Verify.Validation;
 using Org.BouncyCastle.Crypto.Operators;
@@ -40,6 +44,38 @@ internal sealed class SignedPdfFixture : IDisposable
 
     internal static byte[] Sign(byte[] pdf, X509Certificate2 signer)
     {
+        (PadesSignaturePreparation preparation, SignatureCompletion completion, byte[] certificateDer) =
+            Prepare(pdf, signer, cmsCapacity: 4096);
+        return PadesSignatureCompleter.Complete(preparation, completion, certificateDer);
+    }
+
+    // Signs with the fixture's leaf and adds a signature time-stamp from the given TSA (PAdES B-T).
+    internal Task<byte[]> SignBaselineTAsync(TestTsaResponder tsa)
+    {
+        (PadesSignaturePreparation preparation, SignatureCompletion completion, byte[] certificateDer) =
+            Prepare(CreateOnePagePdf(), Pki.Leaf, cmsCapacity: 8192);
+        return PadesSignatureCompleter.CompleteBaselineT(
+            preparation,
+            completion,
+            certificateDer,
+            new Rfc3161TimeStampClient(new TsaFetcher(tsa)),
+            [new TimeStampAuthority("signature", new Uri("https://tsa.example/rfc3161"))]);
+    }
+
+    // Adds a DSS and a document time-stamp from the given TSA (PAdES B-LTA).
+    internal Task<byte[]> ArchiveAsync(byte[] signedPdf, TestTsaResponder tsa) =>
+        PadesSignatureCompleter.CompleteBaselineLta(
+            PadesSignatureCompleter.EmbedBaselineLt(
+                signedPdf,
+                new PadesValidationMaterial([Pki.Leaf.Export(X509ContentType.Cert), Pki.Intermediate.Export(X509ContentType.Cert)])),
+            new Rfc3161TimeStampClient(new TsaFetcher(tsa)),
+            [new TimeStampAuthority("archive", new Uri("https://tsa.example/rfc3161"))]);
+
+    private static (PadesSignaturePreparation, SignatureCompletion, byte[]) Prepare(
+        byte[] pdf,
+        X509Certificate2 signer,
+        int cmsCapacity)
+    {
         byte[] certificateDer = signer.Export(X509ContentType.Cert);
         string fingerprint = Convert.ToHexString(SHA256.HashData(certificateDer));
         Guid operationId = Guid.NewGuid();
@@ -48,7 +84,7 @@ internal sealed class SignedPdfFixture : IDisposable
                 operationId,
                 "OFFLINE-TRUST-TEST",
                 pdf,
-                4096,
+                cmsCapacity,
                 certificateDer,
                 fingerprint,
                 1);
@@ -57,10 +93,7 @@ internal sealed class SignedPdfFixture : IDisposable
             preparation.SignaturePreparation.DataToBeSigned.Span,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
-        return PadesSignatureCompleter.Complete(
-            preparation,
-            SignatureCompletion.Create(operationId, 1, fingerprint, signature),
-            certificateDer);
+        return (preparation, SignatureCompletion.Create(operationId, 1, fingerprint, signature), certificateDer);
     }
 
     internal X509Certificate2 CreateUntrustedSigner()
@@ -108,6 +141,14 @@ internal sealed class SignedPdfFixture : IDisposable
         return generator.Generate(new Asn1SignatureFactory(
             "SHA256WITHRSA",
             DotNetUtilities.GetRsaKeyPair(issuerKey).Private)).GetEncoded();
+    }
+
+    private sealed class TsaFetcher(TestTsaResponder tsa) : IExternalResourceFetcher
+    {
+        public Task<ExternalResourceFetchResult> FetchAsync(
+            ExternalResourceFetchRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new ExternalResourceFetchResult(tsa.Grant(request.Body), "application/timestamp-reply"));
     }
 
     private static CertificateDescriptor Describe(X509Certificate2 certificate, CertificateSource source) =>

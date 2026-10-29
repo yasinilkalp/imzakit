@@ -10,6 +10,12 @@ public sealed record Rfc3161TimeStampTokenVerification(
     string? FailureCode,
     DateTimeOffset? GenerationTimeUtc)
 {
+    // The TSA certificate that signed a valid token and every certificate the token embeds (DER), so
+    // callers can build and trust-check the TSA chain. Both are empty when the token does not verify.
+    public byte[]? SignerCertificate { get; init; }
+
+    public IReadOnlyList<byte[]> Certificates { get; init; } = [];
+
     internal static Rfc3161TimeStampTokenVerification Invalid(string failureCode) => new(false, failureCode, null);
 }
 
@@ -43,16 +49,21 @@ public static class Rfc3161TimeStampTokenVerifier
         }
 
         string? failure = VerifySignature(token);
-        return failure is null
-            ? new(true, null, new DateTimeOffset(DateTime.SpecifyKind(token.TimeStampInfo.GenTime, DateTimeKind.Utc)))
-            : Rfc3161TimeStampTokenVerification.Invalid(failure);
+        if (failure is not null)
+        {
+            return Rfc3161TimeStampTokenVerification.Invalid(failure);
+        }
+
+        return new(true, null, new DateTimeOffset(DateTime.SpecifyKind(token.TimeStampInfo.GenTime, DateTimeKind.Utc)))
+        {
+            SignerCertificate = FindSigner(token)!.GetEncoded(),
+            Certificates = [.. token.GetCertificates().EnumerateMatches(null).Select(certificate => certificate.GetEncoded())]
+        };
     }
 
     internal static string? VerifySignature(TimeStampToken token)
     {
-        X509Certificate? signer = token.GetCertificates()
-            .EnumerateMatches(token.SignerID)
-            .FirstOrDefault();
+        X509Certificate? signer = FindSigner(token);
         if (signer is null)
         {
             return "IMZAKIT.TS.CERTIFICATE_MISSING";
@@ -68,6 +79,9 @@ public static class Rfc3161TimeStampTokenVerifier
             return "IMZAKIT.TS.INVALID_TOKEN";
         }
     }
+
+    private static X509Certificate? FindSigner(TimeStampToken token) =>
+        token.GetCertificates().EnumerateMatches(token.SignerID).FirstOrDefault();
 
     private static byte[]? Hash(string algorithmOid, ReadOnlySpan<byte> data) => algorithmOid switch
     {

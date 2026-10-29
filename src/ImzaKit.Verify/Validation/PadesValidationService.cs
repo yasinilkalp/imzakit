@@ -5,6 +5,7 @@ using ImzaKit.Certificate.Models;
 using ImzaKit.Certificate.Validation;
 using ImzaKit.Revocation.Evaluation;
 using ImzaKit.Revocation.Models;
+using ImzaKit.Timestamp.Rfc3161;
 using ImzaKit.Trust.Evaluation;
 
 namespace ImzaKit.Verify.Validation;
@@ -36,7 +37,9 @@ public sealed class PadesValidationService : IPadesValidationService
     public PadesValidationReport Validate(ReadOnlySpan<byte> pdf, ValidationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        PadesValidationReport integrity = PadesValidator.Validate(pdf);
+        PadesValidationReport integrity = PadesValidator.ValidateIntegrity(
+            pdf,
+            timeStamp => IsTimeStampAuthorityTrusted(timeStamp, context));
         if (integrity.ByteRangeStatus != ValidationStatus.Passed
             || integrity.CryptographicStatus != ValidationStatus.Passed)
         {
@@ -149,10 +152,7 @@ public sealed class PadesValidationService : IPadesValidationService
         CertificateDescriptor[] embedded = cmsIntermediates
             .Concat(context.EmbeddedIntermediates)
             .ToArray();
-        CertificateDescriptor[] local = context.LocalIntermediates
-            .Concat(context.TrustStore.Anchors.Select(anchor => anchor.Certificate))
-            .ToArray();
-        CertificateChainBuildResult build = _chainBuilder.Build(new(leaf, embedded, local));
+        CertificateChainBuildResult build = _chainBuilder.Build(new(leaf, embedded, LocalCertificates(context)));
         if (build.Status != CertificateChainStatus.Complete || build.Candidate is null)
         {
             return SignatureTrust.Unavailable(Reason(
@@ -218,6 +218,38 @@ public sealed class PadesValidationService : IPadesValidationService
                 .Select(result => result.EvidenceSource!.Value)
                 .Distinct()]);
     }
+
+    // A time-stamp only supports a level when its TSA chain is complete, valid when the token was issued
+    // and ends in an anchor enabled for the profile. Signer certificate policies are not required of a TSA.
+    private bool IsTimeStampAuthorityTrusted(Rfc3161TimeStampTokenVerification timeStamp, ValidationContext context)
+    {
+        if (timeStamp.SignerCertificate is null || timeStamp.GenerationTimeUtc is not DateTimeOffset issuedAt)
+        {
+            return false;
+        }
+
+        CertificateDescriptor leaf = CertificateDescriptor.FromDer(timeStamp.SignerCertificate, CertificateSource.Embedded);
+        CertificateDescriptor[] embedded = timeStamp.Certificates
+            .Select(certificate => CertificateDescriptor.FromDer(certificate, CertificateSource.Embedded))
+            .Concat(context.EmbeddedIntermediates)
+            .ToArray();
+        CertificateChainBuildResult build = _chainBuilder.Build(new(leaf, embedded, LocalCertificates(context)));
+        if (build.Status != CertificateChainStatus.Complete || build.Candidate is null)
+        {
+            return false;
+        }
+
+        return _chainValidator.Validate(new(build.Candidate, issuedAt)).Status == CertificateChainStatus.Valid
+            && _trustPolicyEvaluator.Evaluate(new(
+                build.Candidate,
+                context.Profile,
+                context.TrustStore,
+                context.PolicyCatalog,
+                issuedAt)).AnchorStatus == TrustPolicyStatus.Passed;
+    }
+
+    private static CertificateDescriptor[] LocalCertificates(ValidationContext context) =>
+        [.. context.LocalIntermediates.Concat(context.TrustStore.Anchors.Select(anchor => anchor.Certificate))];
 
     private static ValidationStatus Worst(IEnumerable<ValidationStatus> statuses) =>
         statuses.Aggregate(ValidationStatus.Passed, (worst, next) => Severity(next) > Severity(worst) ? next : worst);

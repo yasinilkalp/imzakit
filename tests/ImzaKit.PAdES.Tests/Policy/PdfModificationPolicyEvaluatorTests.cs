@@ -226,6 +226,34 @@ public sealed class PdfModificationPolicyEvaluatorTests
     }
 
     [Fact]
+    public void DeletionInCrossReferenceStreamIsContentChange()
+    {
+        byte[] covered = SignedDocument();
+        byte[] tail = XrefStream(12, first: 3, 1, 0);
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.True(result.IsComplete);
+        Assert.Contains(result.Violations, violation => violation.Message.Contains("object 4 deleted", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Violations, violation => violation.Message.Contains("object 3 deleted", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void UndecodableCrossReferenceStreamMakesAnalysisIncomplete()
+    {
+        byte[] covered = SignedDocument();
+        byte[] tail = Encoding.ASCII.GetBytes(
+            "12 0 obj\n<< /Type /XRef /W [1 2 1] /Size 13 /Root 1 0 R /Filter /FlateDecode /Length 6 >>\nstream\ngarbag\nendstream\nendobj\n");
+
+        PdfModificationPolicyEvaluation result = PdfModificationPolicyEvaluator.Evaluate(
+            Concat(covered, tail), covered.Length);
+
+        Assert.Empty(result.Violations);
+        Assert.False(result.IsComplete);
+    }
+
+    [Fact]
     public void FieldMdpDetectsLockedValueChangeEvenWhenTitleIsDropped()
     {
         byte[] covered = FormDocument(
@@ -292,18 +320,49 @@ public sealed class PdfModificationPolicyEvaluatorTests
             bodies.Append(body).Append('\n');
         }
 
-        byte[] plain = Encoding.ASCII.GetBytes(header.ToString() + bodies);
+        byte[] data = Deflate(Encoding.ASCII.GetBytes(header.ToString() + bodies));
+        byte[] prefix = Encoding.ASCII.GetBytes(
+            $"{number} 0 obj\n<< /Type /ObjStm /N {objects.Length} /First {header.Length} /Filter /FlateDecode /Length {data.Length} >>\nstream\n");
+        byte[] suffix = Encoding.ASCII.GetBytes("\nendstream\nendobj\n");
+        return [.. prefix, .. data, .. suffix];
+    }
+
+    // A cross-reference stream (/W [1 2 1]) with one entry of the given type per object from `first`,
+    // compressed with FlateDecode and the PNG Up predictor, as PDF writers usually emit it.
+    private static byte[] XrefStream(int number, int first, params byte[] types)
+    {
+        const int columns = 4;
+        byte[] rows = new byte[types.Length * (columns + 1)];
+        byte[] previous = new byte[columns];
+        for (int entry = 0; entry < types.Length; entry++)
+        {
+            byte[] row = [types[entry], 0, (byte)(16 * (entry + 1)), 0];
+            rows[entry * (columns + 1)] = 2;
+            for (int column = 0; column < columns; column++)
+            {
+                rows[(entry * (columns + 1)) + 1 + column] = (byte)(row[column] - previous[column]);
+            }
+
+            previous = row;
+        }
+
+        byte[] data = Deflate(rows);
+        byte[] prefix = Encoding.ASCII.GetBytes(
+            $"{number} 0 obj\n<< /Type /XRef /W [1 2 1] /Index [{first} {types.Length}] /Size {number + 1} /Root 1 0 R " +
+            $"/Filter /FlateDecode /DecodeParms << /Columns {columns} /Predictor 12 >> /Length {data.Length} >>\nstream\n");
+        byte[] suffix = Encoding.ASCII.GetBytes("\nendstream\nendobj\n");
+        return [.. prefix, .. data, .. suffix];
+    }
+
+    private static byte[] Deflate(byte[] plain)
+    {
         using MemoryStream compressed = new();
         using (System.IO.Compression.ZLibStream deflater = new(compressed, System.IO.Compression.CompressionMode.Compress))
         {
             deflater.Write(plain);
         }
 
-        byte[] data = compressed.ToArray();
-        byte[] prefix = Encoding.ASCII.GetBytes(
-            $"{number} 0 obj\n<< /Type /ObjStm /N {objects.Length} /First {header.Length} /Filter /FlateDecode /Length {data.Length} >>\nstream\n");
-        byte[] suffix = Encoding.ASCII.GetBytes("\nendstream\nendobj\n");
-        return [.. prefix, .. data, .. suffix];
+        return compressed.ToArray();
     }
 
     private static byte[] Covered(string policy) =>
