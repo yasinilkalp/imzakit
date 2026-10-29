@@ -63,7 +63,7 @@ internal sealed class PolicySignedXml : SignedXml
         Resolver = DisabledXmlResolver.Instance;
     }
 
-    private static XmlElement? FindUniqueId(XmlElement? root, string idValue)
+    internal static XmlElement? FindUniqueId(XmlElement? root, string idValue)
     {
         if (root is null)
         {

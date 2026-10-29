@@ -1,3 +1,4 @@
+using System.Security.Cryptography.Xml;
 using System.Xml;
 
 namespace ImzaKit.XAdES;
@@ -33,6 +34,51 @@ internal static class XadesXmlTree
 
     public static bool Has(XmlNode node, string localName, string namespaceUri) =>
         Find(node, localName, namespaceUri) is not null;
+
+    public static XmlElement? Child(XmlNode parent, string localName, string namespaceUri) =>
+        Children(parent, localName, namespaceUri).FirstOrDefault();
+
+    public static IEnumerable<XmlElement> Children(XmlNode parent, string localName, string namespaceUri)
+    {
+        foreach (XmlNode child in parent.ChildNodes)
+        {
+            if (child is XmlElement element
+                && element.LocalName == localName
+                && element.NamespaceURI == namespaceUri)
+            {
+                yield return element;
+            }
+        }
+    }
+
+    // The signature's own qualifying properties (a direct ds:Object child), never ones nested in signed content.
+    public static XmlElement? QualifyingProperties(XmlElement signature)
+    {
+        foreach (XmlElement dataObject in Children(signature, "Object", SignedXml.XmlDsigNamespaceUrl))
+        {
+            XmlElement? qualifying = Child(dataObject, "QualifyingProperties", XadesXmlAlgorithms.XadesNamespace);
+            if (qualifying is not null)
+            {
+                return qualifying;
+            }
+        }
+
+        return null;
+    }
+
+    public static XmlElement? UnsignedSignatureProperties(XmlElement signature)
+    {
+        XmlElement? unsignedProperties = QualifyingProperties(signature) is XmlElement qualifying
+            ? Child(qualifying, "UnsignedProperties", XadesXmlAlgorithms.XadesNamespace)
+            : null;
+        return unsignedProperties is null
+            ? null
+            : Child(unsignedProperties, "UnsignedSignatureProperties", XadesXmlAlgorithms.XadesNamespace);
+    }
+
+    public static bool HasUnsignedProperty(XmlElement signature, string localName, string namespaceUri) =>
+        UnsignedSignatureProperties(signature) is XmlElement properties
+        && Child(properties, localName, namespaceUri) is not null;
 
     public static IEnumerable<XmlElement> FindAll(XmlNode node, string localName, string namespaceUri)
     {

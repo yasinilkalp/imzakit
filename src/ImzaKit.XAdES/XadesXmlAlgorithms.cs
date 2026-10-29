@@ -5,11 +5,13 @@ namespace ImzaKit.XAdES;
 public static class XadesXmlAlgorithms
 {
     public const string ExclusiveCanonicalization = SignedXml.XmlDsigExcC14NTransformUrl;
+    public const string InclusiveCanonicalization = SignedXml.XmlDsigC14NTransformUrl;
     public const string EnvelopedSignature = SignedXml.XmlDsigEnvelopedSignatureTransformUrl;
     public const string Sha256Digest = SignedXml.XmlDsigSHA256Url;
     public const string RsaSha256 = SignedXml.XmlDsigRSASHA256Url;
     public const string SignedPropertiesType = "http://uri.etsi.org/01903#SignedProperties";
     public const string XadesNamespace = "http://uri.etsi.org/01903/v1.3.2#";
+    public const string Xades141Namespace = "http://uri.etsi.org/01903/v1.4.1#";
     public const string DetachedObjectId = "imzakit-detached";
     public const string DetachedUri = "#" + DetachedObjectId;
 

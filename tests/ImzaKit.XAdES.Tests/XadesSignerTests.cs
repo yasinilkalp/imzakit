@@ -171,9 +171,16 @@ public sealed class XadesPackagingTests
 
 public sealed class XadesBaselineTests
 {
+    private const string DsNamespace = "http://www.w3.org/2000/09/xmldsig#";
+    private const string XadesNamespace = "http://uri.etsi.org/01903/v1.3.2#";
+    private const string Xades141Namespace = "http://uri.etsi.org/01903/v1.4.1#";
+
     private static readonly byte[] SampleXml = """
         <doc xmlns="urn:imzakit:xades-test"><payload>baseline</payload></doc>
         """u8.ToArray();
+
+    private static readonly TimeStampAuthority[] Authorities =
+        [new TimeStampAuthority("primary", new Uri("https://tsa.example/rfc3161"))];
 
     [Fact]
     public async Task BaselineTAddsSignatureTimestamp()
@@ -269,16 +276,185 @@ public sealed class XadesBaselineTests
         Assert.Contains("B-LT", error.Message, StringComparison.Ordinal);
     }
 
-    private static async Task<byte[]> Timestamp(RSA rsa, X509Certificate2 certificate)
+    [Fact]
+    public async Task SignatureTimeStampCoversCanonicalSignatureValueElement()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit XAdES B-T imprint");
+        XmlDocument timestamped = Load(await Timestamp(rsa, certificate));
+        XmlElement stamp = Single(timestamped, "SignatureTimeStamp", XadesNamespace);
+        string signatureValue = Single(timestamped, "SignatureValue", DsNamespace).InnerText;
+
+        // Exclusive C14N of <ds:SignatureValue>, as declared by the time-stamp (EN 319 132-1, 5.3).
+        byte[] expected = Encoding.UTF8.GetBytes(
+            $"<SignatureValue xmlns=\"{DsNamespace}\">{signatureValue}</SignatureValue>");
+
+        Assert.Equal(
+            XadesXmlAlgorithms.ExclusiveCanonicalization,
+            Single(stamp, "CanonicalizationMethod", DsNamespace).GetAttribute("Algorithm"));
+        Assert.False(string.IsNullOrEmpty(stamp.GetAttribute("Id")));
+        Assert.True(Rfc3161TimeStampTokenVerifier.Verify(Token(stamp), expected).IsValid);
+    }
+
+    [Fact]
+    public async Task SignatureTimeStampOverRawSignatureValueDoesNotCountAsBaselineT()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit XAdES B-T raw");
+        byte[] timestamped = await Timestamp(rsa, certificate);
+        string signatureValue = Single(Load(timestamped), "SignatureValue", DsNamespace).InnerText;
+        using TestTsaResponder tsa = new();
+        Rfc3161TimeStampResult rawToken = await Client(tsa).RequestAsync(
+            SHA256.HashData(Convert.FromBase64String(signatureValue)),
+            Authorities,
+            CancellationToken.None);
+        byte[] legacy = Rewrite(timestamped, document =>
+            Single(document, "EncapsulatedTimeStamp", XadesNamespace).InnerText = Convert.ToBase64String(rawToken.TokenDer));
+
+        XadesValidationReport report = XadesValidator.Validate(legacy);
+
+        Assert.Equal(XadesStatus.Passed, report.Status);
+        Assert.Equal(XadesBaselineLevel.BB, report.SignatureLevel);
+        Assert.Contains("SignatureTimeStampInvalid", report.Findings);
+    }
+
+    [Theory]
+    [InlineData(XadesPackaging.Enveloped)]
+    [InlineData(XadesPackaging.Enveloping)]
+    [InlineData(XadesPackaging.Detached)]
+    public async Task BaselineLtaArchiveTimeStampVerifiesForEveryPackaging(XadesPackaging packaging)
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit XAdES B-LTA " + packaging);
+        byte[]? detached = packaging == XadesPackaging.Detached ? SampleXml : null;
+        byte[] longTerm = XadesExtender.ExtendBaselineLt(
+            await Timestamp(rsa, certificate, packaging),
+            new XadesLongTermEvidence([certificate.Export(X509ContentType.Cert)]));
+        using TestTsaResponder tsa = new();
+
+        byte[] archived = await XadesExtender.ExtendBaselineLta(longTerm, detached, Client(tsa), Authorities, CancellationToken.None);
+        XadesValidationReport report = XadesValidator.Validate(archived, detached);
+
+        Assert.Equal(XadesStatus.Passed, report.Status);
+        Assert.Equal(XadesBaselineLevel.BLTA, report.SignatureLevel);
+        Assert.Empty(report.Findings);
+        Assert.Equal(
+            XadesXmlAlgorithms.ExclusiveCanonicalization,
+            Single(Single(Load(archived), "ArchiveTimeStamp", Xades141Namespace), "CanonicalizationMethod", DsNamespace)
+                .GetAttribute("Algorithm"));
+    }
+
+    [Fact]
+    public async Task DetachedBaselineLtaRequiresDetachedContent()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit XAdES detached LTA");
+        byte[] longTerm = XadesExtender.ExtendBaselineLt(
+            await Timestamp(rsa, certificate, XadesPackaging.Detached),
+            new XadesLongTermEvidence([certificate.Export(X509ContentType.Cert)]));
+        using TestTsaResponder tsa = new();
+
+        InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            XadesExtender.ExtendBaselineLta(longTerm, Client(tsa), Authorities, CancellationToken.None));
+
+        Assert.Contains("detached content", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ArchiveTimeStampProtectsLongTermEvidence()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit XAdES B-LTA evidence");
+        using RSA otherKey = RSA.Create(2048);
+        using X509Certificate2 other = CreateCertificate(otherKey, "CN=ImzaKit XAdES substituted");
+        byte[] longTerm = XadesExtender.ExtendBaselineLt(
+            await Timestamp(rsa, certificate),
+            new XadesLongTermEvidence([certificate.Export(X509ContentType.Cert)]));
+        using TestTsaResponder tsa = new();
+        byte[] archived = await XadesExtender.ExtendBaselineLta(longTerm, Client(tsa), Authorities, CancellationToken.None);
+
+        byte[] substituted = Rewrite(archived, document =>
+            Single(document, "EncapsulatedX509Certificate", XadesNamespace).InnerText = Convert.ToBase64String(other.RawData));
+        XadesValidationReport report = XadesValidator.Validate(substituted);
+
+        Assert.Equal(XadesStatus.Passed, report.Status);
+        Assert.Equal(XadesBaselineLevel.BLT, report.SignatureLevel);
+        Assert.Contains("ArchiveTimeStampInvalid", report.Findings);
+    }
+
+    [Fact]
+    public async Task PreVersion141ArchiveTimeStampIsUnsupported()
+    {
+        using RSA rsa = RSA.Create(2048);
+        using X509Certificate2 certificate = CreateCertificate(rsa, "CN=ImzaKit XAdES legacy archive");
+        byte[] longTerm = XadesExtender.ExtendBaselineLt(
+            await Timestamp(rsa, certificate),
+            new XadesLongTermEvidence([certificate.Export(X509ContentType.Cert)]));
+        using TestTsaResponder tsa = new();
+        Rfc3161TimeStampResult wholeFile = await Client(tsa).RequestAsync(SHA256.HashData(longTerm), Authorities, CancellationToken.None);
+        byte[] legacy = Rewrite(longTerm, document =>
+        {
+            XmlElement stamp = document.CreateElement("xades", "ArchiveTimeStamp", XadesNamespace);
+            XmlElement token = document.CreateElement("xades", "EncapsulatedTimeStamp", XadesNamespace);
+            token.InnerText = Convert.ToBase64String(wholeFile.TokenDer);
+            stamp.AppendChild(token);
+            Single(document, "UnsignedSignatureProperties", XadesNamespace).AppendChild(stamp);
+        });
+
+        XadesValidationReport report = XadesValidator.Validate(legacy);
+
+        Assert.Equal(XadesStatus.Passed, report.Status);
+        Assert.Equal(XadesBaselineLevel.BLT, report.SignatureLevel);
+        Assert.Contains("ArchiveTimeStampUnsupported", report.Findings);
+    }
+
+    private static async Task<byte[]> Timestamp(
+        RSA rsa,
+        X509Certificate2 certificate,
+        XadesPackaging packaging = XadesPackaging.Enveloped)
     {
         using TestTsaResponder tsa = new();
-        ScriptedFetcher fetcher = new((_, body) => tsa.Grant(body));
         return await XadesExtender.ExtendBaselineT(
-            XadesSigner.Sign(XadesPackaging.Enveloped, SampleXml, certificate, rsa),
-            new Rfc3161TimeStampClient(fetcher),
-            [new TimeStampAuthority("primary", new Uri("https://tsa.example/rfc3161"))],
+            XadesSigner.Sign(packaging, SampleXml, certificate, rsa),
+            Client(tsa),
+            Authorities,
             CancellationToken.None);
     }
+
+    private static Rfc3161TimeStampClient Client(TestTsaResponder tsa) =>
+        new(new ScriptedFetcher((_, body) => tsa.Grant(body)));
+
+    private static XmlDocument Load(byte[] xml)
+    {
+        XmlDocument document = new() { PreserveWhitespace = true, XmlResolver = null };
+        using MemoryStream stream = new(xml);
+        document.Load(stream);
+        return document;
+    }
+
+    private static byte[] Rewrite(byte[] xml, Action<XmlDocument> edit)
+    {
+        XmlDocument document = Load(xml);
+        edit(document);
+        using MemoryStream output = new();
+        using (XmlWriter writer = XmlWriter.Create(output, new XmlWriterSettings { Encoding = new UTF8Encoding(false) }))
+        {
+            document.Save(writer);
+        }
+
+        return output.ToArray();
+    }
+
+    private static XmlElement Single(XmlNode root, string localName, string namespaceUri)
+    {
+        XmlNodeList nodes = root is XmlDocument document
+            ? document.GetElementsByTagName(localName, namespaceUri)
+            : ((XmlElement)root).GetElementsByTagName(localName, namespaceUri);
+        return (XmlElement)Assert.Single(nodes.Cast<XmlNode>());
+    }
+
+    private static byte[] Token(XmlElement stamp) =>
+        Convert.FromBase64String(Single(stamp, "EncapsulatedTimeStamp", XadesNamespace).InnerText);
 
     private static X509Certificate2 CreateCertificate(RSA rsa, string subject)
     {

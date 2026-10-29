@@ -18,18 +18,18 @@ public static class XadesExtender
         ArgumentNullException.ThrowIfNull(authorities);
         XmlDocument document = XadesXmlLoader.Load(signedXml);
         XmlElement signature = XadesXmlTree.Require(document, "Signature", SignedXml.XmlDsigNamespaceUrl);
-        if (XadesXmlTree.Has(signature, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace))
+        if (XadesXmlTree.HasUnsignedProperty(signature, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace))
         {
             throw new InvalidOperationException("The XML already contains an XAdES signature time-stamp.");
         }
 
-        byte[] signatureValue = Convert.FromBase64String(
-            XadesXmlTree.Require(signature, "SignatureValue", SignedXml.XmlDsigNamespaceUrl).InnerText.Trim());
+        byte[] covered = XadesTimeStampInput.ForSignatureTimeStamp(signature, XadesXmlAlgorithms.ExclusiveCanonicalization)
+            ?? throw new InvalidOperationException("XML element SignatureValue is missing.");
         Rfc3161TimeStampResult timestamp = await timeStampClient.RequestAsync(
-            SHA256.HashData(signatureValue),
+            SHA256.HashData(covered),
             authorities,
             cancellationToken).ConfigureAwait(false);
-        AppendUnsignedChild(document, signature, "SignatureTimeStamp", timestamp.TokenDer);
+        AppendTimeStamp(document, signature, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace, timestamp.TokenDer);
         return XadesXmlLoader.Save(document);
     }
 
@@ -39,13 +39,13 @@ public static class XadesExtender
         ArgumentNullException.ThrowIfNull(evidence);
         XmlDocument document = XadesXmlLoader.Load(signedXml);
         XmlElement signature = XadesXmlTree.Require(document, "Signature", SignedXml.XmlDsigNamespaceUrl);
-        if (!XadesXmlTree.Has(signature, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace))
+        if (!XadesXmlTree.HasUnsignedProperty(signature, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace))
         {
             throw new InvalidOperationException("XAdES B-LT requires a B-T signature time-stamp.");
         }
 
-        if (XadesXmlTree.Has(signature, "CertificateValues", XadesXmlAlgorithms.XadesNamespace)
-            || XadesXmlTree.Has(signature, "RevocationValues", XadesXmlAlgorithms.XadesNamespace))
+        if (XadesXmlTree.HasUnsignedProperty(signature, "CertificateValues", XadesXmlAlgorithms.XadesNamespace)
+            || XadesXmlTree.HasUnsignedProperty(signature, "RevocationValues", XadesXmlAlgorithms.XadesNamespace))
         {
             throw new InvalidOperationException("The XML already contains XAdES B-LT evidence.");
         }
@@ -60,8 +60,17 @@ public static class XadesExtender
         return XadesXmlLoader.Save(document);
     }
 
+    public static Task<byte[]> ExtendBaselineLta(
+        byte[] signedXml,
+        Rfc3161TimeStampClient timeStampClient,
+        IReadOnlyList<TimeStampAuthority> authorities,
+        CancellationToken cancellationToken) =>
+        ExtendBaselineLta(signedXml, detachedContent: null, timeStampClient, authorities, cancellationToken);
+
+    // The archive time-stamp covers the referenced data, so a detached signature needs its detached content.
     public static async Task<byte[]> ExtendBaselineLta(
         byte[] signedXml,
+        byte[]? detachedContent,
         Rfc3161TimeStampClient timeStampClient,
         IReadOnlyList<TimeStampAuthority> authorities,
         CancellationToken cancellationToken)
@@ -71,34 +80,54 @@ public static class XadesExtender
         ArgumentNullException.ThrowIfNull(authorities);
         XmlDocument document = XadesXmlLoader.Load(signedXml);
         XmlElement signature = XadesXmlTree.Require(document, "Signature", SignedXml.XmlDsigNamespaceUrl);
-        if (!XadesXmlTree.Has(signature, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace)
-            || (!XadesXmlTree.Has(signature, "CertificateValues", XadesXmlAlgorithms.XadesNamespace)
-                && !XadesXmlTree.Has(signature, "RevocationValues", XadesXmlAlgorithms.XadesNamespace)))
+        if (!XadesXmlTree.HasUnsignedProperty(signature, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace)
+            || (!XadesXmlTree.HasUnsignedProperty(signature, "CertificateValues", XadesXmlAlgorithms.XadesNamespace)
+                && !XadesXmlTree.HasUnsignedProperty(signature, "RevocationValues", XadesXmlAlgorithms.XadesNamespace)))
         {
             throw new InvalidOperationException("XAdES B-LTA requires B-LT certificate-values or revocation-values.");
         }
 
-        if (XadesXmlTree.Has(signature, "ArchiveTimeStamp", XadesXmlAlgorithms.XadesNamespace))
+        if (XadesXmlTree.HasUnsignedProperty(signature, "ArchiveTimeStamp", XadesXmlAlgorithms.Xades141Namespace)
+            || XadesXmlTree.HasUnsignedProperty(signature, "ArchiveTimeStamp", XadesXmlAlgorithms.XadesNamespace))
         {
             throw new InvalidOperationException("The XML already contains an XAdES archive time-stamp.");
         }
 
+        XmlElement? payload = detachedContent is null
+            ? null
+            : XadesValidator.InjectDetachedPayload(document, signature, detachedContent);
+        byte[] covered = XadesTimeStampInput.ForArchiveTimeStamp(
+                signature,
+                archiveTimeStamp: null,
+                XadesXmlAlgorithms.ExclusiveCanonicalization)
+            ?? throw new InvalidOperationException(
+                "The archive time-stamp input cannot be computed; a detached signature needs its detached content.");
+        payload?.ParentNode!.RemoveChild(payload);
         Rfc3161TimeStampResult timestamp = await timeStampClient.RequestAsync(
-            SHA256.HashData(signedXml),
+            SHA256.HashData(covered),
             authorities,
             cancellationToken).ConfigureAwait(false);
-        AppendUnsignedChild(document, signature, "ArchiveTimeStamp", timestamp.TokenDer);
+        AppendTimeStamp(document, signature, "ArchiveTimeStamp", XadesXmlAlgorithms.Xades141Namespace, timestamp.TokenDer);
         return XadesXmlLoader.Save(document);
     }
 
-    private static void AppendUnsignedChild(
+    // XAdESTimeStampType with an explicit canonicalization, since its absence means inclusive C14N.
+    private static void AppendTimeStamp(
         XmlDocument document,
         XmlElement signature,
         string localName,
+        string namespaceUri,
         byte[] tokenDer)
     {
         XmlElement unsigned = EnsureUnsignedSignatureProperties(document, signature);
-        XmlElement stamp = document.CreateElement("xades", localName, XadesXmlAlgorithms.XadesNamespace);
+        XmlElement stamp = document.CreateElement(
+            namespaceUri == XadesXmlAlgorithms.Xades141Namespace ? "xades141" : "xades",
+            localName,
+            namespaceUri);
+        stamp.SetAttribute("Id", "ts-" + Guid.NewGuid().ToString("N"));
+        XmlElement canonicalization = document.CreateElement("ds", "CanonicalizationMethod", SignedXml.XmlDsigNamespaceUrl);
+        canonicalization.SetAttribute("Algorithm", XadesXmlAlgorithms.ExclusiveCanonicalization);
+        stamp.AppendChild(canonicalization);
         XmlElement encapsulated = document.CreateElement(
             "xades",
             "EncapsulatedTimeStamp",
@@ -110,11 +139,9 @@ public static class XadesExtender
 
     private static XmlElement EnsureUnsignedSignatureProperties(XmlDocument document, XmlElement signature)
     {
-        XmlElement qualifying = XadesXmlTree.Require(
-            signature,
-            "QualifyingProperties",
-            XadesXmlAlgorithms.XadesNamespace);
-        XmlElement? unsignedProperties = XadesXmlTree.Find(
+        XmlElement qualifying = XadesXmlTree.QualifyingProperties(signature)
+            ?? throw new InvalidOperationException("XML element QualifyingProperties is missing.");
+        XmlElement? unsignedProperties = XadesXmlTree.Child(
             qualifying,
             "UnsignedProperties",
             XadesXmlAlgorithms.XadesNamespace);
@@ -127,7 +154,7 @@ public static class XadesExtender
             qualifying.AppendChild(unsignedProperties);
         }
 
-        XmlElement? unsignedSignature = XadesXmlTree.Find(
+        XmlElement? unsignedSignature = XadesXmlTree.Child(
             unsignedProperties,
             "UnsignedSignatureProperties",
             XadesXmlAlgorithms.XadesNamespace);

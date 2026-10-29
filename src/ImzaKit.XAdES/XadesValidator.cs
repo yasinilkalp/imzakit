@@ -2,11 +2,14 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
+using ImzaKit.Timestamp.Rfc3161;
 
 namespace ImzaKit.XAdES;
 
 public static class XadesValidator
 {
+    private const string DerEncoding = "http://uri.etsi.org/01903/v1.2.2#DER";
+
     public static XadesValidationReport Validate(
         ReadOnlySpan<byte> signedXml,
         ReadOnlySpan<byte> detachedContent = default)
@@ -70,7 +73,7 @@ public static class XadesValidator
             return new(
                 XadesStatus.Failed,
                 DetectPackaging(signatureElement),
-                DetectLevel(signatureElement),
+                DetectLevel(signatureElement, findings),
                 fingerprint,
                 findings);
         }
@@ -86,7 +89,7 @@ public static class XadesValidator
             return new(
                 XadesStatus.Failed,
                 DetectPackaging(signatureElement),
-                DetectLevel(signatureElement),
+                DetectLevel(signatureElement, findings),
                 fingerprint,
                 findings);
         }
@@ -99,17 +102,34 @@ public static class XadesValidator
         return new(
             crypto ? XadesStatus.Passed : XadesStatus.Failed,
             DetectPackaging(signatureElement),
-            DetectLevel(signatureElement),
+            DetectLevel(signatureElement, findings),
             fingerprint,
             findings);
     }
 
-    internal static string DetectLevel(XmlNode signatureElement)
+    // Time-stamps only count towards a level when every one of their kind verifies over the input XAdES
+    // defines for it. The pre-1.4.1 archive time-stamp is not supported and never counts.
+    internal static string DetectLevel(XmlElement signatureElement, List<string> findings)
     {
-        bool timestamp = XadesXmlTree.Has(signatureElement, "SignatureTimeStamp", XadesXmlAlgorithms.XadesNamespace);
-        bool longTerm = XadesXmlTree.Has(signatureElement, "CertificateValues", XadesXmlAlgorithms.XadesNamespace)
-            || XadesXmlTree.Has(signatureElement, "RevocationValues", XadesXmlAlgorithms.XadesNamespace);
-        bool archive = XadesXmlTree.Has(signatureElement, "ArchiveTimeStamp", XadesXmlAlgorithms.XadesNamespace);
+        bool timestamp = HasValidTimeStamps(
+            signatureElement,
+            "SignatureTimeStamp",
+            XadesXmlAlgorithms.XadesNamespace,
+            "SignatureTimeStampInvalid",
+            findings);
+        bool longTerm = XadesXmlTree.HasUnsignedProperty(signatureElement, "CertificateValues", XadesXmlAlgorithms.XadesNamespace)
+            || XadesXmlTree.HasUnsignedProperty(signatureElement, "RevocationValues", XadesXmlAlgorithms.XadesNamespace);
+        bool archive = HasValidTimeStamps(
+            signatureElement,
+            "ArchiveTimeStamp",
+            XadesXmlAlgorithms.Xades141Namespace,
+            "ArchiveTimeStampInvalid",
+            findings);
+        if (XadesXmlTree.HasUnsignedProperty(signatureElement, "ArchiveTimeStamp", XadesXmlAlgorithms.XadesNamespace))
+        {
+            findings.Add("ArchiveTimeStampUnsupported");
+        }
+
         return (timestamp, longTerm, archive) switch
         {
             (true, true, true) => XadesBaselineLevel.BLTA,
@@ -119,10 +139,66 @@ public static class XadesValidator
         };
     }
 
+    private static bool HasValidTimeStamps(
+        XmlElement signatureElement,
+        string localName,
+        string namespaceUri,
+        string failureCode,
+        List<string> findings)
+    {
+        if (XadesXmlTree.UnsignedSignatureProperties(signatureElement) is not XmlElement properties)
+        {
+            return false;
+        }
+
+        bool found = false;
+        foreach (XmlElement stamp in XadesXmlTree.Children(properties, localName, namespaceUri))
+        {
+            found = true;
+            if (!IsTimeStampValid(signatureElement, stamp))
+            {
+                findings.Add(failureCode);
+                return false;
+            }
+        }
+
+        return found;
+    }
+
+    private static bool IsTimeStampValid(XmlElement signatureElement, XmlElement stamp)
+    {
+        XmlElement? method = XadesXmlTree.Child(stamp, "CanonicalizationMethod", SignedXml.XmlDsigNamespaceUrl);
+        string canonicalization = method?.GetAttribute("Algorithm") ?? XadesXmlAlgorithms.InclusiveCanonicalization;
+        XmlElement[] tokens = [.. XadesXmlTree.Children(stamp, "EncapsulatedTimeStamp", XadesXmlAlgorithms.XadesNamespace)];
+        if (tokens.Length != 1
+            || method?.ChildNodes.OfType<XmlElement>().Any() == true
+            || tokens[0].GetAttribute("Encoding") is not ("" or DerEncoding))
+        {
+            return false;
+        }
+
+        byte[]? covered = stamp.NamespaceURI == XadesXmlAlgorithms.Xades141Namespace
+            ? XadesTimeStampInput.ForArchiveTimeStamp(signatureElement, stamp, canonicalization)
+            : XadesTimeStampInput.ForSignatureTimeStamp(signatureElement, canonicalization);
+        if (covered is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            return Rfc3161TimeStampTokenVerifier.Verify(Convert.FromBase64String(tokens[0].InnerText), covered).IsValid;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
     private static XadesValidationReport Failed(XadesPackaging packaging, IReadOnlyList<string> findings) =>
         new(XadesStatus.Failed, packaging, XadesBaselineLevel.BB, null, findings);
 
-    private static void InjectDetachedPayload(XmlDocument document, XmlElement signatureElement, byte[] content)
+    internal static XmlElement InjectDetachedPayload(XmlDocument document, XmlElement signatureElement, byte[] content)
     {
         XmlDocument payload = XadesXmlLoader.Load(content);
         if (payload.DocumentElement is null)
@@ -134,6 +210,7 @@ public static class XadesValidator
         objectElement.SetAttribute("Id", XadesXmlAlgorithms.DetachedObjectId);
         objectElement.AppendChild(document.ImportNode(payload.DocumentElement, true));
         signatureElement.AppendChild(objectElement);
+        return objectElement;
     }
 
     private static XadesPackaging DetectPackaging(XmlElement signatureElement)
