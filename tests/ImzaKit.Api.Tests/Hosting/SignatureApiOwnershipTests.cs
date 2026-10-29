@@ -98,7 +98,7 @@ public sealed class SignatureApiOwnershipTests
 
         ApiHttpResponse response = fixture.Handler.Handle(OwnershipFixture.Post(
             $"/v1/signature-operations/{target.OperationId:D}/complete",
-            OwnershipFixture.CompleteBody(donor.Version, donor.Token, donor.Fingerprint),
+            OwnershipFixture.CompleteBody(donor),
             "idempotency-key-complete-cross"));
 
         Assert.Equal(422, response.StatusCode);
@@ -113,14 +113,14 @@ public sealed class SignatureApiOwnershipTests
         PreparedOperation prepared = fixture.PrepareOperation("single");
         ApiHttpRequest complete = OwnershipFixture.Post(
             $"/v1/signature-operations/{prepared.OperationId:D}/complete",
-            OwnershipFixture.CompleteBody(prepared.Version, prepared.Token, prepared.Fingerprint),
+            OwnershipFixture.CompleteBody(prepared),
             "idempotency-key-complete-01");
 
         ApiHttpResponse first = fixture.Handler.Handle(complete);
         ApiHttpResponse replay = fixture.Handler.Handle(complete);
         ApiHttpResponse reuse = fixture.Handler.Handle(OwnershipFixture.Post(
             $"/v1/signature-operations/{prepared.OperationId:D}/complete",
-            OwnershipFixture.CompleteBody(prepared.Version, prepared.Token, prepared.Fingerprint),
+            OwnershipFixture.CompleteBody(prepared),
             "idempotency-key-complete-02"));
 
         Assert.Equal(200, first.StatusCode);
@@ -139,13 +139,86 @@ public sealed class SignatureApiOwnershipTests
 
         ApiHttpResponse response = fixture.Handler.Handle(OwnershipFixture.Post(
             $"/v1/signature-operations/{prepared.OperationId:D}/complete",
-            OwnershipFixture.CompleteBody(prepared.Version, prepared.Token, prepared.Fingerprint),
+            OwnershipFixture.CompleteBody(prepared),
             "idempotency-key-complete-late"));
 
         Assert.Equal(422, response.StatusCode);
     }
 
-    private sealed record PreparedOperation(Guid OperationId, string Token, int Version, string Fingerprint);
+    [Fact]
+    public void SignatureValueFromAnotherKeyIsRejectedAndTokenStaysUsable()
+    {
+        OwnershipFixture fixture = new();
+        PreparedOperation prepared = fixture.PrepareOperation("forged");
+        using RSA otherKey = RSA.Create(2048);
+
+        ApiHttpResponse forged = fixture.Handler.Handle(OwnershipFixture.Post(
+            $"/v1/signature-operations/{prepared.OperationId:D}/complete",
+            OwnershipFixture.CompleteBody(prepared, ApiTestSigner.Sign(otherKey, prepared.DataToBeSigned)),
+            "idempotency-key-complete-forged"));
+        ApiHttpResponse state = fixture.Handler.Handle(OwnershipFixture.Get($"/v1/signature-operations/{prepared.OperationId:D}"));
+        ApiHttpResponse genuine = fixture.Handler.Handle(OwnershipFixture.Post(
+            $"/v1/signature-operations/{prepared.OperationId:D}/complete",
+            OwnershipFixture.CompleteBody(prepared),
+            "idempotency-key-complete-genuine"));
+
+        Assert.Equal(422, forged.StatusCode);
+        Assert.Contains("\"status\":\"Prepared\"", state.Body, StringComparison.Ordinal);
+        Assert.Equal(200, genuine.StatusCode);
+        Assert.Contains("Signed", genuine.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SignatureValueOverAnotherOperationsDataIsRejected()
+    {
+        OwnershipFixture fixture = new();
+        PreparedOperation donor = fixture.PrepareOperation("donor");
+        PreparedOperation target = fixture.PrepareOperation("target");
+
+        ApiHttpResponse response = fixture.Handler.Handle(OwnershipFixture.Post(
+            $"/v1/signature-operations/{target.OperationId:D}/complete",
+            OwnershipFixture.CompleteBody(target, ApiTestSigner.Sign(donor.DataToBeSigned)),
+            "idempotency-key-complete-replayed-signature"));
+
+        Assert.Equal(422, response.StatusCode);
+    }
+
+    [Fact]
+    public void CompletionBodyWithMissingFieldsIsUnprocessable()
+    {
+        OwnershipFixture fixture = new();
+        PreparedOperation prepared = fixture.PrepareOperation("incomplete");
+        string withoutSignature =
+            $$"""{"prepareVersion":{{prepared.Version}},"completionToken":"{{prepared.Token}}","certificateFingerprintSha256":"{{prepared.Fingerprint}}"}""";
+
+        ApiHttpResponse empty = fixture.Handler.Handle(OwnershipFixture.Post(
+            $"/v1/signature-operations/{prepared.OperationId:D}/complete",
+            """{"prepareVersion":1}""",
+            "idempotency-key-complete-empty"));
+        ApiHttpResponse unsigned = fixture.Handler.Handle(OwnershipFixture.Post(
+            $"/v1/signature-operations/{prepared.OperationId:D}/complete",
+            withoutSignature,
+            "idempotency-key-complete-unsigned"));
+
+        Assert.Equal(422, empty.StatusCode);
+        Assert.Equal(422, unsigned.StatusCode);
+    }
+
+    [Fact]
+    public void SignatureValueThatIsNotBase64IsUnprocessable()
+    {
+        OwnershipFixture fixture = new();
+        PreparedOperation prepared = fixture.PrepareOperation("not-base64");
+
+        ApiHttpResponse response = fixture.Handler.Handle(OwnershipFixture.Post(
+            $"/v1/signature-operations/{prepared.OperationId:D}/complete",
+            OwnershipFixture.CompleteBody(prepared, "not base64!"),
+            "idempotency-key-complete-not-base64"));
+
+        Assert.Equal(422, response.StatusCode);
+    }
+
+    private sealed record PreparedOperation(Guid OperationId, string Token, int Version, string Fingerprint, string DataToBeSigned);
 
     private sealed class OwnershipFixture
     {
@@ -181,11 +254,9 @@ public sealed class SignatureApiOwnershipTests
             Guid operationId = CreateOperation("tenant-a", $"idempotency-key-create-{name}");
             Handler.Handle(Post(
                 $"/v1/signature-operations/{operationId:D}/agent-ticket", "", $"idempotency-key-ticket-{name}", origin: "https://app.example"));
-            byte[] certificate = "certificate-der"u8.ToArray();
-            string fingerprint = Convert.ToHexString(SHA256.HashData(certificate));
             Handler.Handle(Post(
                 $"/v1/signature-operations/{operationId:D}/certificate",
-                $$"""{"certificateDerBase64":"{{Convert.ToBase64String(certificate)}}","fingerprintSha256":"{{fingerprint}}"}""",
+                $$"""{"certificateDerBase64":"{{Convert.ToBase64String(ApiTestSigner.CertificateDer)}}","fingerprintSha256":"{{ApiTestSigner.Fingerprint}}"}""",
                 $"idempotency-key-cert-{name}"));
             ApiHttpResponse prepared = Handler.Handle(Post(
                 $"/v1/signature-operations/{operationId:D}/prepare", "", $"idempotency-key-prepare-{name}"));
@@ -195,11 +266,13 @@ public sealed class SignatureApiOwnershipTests
                 operationId,
                 json.RootElement.GetProperty("completionToken").GetString()!,
                 json.RootElement.GetProperty("prepareVersion").GetInt32(),
-                fingerprint);
+                ApiTestSigner.Fingerprint,
+                json.RootElement.GetProperty("dataToBeSignedBase64").GetString()!);
         }
 
-        public static string CompleteBody(int version, string token, string fingerprint) =>
-            $$"""{"prepareVersion":{{version}},"signatureValueBase64":"AAAA","completionToken":"{{token}}","certificateFingerprintSha256":"{{fingerprint}}"}""";
+        // Signs the operation's prepared data with the test signer unless a signature value is given.
+        public static string CompleteBody(PreparedOperation operation, string? signatureValueBase64 = null) =>
+            $$"""{"prepareVersion":{{operation.Version}},"signatureValueBase64":"{{signatureValueBase64 ?? ApiTestSigner.Sign(operation.DataToBeSigned)}}","completionToken":"{{operation.Token}}","certificateFingerprintSha256":"{{operation.Fingerprint}}"}""";
 
         public static ApiHttpRequest Post(string path, string body, string idempotencyKey, string? origin = null)
         {

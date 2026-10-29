@@ -67,7 +67,8 @@ public sealed partial class SignatureApiRequestHandler
             return Problem(ApiProblemKind.TicketRejected, correlationId, body.OperationId);
         }
 
-        OperationSidecar? sidecar = AcceptCompletion(body.OperationId, null, null, body.CertificateFingerprintSha256);
+        OperationSidecar? sidecar = AcceptCompletion(
+            body.OperationId, null, null, body.CertificateFingerprintSha256, body.SignatureValueBase64);
         if (sidecar is null)
         {
             return Problem(ApiProblemKind.Unprocessable, correlationId, body.OperationId);
@@ -134,8 +135,9 @@ public sealed partial class SignatureApiRequestHandler
             CallbackBody? value = JsonSerializer.Deserialize<CallbackBody>(body, Json);
             if (value is null ||
                 value.OperationId == Guid.Empty ||
-                value.Ticket.Length < 32 ||
+                value.Ticket is not { Length: >= 32 } ||
                 string.IsNullOrWhiteSpace(value.SignatureValueBase64) ||
+                value.CertificateFingerprintSha256 is null ||
                 !Sha256Pattern.IsMatch(value.CertificateFingerprintSha256))
             {
                 return false;

@@ -44,7 +44,7 @@ public sealed class InMemorySignatureWorkflow(TimeProvider? timeProvider = null)
         return new SignaturePrepareResult(
             1,
             Convert.ToBase64String(data),
-            Convert.ToHexString(data),
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data)),
             "RSA-SHA256",
             token,
             _timeProvider.GetUtcNow().AddMinutes(5));

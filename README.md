@@ -196,6 +196,7 @@ Windows Agent installer yerleşimi (`AgentInstallerLayout`) yalnız `win-x64` ve
 
 - PIN, özel anahtar, ham Agent bileti veya maskelenmemiş token seri numarasını loglamayın.
 - Özel anahtar işlemlerini kart, HSM veya amaçlanan kriptografik sağlayıcı sınırında tutun.
+- API, `/complete` ve Agent geri çağrısındaki imza değerini, prepare'de verilen veri üzerinde seçilen sertifikanın anahtarıyla RSA-SHA256 olarak doğrular; doğrulanmayan değer 422 ile reddedilir ve işlem `Signed` olmaz.
 - Sertifika güveni, OCSP/CRL, zaman damgası ve kurumsal politika kararlarını uygulama katmanında açıkça yönetin.
 - Fiziksel kart, native kullanıcı onayı, mTLS ve kurulum/dağıtım senaryolarını hedef ortamınızda ayrıca test edin.
 

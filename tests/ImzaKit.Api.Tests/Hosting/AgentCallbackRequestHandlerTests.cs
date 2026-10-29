@@ -54,7 +54,7 @@ public sealed class AgentCallbackRequestHandlerTests
         CallbackFixture fixture = new();
         PreparedCallback prepared = fixture.PrepareOperation();
         fixture.Caller.Authenticated = false;
-        string body = CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint);
+        string body = CallbackFixture.CallbackBody(prepared);
         Assert.DoesNotContain("BEGIN", body, StringComparison.Ordinal);
         Assert.DoesNotContain("PRIVATE", body, StringComparison.Ordinal);
         using (JsonDocument payload = JsonDocument.Parse(body))
@@ -83,7 +83,7 @@ public sealed class AgentCallbackRequestHandlerTests
         PreparedCallback prepared = fixture.PrepareOperation();
         ApiHttpRequest request = CallbackFixture.Post(
             "/v1/agent-callbacks/signature-results",
-            CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint),
+            CallbackFixture.CallbackBody(prepared),
             idempotencyKey: "idempotency-key-callback",
             clientCertificateDer: prepared.ClientCertificateDer);
 
@@ -102,18 +102,36 @@ public sealed class AgentCallbackRequestHandlerTests
         PreparedCallback prepared = fixture.PrepareOperation();
         fixture.Handler.Handle(CallbackFixture.Post(
             "/v1/agent-callbacks/signature-results",
-            CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint),
+            CallbackFixture.CallbackBody(prepared),
             idempotencyKey: "idempotency-key-callback",
             clientCertificateDer: prepared.ClientCertificateDer));
 
         ApiHttpResponse conflict = fixture.Handler.Handle(CallbackFixture.Post(
             "/v1/agent-callbacks/signature-results",
-            CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint, signature: "BBBB"),
+            CallbackFixture.CallbackBody(prepared, signature: "BBBB"),
             idempotencyKey: "idempotency-key-callback",
             clientCertificateDer: prepared.ClientCertificateDer));
 
         Assert.Equal(409, conflict.StatusCode);
         Assert.Contains("IMZAKIT.CORE.IDEMPOTENCY_CONFLICT", conflict.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CallbackWithForgedSignatureValueIsRejected()
+    {
+        CallbackFixture fixture = new();
+        PreparedCallback prepared = fixture.PrepareOperation();
+        using RSA otherKey = RSA.Create(2048);
+
+        ApiHttpResponse response = fixture.Handler.Handle(CallbackFixture.Post(
+            "/v1/agent-callbacks/signature-results",
+            CallbackFixture.CallbackBody(prepared, ApiTestSigner.Sign(otherKey, prepared.DataToBeSigned)),
+            idempotencyKey: "idempotency-key-callback",
+            clientCertificateDer: prepared.ClientCertificateDer));
+
+        Assert.Equal(422, response.StatusCode);
+        ApiHttpResponse state = fixture.Handler.Handle(CallbackFixture.Get($"/v1/signature-operations/{prepared.OperationId:D}"));
+        Assert.Contains("\"status\":\"Prepared\"", state.Body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -125,7 +143,7 @@ public sealed class AgentCallbackRequestHandlerTests
 
         ApiHttpResponse response = fixture.Handler.Handle(CallbackFixture.Post(
             "/v1/agent-callbacks/signature-results",
-            CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint),
+            CallbackFixture.CallbackBody(prepared),
             idempotencyKey: "idempotency-key-callback",
             clientCertificateDer: prepared.ClientCertificateDer));
 
@@ -144,7 +162,7 @@ public sealed class AgentCallbackRequestHandlerTests
 
         ApiHttpResponse response = fixture.Handler.Handle(CallbackFixture.Post(
             "/v1/agent-callbacks/signature-results",
-            CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint),
+            CallbackFixture.CallbackBody(prepared),
             idempotencyKey: "idempotency-key-callback",
             clientCertificateDer: enrolled.CertificateDer));
 
@@ -163,7 +181,7 @@ public sealed class AgentCallbackRequestHandlerTests
 
         ApiHttpResponse response = fixture.Handler.Handle(CallbackFixture.Post(
             "/v1/agent-callbacks/signature-results",
-            CallbackFixture.CallbackBody(prepared.OperationId, prepared.Ticket, prepared.Fingerprint),
+            CallbackFixture.CallbackBody(prepared),
             idempotencyKey: "idempotency-key-callback",
             clientCertificateDer: prepared.ClientCertificateDer));
 
@@ -211,26 +229,28 @@ public sealed class AgentCallbackRequestHandlerTests
             using JsonDocument ticketJson = JsonDocument.Parse(ticketResponse.Body);
             string ticket = ticketJson.RootElement.GetProperty("ticket").GetString()!;
 
-            byte[] certificate = "certificate-der"u8.ToArray();
-            string fingerprint = Convert.ToHexString(SHA256.HashData(certificate));
             Handler.Handle(Post(
                 $"/v1/signature-operations/{operationId:D}/certificate",
-                $$"""{"certificateDerBase64":"{{Convert.ToBase64String(certificate)}}","fingerprintSha256":"{{fingerprint}}"}""",
+                $$"""{"certificateDerBase64":"{{Convert.ToBase64String(ApiTestSigner.CertificateDer)}}","fingerprintSha256":"{{ApiTestSigner.Fingerprint}}"}""",
                 idempotencyKey: "idempotency-key-cert"));
-            Handler.Handle(Post(
+            ApiHttpResponse prepared = Handler.Handle(Post(
                 $"/v1/signature-operations/{operationId:D}/prepare",
                 "",
                 idempotencyKey: "idempotency-key-prepare"));
+            using JsonDocument preparedJson = JsonDocument.Parse(prepared.Body);
 
-            return new PreparedCallback(operationId, ticket, fingerprint, enrolled.CertificateDer!, enrolled.Device!.DeviceId);
+            return new PreparedCallback(
+                operationId,
+                ticket,
+                ApiTestSigner.Fingerprint,
+                preparedJson.RootElement.GetProperty("dataToBeSignedBase64").GetString()!,
+                enrolled.CertificateDer!,
+                enrolled.Device!.DeviceId);
         }
 
-        public static string CallbackBody(
-            Guid operationId,
-            string ticket,
-            string fingerprint,
-            string signature = "AAAA") =>
-            $$"""{"operationId":"{{operationId:D}}","ticket":"{{ticket}}","signatureValueBase64":"{{signature}}","certificateFingerprintSha256":"{{fingerprint}}"}""";
+        // Signs the operation's prepared data with the test signer unless a signature value is given.
+        public static string CallbackBody(PreparedCallback prepared, string? signature = null) =>
+            $$"""{"operationId":"{{prepared.OperationId:D}}","ticket":"{{prepared.Ticket}}","signatureValueBase64":"{{signature ?? ApiTestSigner.Sign(prepared.DataToBeSigned)}}","certificateFingerprintSha256":"{{prepared.Fingerprint}}"}""";
 
         public static string CreateBody() =>
             $$"""
@@ -265,12 +285,20 @@ public sealed class AgentCallbackRequestHandlerTests
                 HasMutualTlsClientCertificate = clientCertificateDer is { Length: > 0 }
             };
         }
+
+        public static ApiHttpRequest Get(string path) => new()
+        {
+            Method = "GET",
+            Path = path,
+            Headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        };
     }
 
     private sealed record PreparedCallback(
         Guid OperationId,
         string Ticket,
         string Fingerprint,
+        string DataToBeSigned,
         byte[] ClientCertificateDer,
         Guid DeviceId);
 

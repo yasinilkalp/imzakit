@@ -345,7 +345,9 @@ components:
       properties:
         prepareVersion: { type: integer, minimum: 1 }
         dataToBeSignedBase64: { type: string, contentEncoding: base64 }
-        dataToBeSignedSha256: { $ref: '#/components/schemas/Sha256' }
+        dataToBeSignedSha256:
+          $ref: '#/components/schemas/Sha256'
+          description: SHA-256 of the decoded dataToBeSignedBase64 bytes; the hash a remote signer signs.
         algorithm: { type: string, const: RSA-SHA256 }
         completionToken: { type: string, minLength: 32 }
         expiresAt: { type: string, format: date-time }
@@ -355,7 +357,12 @@ components:
       required: [prepareVersion, signatureValueBase64, completionToken, certificateFingerprintSha256]
       properties:
         prepareVersion: { type: integer, minimum: 1 }
-        signatureValueBase64: { type: string, contentEncoding: base64 }
+        signatureValueBase64:
+          type: string
+          contentEncoding: base64
+          description: >-
+            RSA-SHA256 (PKCS #1 v1.5) signature of the prepared dataToBeSigned made with the selected
+            certificate's key. A value that does not verify is rejected with 422 and leaves the token usable.
         completionToken: { type: string, minLength: 32 }
         certificateFingerprintSha256: { $ref: '#/components/schemas/Sha256' }
     CreateValidationRequest:
@@ -500,7 +507,10 @@ components:
       properties:
         operationId: { type: string, format: uuid }
         ticket: { type: string, minLength: 32 }
-        signatureValueBase64: { type: string, contentEncoding: base64 }
+        signatureValueBase64:
+          type: string
+          contentEncoding: base64
+          description: Verified like CompleteRequest.signatureValueBase64.
         certificateFingerprintSha256: { $ref: '#/components/schemas/Sha256' }
     ProblemDetails:
       type: object

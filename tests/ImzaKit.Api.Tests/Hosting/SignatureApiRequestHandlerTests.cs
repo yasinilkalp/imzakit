@@ -184,12 +184,11 @@ public sealed class SignatureApiRequestHandlerTests
         Guid operationId = fixture.CreateOperation();
         fixture.Handler.Handle(HandlerFixture.Post(
             $"/v1/signature-operations/{operationId:D}/agent-ticket", "", idempotencyKey: "idempotency-key-ticket", origin: "https://app.example"));
-        byte[] certificate = "certificate-der"u8.ToArray();
-        string fingerprint = Convert.ToHexString(SHA256.HashData(certificate));
+        string fingerprint = ApiTestSigner.Fingerprint;
 
         ApiHttpResponse bound = fixture.Handler.Handle(HandlerFixture.Post(
             $"/v1/signature-operations/{operationId:D}/certificate",
-            $$"""{"certificateDerBase64":"{{Convert.ToBase64String(certificate)}}","fingerprintSha256":"{{fingerprint}}"}""",
+            $$"""{"certificateDerBase64":"{{Convert.ToBase64String(ApiTestSigner.CertificateDer)}}","fingerprintSha256":"{{fingerprint}}"}""",
             idempotencyKey: "idempotency-key-cert"));
         Assert.Equal(200, bound.StatusCode);
         Assert.Contains("CertificateSelected", bound.Body, StringComparison.Ordinal);
@@ -199,12 +198,16 @@ public sealed class SignatureApiRequestHandlerTests
         Assert.Equal(200, prepared.StatusCode);
         using JsonDocument prepareJson = JsonDocument.Parse(prepared.Body);
         Assert.Equal("RSA-SHA256", prepareJson.RootElement.GetProperty("algorithm").GetString());
+        string dataToBeSigned = prepareJson.RootElement.GetProperty("dataToBeSignedBase64").GetString()!;
+        Assert.Equal(
+            Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(dataToBeSigned))),
+            prepareJson.RootElement.GetProperty("dataToBeSignedSha256").GetString());
         string token = prepareJson.RootElement.GetProperty("completionToken").GetString()!;
         int version = prepareJson.RootElement.GetProperty("prepareVersion").GetInt32();
 
         ApiHttpResponse completed = fixture.Handler.Handle(HandlerFixture.Post(
             $"/v1/signature-operations/{operationId:D}/complete",
-            $$"""{"prepareVersion":{{version}},"signatureValueBase64":"AAAA","completionToken":"{{token}}","certificateFingerprintSha256":"{{fingerprint}}"}""",
+            $$"""{"prepareVersion":{{version}},"signatureValueBase64":"{{ApiTestSigner.Sign(dataToBeSigned)}}","completionToken":"{{token}}","certificateFingerprintSha256":"{{fingerprint}}"}""",
             idempotencyKey: "idempotency-key-complete"));
         Assert.Equal(200, completed.StatusCode);
         Assert.Contains("Signed", completed.Body, StringComparison.Ordinal);

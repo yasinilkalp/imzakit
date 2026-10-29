@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using ImzaKit.Agent.Security;
@@ -351,11 +352,14 @@ public sealed partial class SignatureApiRequestHandler
         }
 
         SignaturePrepareResult prepare = _workflow.Prepare(operationId, certificateDer, fingerprint);
+        byte[] dataToBeSigned = Convert.FromBase64String(prepare.DataToBeSignedBase64);
         lock (_gate)
         {
             sidecar.CompletionToken = prepare.CompletionToken;
             sidecar.PrepareVersion = prepare.PrepareVersion;
             sidecar.CompletionTokenExpiresAt = prepare.ExpiresAt;
+            sidecar.DataToBeSigned = dataToBeSigned;
+            sidecar.Algorithm = prepare.Algorithm;
         }
 
         return JsonResult(200, JsonSerializer.Serialize(prepare, Json), correlationId);
@@ -390,7 +394,11 @@ public sealed partial class SignatureApiRequestHandler
         }
 
         OperationSidecar? sidecar = AcceptCompletion(
-            operationId, complete.CompletionToken, complete.PrepareVersion, complete.CertificateFingerprintSha256);
+            operationId,
+            complete.CompletionToken,
+            complete.PrepareVersion,
+            complete.CertificateFingerprintSha256,
+            complete.SignatureValueBase64);
         if (sidecar is null)
         {
             return Problem(ApiProblemKind.Unprocessable, correlationId, operationId);
@@ -462,12 +470,14 @@ public sealed partial class SignatureApiRequestHandler
     }
 
     // Returns the operation's sidecar when the token was minted for this operation, is unexpired
-    // and unused; null otherwise. A null completionToken means "use the server-held token" (callbacks).
+    // and unused, and the signature value verifies; null otherwise. A null completionToken means
+    // "use the server-held token" (callbacks).
     private OperationSidecar? AcceptCompletion(
         Guid operationId,
         string? completionToken,
         int? prepareVersion,
-        string certificateFingerprintSha256)
+        string certificateFingerprintSha256,
+        string signatureValueBase64)
     {
         lock (_gate)
         {
@@ -477,7 +487,8 @@ public sealed partial class SignatureApiRequestHandler
                     sidecar,
                     completionToken ?? stored,
                     prepareVersion ?? sidecar.PrepareVersion,
-                    certificateFingerprintSha256)
+                    certificateFingerprintSha256,
+                    signatureValueBase64)
                     ? sidecar
                     : null;
         }
@@ -497,7 +508,8 @@ public sealed partial class SignatureApiRequestHandler
         OperationSidecar sidecar,
         string completionToken,
         int prepareVersion,
-        string certificateFingerprintSha256)
+        string certificateFingerprintSha256,
+        string signatureValueBase64)
     {
         if (sidecar.CompletionToken is null ||
             sidecar.Fingerprint is null ||
@@ -506,12 +518,41 @@ public sealed partial class SignatureApiRequestHandler
             !string.Equals(sidecar.Fingerprint, certificateFingerprintSha256, StringComparison.OrdinalIgnoreCase) ||
             !CryptographicOperations.FixedTimeEquals(
                 System.Text.Encoding.UTF8.GetBytes(sidecar.CompletionToken),
-                System.Text.Encoding.UTF8.GetBytes(completionToken)))
+                System.Text.Encoding.UTF8.GetBytes(completionToken)) ||
+            !IsSignatureValueValid(sidecar, signatureValueBase64))
         {
             return false;
         }
 
         return _workflow.Complete(sidecar.CompletionToken, sidecar.PrepareVersion, sidecar.Fingerprint);
+    }
+
+    // The signature value must be the RSA-SHA256 (PKCS #1 v1.5) signature of the prepared data by the
+    // selected certificate's key; otherwise a token holder could mark the operation signed without signing.
+    private static bool IsSignatureValueValid(OperationSidecar sidecar, string signatureValueBase64)
+    {
+        if (sidecar.DataToBeSigned is not byte[] dataToBeSigned ||
+            sidecar.CertificateDerBase64 is not string certificateDer ||
+            !string.Equals(sidecar.Algorithm, "RSA-SHA256", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        try
+        {
+            using X509Certificate2 certificate =
+                X509CertificateLoader.LoadCertificate(Convert.FromBase64String(certificateDer));
+            using RSA? publicKey = certificate.GetRSAPublicKey();
+            return publicKey is not null && publicKey.VerifyData(
+                dataToBeSigned,
+                Convert.FromBase64String(signatureValueBase64),
+                HashAlgorithmName.SHA256,
+                RSASignaturePadding.Pkcs1);
+        }
+        catch (Exception exception) when (exception is FormatException or CryptographicException)
+        {
+            return false;
+        }
     }
 
     private SignatureOperationResult Move(
@@ -634,7 +675,9 @@ public sealed partial class SignatureApiRequestHandler
             CompleteBody? parsed = JsonSerializer.Deserialize<CompleteBody>(body, Json);
             if (parsed is null ||
                 parsed.PrepareVersion < 1 ||
-                parsed.CompletionToken.Length < 32 ||
+                parsed.CompletionToken is not { Length: >= 32 } ||
+                string.IsNullOrWhiteSpace(parsed.SignatureValueBase64) ||
+                parsed.CertificateFingerprintSha256 is null ||
                 !Sha256Pattern.IsMatch(parsed.CertificateFingerprintSha256))
             {
                 return false;
@@ -767,6 +810,8 @@ public sealed partial class SignatureApiRequestHandler
         public string? CompletionToken { get; set; }
         public int PrepareVersion { get; set; }
         public DateTimeOffset CompletionTokenExpiresAt { get; set; }
+        public byte[]? DataToBeSigned { get; set; }
+        public string? Algorithm { get; set; }
     }
 
     private sealed record OwnedValidation(string TenantId, StoredValidationReport Report);
