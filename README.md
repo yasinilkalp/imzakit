@@ -4,7 +4,7 @@
 
 ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
-> **Sürüm adayı:** `1.0.0-rc.1`, `1.0.0` için sürüm adayıdır; kararlı sürüme kadar yalnız hata ve güvenlik düzeltmeleri hedeflenir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
+> **Sürüm adayı:** `1.0.0-rc.2`, `1.0.0` için sürüm adayıdır; kararlı sürüme kadar yalnız hata ve güvenlik düzeltmeleri hedeflenir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
 
 ## Öne çıkan özellikler
 
@@ -33,13 +33,13 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 ## Kurulum
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-rc.1
+dotnet add package ImzaKit --version 1.0.0-rc.2
 ```
 
 Ya da proje dosyanıza doğrudan ekleyin:
 
 ```xml
-<PackageReference Include="ImzaKit" Version="1.0.0-rc.1" />
+<PackageReference Include="ImzaKit" Version="1.0.0-rc.2" />
 ```
 
 Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuget/ImzaKit) üzerinde görünür; kurulum kaynağı nuget.org’dur.
@@ -232,7 +232,7 @@ ImzaKit is an Apache-2.0 licensed, provider-independent electronic-signature too
 ### Install
 
 ```shell
-dotnet add package ImzaKit --version 1.0.0-rc.1
+dotnet add package ImzaKit --version 1.0.0-rc.2
 ```
 
 ### Included modules

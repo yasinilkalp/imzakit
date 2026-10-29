@@ -133,7 +133,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - Faz 2 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.10.nupkg`, tam **13 DLL** (`ImzaKit.Timestamp` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - Faz 3 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.11.nupkg`, tam **14 DLL** (`ImzaKit.CAdES` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - Faz 4 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-alpha.12.nupkg`, tam **16 DLL** (`ImzaKit.XAdES` ve `ImzaKit.ASiC` dahil) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
-- Faz 5 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-rc.1.nupkg`, tam **16 DLL** (yeni üretim DLL’si yok) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
+- Faz 5 paket sözleşmesi: `scripts/verify-nuget-package.ps1`; `ImzaKit.1.0.0-rc.2.nupkg`, tam **16 DLL** (yeni üretim DLL’si yok) ve sıfır iç `ImzaKit.*` paket bağımlılığı.
 - NFR-001: `tests/ImzaKit.PAdES.Tests/Performance/PadesPrepareCompletePerformanceTests.cs` ve `reports/nfr-001-pades-prepare-complete.json`. 10 MB PDF, prepare + süreç içi RSA + complete, ağ yok; p95 195 ms (SLA 2000 ms).
 - XAdES FR-070–073: `tests/ImzaKit.XAdES.Tests` (`XadesPackagingTests`, `XadesBaselineTests`). Politika enveloped/enveloping/detached; c14n/transform allowlist; DTD ve harici URI yok. B-T `Rfc3161TimeStampClient`; B-LT CertificateValues/RevocationValues; B-LTA ArchiveTimeStamp imprint SHA-256(XML). Alpha.12 paketine alındı.
 - ASiC FR-074–076: `tests/ImzaKit.ASiC.Tests` (`AsicContainerTests`). ASiC-S tek nesne, ASiC-E çoklu nesne+imza; zip-slip, duplicate/case-conflict, zip bomb oranı; `mimetype` ilk ve stored, `META-INF` imza/manifest. Alpha.12 paketine alındı.
