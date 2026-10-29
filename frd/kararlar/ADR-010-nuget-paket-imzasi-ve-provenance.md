@@ -22,7 +22,7 @@ NuGet paketi için yazar imzası (Authenticode sertifikası) zorunlu değildir. 
 
 Kararlı NuGet sürümü release ECDSA P-256 anahtarıyla imzalı provenance olmadan yayımlanamaz. Anahtar `IMZAKIT_RELEASE_ECDSA_KEY` secret’ında base64 PKCS#8 olarak durur. Provenance; ürün, sürüm, kaynak commit, paket SHA-256’sı, SBOM SHA-256’sı, builder kimliği ve zamanı imzalar. SBOM imzası bu bağ üzerinden sağlanır.
 
-Paket, sembol paketi, `sbom.cdx.json` ve `provenance.json` etiket için açılan GitHub Release’e eklenir. NuGet.org depo imzası paketi yeniden yazdığı için provenance, GitHub Release’teki paketle doğrulanır (`scripts/verify-release-provenance.cs`). Release açık anahtarı depoda yayımlanır.
+Paket, sembol paketi, `sbom.cdx.json` ve `provenance.json` etiket için açılan GitHub Release’e eklenir. NuGet.org depo imzası paketi yeniden yazdığı için provenance, GitHub Release’teki paketle doğrulanır (`scripts/verify-release-provenance.cs`). Release açık anahtarı `packaging/release-keys/imzakit-release.pub.pem` dosyasında yayımlanır. Yayın iş akışı provenance’ı bu anahtarla doğrular; secret depodaki anahtarla uyuşmazsa yayın durur.
 
 Agent installer, update manifest ve Trust Store artefaktları için mevcut kurallar değişmez; Authenticode ve release anahtarı şartları sürer.
 

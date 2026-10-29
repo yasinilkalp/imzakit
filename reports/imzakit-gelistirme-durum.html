@@ -36,7 +36,7 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
 <main id="content">
 <header class="hero" id="ozet">
  <div><p class="kicker">Uygulama ilerleme kaydı</p><h1>1.0.0 sürüm adayı hazır.</h1><p class="lede">ImzaKit <code>1.0.0-rc.1</code>, kararlı 1.0.0 öncesindeki sürüm adayıdır ve Ekim 2026 sağlamlaştırmalarını (imza başına karar, değişiklik analizi, algoritma politikası, doğrulanan zaman damgaları, tenant izolasyonu ve standart XAdES zaman damgaları) taşır. <code>v1.0.0-rc.1</code> etiketiyle NuGet.org’a yayımlanır.</p></div>
- <div class="verdict"><strong>Mevcut aşama</strong><span>1.0.0-rc.1</span><p>Kararlı 1.0.0 için ECDSA provenance anahtarı gerekir (SEC-027, ADR-010); kod imzalama sertifikası gerekmez. Fiziksel AKİS kabulü ayrıdır. Agent installer ve birinci taraf Windows uygulaması yoktur.</p></div>
+ <div class="verdict"><strong>Mevcut aşama</strong><span>1.0.0-rc.1</span><p>Release anahtarı hazır (SEC-027, ADR-010); kararlı 1.0.0 öncesi rc.2 ile provenance provası kalır. Kod imzalama sertifikası gerekmez. Fiziksel AKİS kabulü ayrıdır. Agent installer ve birinci taraf Windows uygulaması yoktur.</p></div>
 </header>
 <div class="metrics" aria-label="Geliştirme metrikleri">
  <div class="metric"><b>36</b><span>solution projesi</span></div><div class="metric"><b>595</b><span>başarılı test çalışması</span></div><div class="metric"><b>1+1</b><span>NuGet + sembol paketi</span></div><div class="metric"><b>0</b><span>build hatası</span></div><div class="metric"><b>0</b><span>build uyarısı</span></div><div class="metric"><b>116/116</b><span>FRD izlenebilirliği</span></div>
@@ -122,13 +122,13 @@ footer{display:flex;justify-content:space-between;gap:20px;padding:32px 0;color:
 </section>
 <section id="sonraki">
  <div class="section-head"><p class="kicker">Önerilen devam</p><h2>Bir sonraki işlem</h2></div>
- <div class="next-card"><div><h3>Kararlı 1.0.0, donanım kabulü ve Faz 6</h3><p>Sürüm sözleşmesi 1.0.0-rc.1. Kararlı 1.0.0 için provenance anahtarı ve rc.2 provası gerekir; ardından fiziksel AKİS ve Faz 6 yazılımı.</p></div><ol><li>ECDSA provenance anahtarı ve rc.2 provası (ADR-010)</li><li>Fiziksel AKİS kart keşfi ve imza</li><li>Faz 6 (ATSHashIndex-v3, ASiC-E rapor, preservation, Unix HostReady)</li></ol></div>
+ <div class="next-card"><div><h3>Kararlı 1.0.0, donanım kabulü ve Faz 6</h3><p>Sürüm sözleşmesi 1.0.0-rc.1. Release anahtarı eklendi; kararlı 1.0.0 öncesi rc.2 provası gerekir; ardından fiziksel AKİS ve Faz 6 yazılımı.</p></div><ol><li>rc.2 ile provenance provası (ADR-010)</li><li>Fiziksel AKİS kart keşfi ve imza</li><li>Faz 6 (ATSHashIndex-v3, ASiC-E rapor, preservation, Unix HostReady)</li></ol></div>
 </section>
  <footer><span>İmzaKit Geliştirme Durum Raporu</span><span>Kaynak tarihi: 29 Ekim 2026</span></footer>
 </main>
 <script>
 const items=[
- {status:"wait",component:"Release",title:"Kararlı 1.0.0 provenance anahtarı",detail:"ADR-010: kararlı NuGet paketi Authenticode istemez; NuGet.org depo imzası ve OIDC yayını paketi korur. Kararlı sürüm IMZAKIT_RELEASE_ECDSA_KEY ile imzalı provenance ister; secret ve depodaki açık anahtar henüz yok. rc.2 ile gerçek iş akışında prova edilecek.",evidence:"ADR-010"},
+ {status:"next",component:"Release",title:"rc.2 ile provenance provası",detail:"ADR-010: kararlı NuGet paketi Authenticode istemez; NuGet.org depo imzası ve OIDC yayını paketi korur. IMZAKIT_RELEASE_ECDSA_KEY secret’ı 29 Ekim 2026’da eklendi; açık anahtar packaging/release-keys’te. publish.yml provenance’ı bu anahtarla doğrular. Secret ile açık anahtarın eşleştiği ilk kez rc.2 yayınında görülecek.",evidence:"ADR-010"},
  {status:"done",component:"Release",title:"Provenance yolu ve ADR-010",detail:"Dosya tabanlı script’te reflection’lı JSON kapalı olduğundan provenance, anahtar verildiğinde çöküyordu; kanonik JSON artık Utf8JsonWriter ile yazılır. Provenance SBOM özetini de bağlar; verify-release-provenance.cs doğrular. CI geçici anahtar ve kararlı sürüm numarasıyla uçtan uca dener; publish.yml paket, SBOM ve provenance’ı GitHub Release’e ekler.",evidence:"ReleaseProvenanceTests + CI smoke"},
  {status:"done",component:"Release",title:"1.0.0-rc.1 sürüm adayı",detail:"Sürüm sözleşmesi 1.0.0-rc.1’e geçti; Ekim 2026 düzeltmelerini ve yeni paket açıklamasını taşır. v1.0.0-rc.1 etiketi publish.yml ile NuGet.org ve GitHub Packages’e yayımlar. Ön sürüm olduğu için SEC-027 imza kapısı uygulanmaz.",evidence:"Directory.Build.props"},
  {status:"done",component:"XAdES",title:"EN 319 132-1 zaman damgaları",detail:"SignatureTimeStamp kanonik ds:SignatureValue’yu; XAdES 1.4.1 ArchiveTimeStamp referans verisi, SignedInfo, SignatureValue, KeyInfo, önceki imzasız özellikler ve diğer ds:Object’leri kapsar. Doğrulama token’ı bu girdiyle denetler; 1.3.2 ArchiveTimeStamp ArchiveTimeStampUnsupported olarak raporlanır. Detached B-LTA için içerik gerekir.",evidence:"a8dbf93 / 22 XAdES testi"},

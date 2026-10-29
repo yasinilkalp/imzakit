@@ -8,6 +8,13 @@ if (-not (Test-Path -LiteralPath $WorkflowPath -PathType Leaf)) {
     throw "Publish workflow is missing: $WorkflowPath"
 }
 
+$repositoryRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent (Resolve-Path -LiteralPath $WorkflowPath)))
+$releaseKeyPath = Join-Path $repositoryRoot 'packaging\release-keys\imzakit-release.pub.pem'
+if (-not (Test-Path -LiteralPath $releaseKeyPath -PathType Leaf) -or
+    (Get-Content -LiteralPath $releaseKeyPath -Raw) -notmatch '^-----BEGIN PUBLIC KEY-----') {
+    throw "Published release key is missing or not a public key: $releaseKeyPath"
+}
+
 $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
 $requiredPatterns = [ordered]@{
     'tag trigger' = '(?m)^\s+tags:\s*\r?$'
@@ -20,6 +27,8 @@ $requiredPatterns = [ordered]@{
     'sbom artifact' = 'artifacts/packages/sbom\.cdx\.json'
     'provenance key env' = 'IMZAKIT_RELEASE_ECDSA_KEY'
     'provenance artifact' = 'artifacts/packages/provenance\.json'
+    'provenance verification' = 'scripts/verify-release-provenance\.cs'
+    'published release key' = '--public-key packaging/release-keys/imzakit-release\.pub\.pem'
     'GitHub release assets' = 'gh release create "\$GITHUB_REF_NAME" artifacts/packages/\*'
     'package contract' = 'scripts/verify-nuget-package\.ps1'
     'OIDC permission' = '(?m)^\s+id-token:\s*write\s*$'

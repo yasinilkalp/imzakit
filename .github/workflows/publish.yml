@@ -71,6 +71,18 @@ jobs:
           --commit "${{ github.sha }}"
           --kind nuget
 
+      # Fails the release when the signing secret does not match the key published in the repo.
+      - name: Verify provenance against published key
+        if: hashFiles('artifacts/packages/provenance.json') != ''
+        run: >
+          dotnet run --file scripts/verify-release-provenance.cs --
+          --package artifacts/packages/ImzaKit.${{ env.IMZAKIT_VERSION }}.nupkg
+          --sbom artifacts/packages/sbom.cdx.json
+          --provenance artifacts/packages/provenance.json
+          --public-key packaging/release-keys/imzakit-release.pub.pem
+          --commit "${{ github.sha }}"
+          --version ${{ env.IMZAKIT_VERSION }}
+
       - name: Verify package contract
         shell: pwsh
         env:
