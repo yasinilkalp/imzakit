@@ -75,6 +75,7 @@ $requiredText = @{
     'kararlar\ADR-007-saklama-ve-audit.md' = @('24 saat', '7 gün', '120 saniye')
     'kararlar\ADR-008-winui-masaustu-imza-istemcisi.md' = @('WinUI 3', 'CredUI', 'NuGet', 'setup.exe')
     'kararlar\ADR-009-winui-masaustu-imza-istemcisi-geri-cekildi.md' = @('geçersiz kılınır', 'NuGet')
+    'kararlar\ADR-010-nuget-paket-imzasi-ve-provenance.md' = @('P-256', 'IMZAKIT_RELEASE_ECDSA_KEY', 'NuGet.org')
 }
 foreach ($entry in $requiredText.GetEnumerator()) {
     $text = Get-Content -LiteralPath (Join-Path $frdRoot $entry.Key) -Raw

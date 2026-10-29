@@ -28,7 +28,7 @@ Tarayıcı, müşteri uygulaması, Agent, API, belge deposu, Redis, PKCS#11 sür
 - **SEC-024:** Loglarda PIN, private key, credential, ham belge, tam sertifika kişisel alanları ve raw token bulunmamalıdır.
 - **SEC-025:** Audit; operasyon oluşturma, kullanıcı onayı, sertifika seçimi, hazırlama, imzalama, timestamp, doğrulama, indirme ve iptal olaylarını append-only tutmalı; her olay önceki olay hash’ini bağlamalıdır.
 - **SEC-026:** Tamamlanmamış operasyon metadata’sı varsayılan 24 saat, tamamlanan çıktı ve doğrulama raporu 7 gün tutulmalı; süresiz saklama varsayılan olmamalıdır.
-- **SEC-027:** Release süreci NuGet, installer, container, SBOM ve Trust Store artefaktlarını imzalamalı; kaynak commit ile artefakt digest ilişkisini provenance olarak yayımlamalıdır.
+- **SEC-027:** Release süreci installer, container ve Trust Store artefaktlarını imzalamalı; kaynak commit ile artefakt digest ilişkisini provenance olarak yayımlamalıdır. NuGet paketi NuGet.org depo imzası ve OIDC ile yapılan yayınla korunur; yazar imzası zorunlu değildir. Kararlı NuGet sürümü commit, paket ve SBOM digest’ini bağlayan ECDSA imzalı provenance olmadan yayımlanmaz ([ADR-010](../kararlar/ADR-010-nuget-paket-imzasi-ve-provenance.md)).
 
 ## 4. Dış kaynak erişimi ve SSRF
 

@@ -13,4 +13,5 @@ Bu dizindeki kararlar İmzaKit MVP tabanı için bağlayıcıdır. Bir karar yal
 | [ADR-007](ADR-007-saklama-ve-audit.md) | Saklama ve audit | Kabul edildi |
 | [ADR-008](ADR-008-winui-masaustu-imza-istemcisi.md) | WinUI masaüstü imza istemcisi | Geçersiz kılındı (ADR-009) |
 | [ADR-009](ADR-009-winui-masaustu-imza-istemcisi-geri-cekildi.md) | WinUI masaüstü imza istemcisinin geri çekilmesi | Kabul edildi |
+| [ADR-010](ADR-010-nuget-paket-imzasi-ve-provenance.md) | NuGet paket imzası ve provenance | Kabul edildi |
 

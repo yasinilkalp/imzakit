@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using ImzaKit.Release.Provenance;
 using ImzaKit.Release.Sbom;
 
@@ -29,11 +30,13 @@ public static class ReleasePublishBundleFactory
             return new ReleasePublishBundle(sbomJson, Provenance: null);
         }
 
+        // The SBOM is published as UTF-8 bytes of SbomJson; its digest is bound into the provenance.
         ReleaseProvenance provenance = ReleaseProvenanceFactory.Create(
             product,
             version,
             gitCommit,
             Convert.ToHexString(SHA256.HashData(artifact)),
+            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(sbomJson))),
             builderId,
             releaseKey);
         return new ReleasePublishBundle(sbomJson, provenance);

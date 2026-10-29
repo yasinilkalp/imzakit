@@ -109,7 +109,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 | SEC-024 | Kaynak gereksinim metni | Zorunlu | 1 | Server | ADR-001/ADR-007 | TST-013/TST-014/TST-019/TST-020 | Sunucu güvenlik kanıtı | Evet |
 | SEC-025 | Kaynak gereksinim metni | Zorunlu | 1 | Server | ADR-001/ADR-007 | TST-013/TST-014/TST-019/TST-020 | Sunucu güvenlik kanıtı | Evet |
 | SEC-026 | Kaynak gereksinim metni | Zorunlu | 1 | Server | ADR-001/ADR-007 | TST-013/TST-014/TST-019/TST-020 | Sunucu güvenlik kanıtı | Evet |
-| SEC-027 | Kaynak gereksinim metni | Zorunlu | 1 | Server | ADR-001/ADR-007 | TST-013/TST-014/TST-019/TST-020 | Sunucu güvenlik kanıtı | Evet |
+| SEC-027 | Kaynak gereksinim metni | Zorunlu | 1 | Release | ADR-010 | TST-019 | ReleaseSigningPolicyTests, ReleaseProvenanceTests ve CI release bundle smoke | Evet |
 | API-001 | Kaynak gereksinim metni | Zorunlu | 1 | Api | openapi.yaml | TST-015/TST-016/TST-017 | OpenAPI sözleşme kanıtı | Evet |
 | API-002 | Kaynak gereksinim metni | Zorunlu | 1 | Api | openapi.yaml | TST-015/TST-016/TST-017 | OpenAPI sözleşme kanıtı | Evet |
 | API-003 | Kaynak gereksinim metni | Zorunlu | 1 | Api | openapi.yaml | TST-015/TST-016/TST-017 | OpenAPI sözleşme kanıtı | Evet |
@@ -150,6 +150,7 @@ Her bağlayıcı gereksinim tekil satırdır. Gereksinimin tam metni kaynak dok�
 - eIDAS doğrulama profili: `tests/ImzaKit.Trust.Tests/Evaluation/TrustPolicyEvaluatorTests.cs`. `Eidas` Eidas etiketli kök, sürümlü katalog politika OID’i ve QcCompliance (`0.4.0.1862.1.1`) ister. OpenAPI `validationProfile` `Eidas` kabul eder. EU TSL/EUTL içe aktarılmaz; hukuki QES iddiası yoktur. FR-100 bu sınırı bağlayıcı kılar.
 - Faz 6 yazılım kapıları (henüz uygulanmadı): FR-066 ATSHashIndex-v3; VAL-008 ASiC-E ortak rapor bağ; FR-116 CAdES/XAdES preservation; FR-117 host tetikleyici; FR-118 Unix HostReady. MVP ve fiziksel AKİS kapısını kilitlemez.
 - WinUI Desktop host geri çekildi ([ADR-009](../kararlar/ADR-009-winui-masaustu-imza-istemcisi-geri-cekildi.md)). FR-119–121, SEC-028 ve TST-027 bağlayıcı değildir.
+- Release provenance ([ADR-010](../kararlar/ADR-010-nuget-paket-imzasi-ve-provenance.md)): `tests/ImzaKit.Release.Tests` (`ReleaseSigningPolicyTests`, `ReleaseProvenanceTests`, `ReleasePublishBundleTests`) ve CI `Release bundle smoke` adımı. Kararlı NuGet paketi Authenticode istemez; commit, paket ve SBOM digest’ini bağlayan ECDSA provenance ister. `scripts/verify-release-provenance.cs` GitHub Release’teki paketle doğrular.
 - Ortak validation report: `tests/ImzaKit.Verify.Tests` (`SignatureValidationReportTests`). `SignatureValidationReportMapper` PAdES/CAdES/XAdES/ASiC-S raporlarını `PASSED`/`FAILED`/`INDETERMINATE` modeline taşır; güven/iptal yokken sessiz PASSED yoktur.
 - Tasarım ve uygulama bağı: `docs/superpowers/specs/2026-08-23-alpha4-offline-trust-validation-design.md` ve `docs/superpowers/plans/2026-08-23-alpha4-offline-trust-validation.md`.
 

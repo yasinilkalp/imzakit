@@ -43,6 +43,28 @@ jobs:
       - name: Test
         run: dotnet test ImzaKit.slnx -c Release --no-build
 
+      # Runs the release scripts the way publish.yml does, with a throwaway key and a stable
+      # version, so the provenance path is exercised before a real key is used.
+      - name: Release bundle smoke
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -n 's/.*<Version>\([^<]*\)<\/Version>.*/\1/p' Directory.Build.props | head -1)
+          OUT=artifacts/smoke
+          dotnet pack packaging/ImzaKit/ImzaKit.csproj -c Release --no-build --output "$OUT"
+          openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$RUNNER_TEMP/release.pem"
+          openssl pkcs8 -topk8 -nocrypt -in "$RUNNER_TEMP/release.pem" -outform DER -out "$RUNNER_TEMP/release.p8"
+          openssl pkey -in "$RUNNER_TEMP/release.pem" -pubout -out "$RUNNER_TEMP/release.pub.pem"
+          IMZAKIT_RELEASE_ECDSA_KEY=$(base64 -w0 "$RUNNER_TEMP/release.p8") \
+            dotnet run --file scripts/emit-release-bundle.cs -- \
+            --package "$OUT/ImzaKit.$VERSION.nupkg" --output "$OUT" \
+            --version 1.0.0 --commit "$GITHUB_SHA" --kind nuget
+          dotnet run --file scripts/verify-release-provenance.cs -- \
+            --package "$OUT/ImzaKit.$VERSION.nupkg" --sbom "$OUT/sbom.cdx.json" \
+            --provenance "$OUT/provenance.json" --public-key "$RUNNER_TEMP/release.pub.pem" \
+            --commit "$GITHUB_SHA" --version 1.0.0
+
       - name: Check vulnerable packages
         shell: pwsh
         run: |

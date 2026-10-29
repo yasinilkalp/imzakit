@@ -22,12 +22,14 @@ public static class ReleaseSigningPolicy
     public static bool RequiresAuthenticode(string version, ReleaseArtifactKind kind)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(version);
-        if (kind is ReleaseArtifactKind.AgentPeOrInstaller)
+        return kind switch
         {
-            return true;
-        }
-
-        return !IsPrerelease(version);
+            ReleaseArtifactKind.AgentPeOrInstaller => true,
+            // ADR-010: NuGet.org's repository signature and Trusted Publishing protect the package;
+            // stable packages still need signed provenance.
+            ReleaseArtifactKind.NugetPackage => false,
+            _ => !IsPrerelease(version)
+        };
     }
 
     public static void AssertCanPublish(

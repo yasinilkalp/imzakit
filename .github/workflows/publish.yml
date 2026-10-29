@@ -85,6 +85,7 @@ jobs:
             artifacts/packages/*.nupkg
             artifacts/packages/*.snupkg
             artifacts/packages/sbom.cdx.json
+            artifacts/packages/provenance.json
 
   publish:
     name: Publish NuGet
@@ -134,3 +135,19 @@ jobs:
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --symbol-source https://api.nuget.org/v3/index.json
+
+      # NuGet.org adds its repository signature, so provenance verifies against the
+      # package attached here (ADR-010).
+      - name: Create GitHub release
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRERELEASE=()
+          if [[ "$IMZAKIT_VERSION" == *-* ]]; then PRERELEASE=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" artifacts/packages/* \
+            --verify-tag \
+            --title "ImzaKit $IMZAKIT_VERSION" \
+            --notes "NuGet: https://www.nuget.org/packages/ImzaKit/$IMZAKIT_VERSION" \
+            "${PRERELEASE[@]}"

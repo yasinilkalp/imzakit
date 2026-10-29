@@ -40,22 +40,33 @@ public sealed class ReleaseSigningPolicyTests
     }
 
     [Fact]
-    public void StableReleaseRequiresAuthenticodeAndProvenanceKey()
+    public void StableNugetRequiresProvenanceKeyButNotAuthenticode()
     {
-        InvalidOperationException authenticode = Assert.Throws<InvalidOperationException>(() =>
-            ReleaseSigningPolicy.AssertCanPublish(
-                "1.0.0",
-                ReleaseArtifactKind.NugetPackage,
-                new(AuthenticodeCertificatePresent: false, ReleaseEcdsaKeyPresent: true)));
         InvalidOperationException provenance = Assert.Throws<InvalidOperationException>(() =>
             ReleaseSigningPolicy.AssertCanPublish(
                 "1.0.0",
                 ReleaseArtifactKind.NugetPackage,
                 new(AuthenticodeCertificatePresent: true, ReleaseEcdsaKeyPresent: false)));
 
-        Assert.Equal("IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING", authenticode.Message);
         Assert.Equal("IMZAKIT.RELEASE.PROVENANCE_KEY_MISSING", provenance.Message);
+        Assert.False(ReleaseSigningPolicy.RequiresAuthenticode("1.0.0", ReleaseArtifactKind.NugetPackage));
+        ReleaseSigningPolicy.AssertCanPublish(
+            "1.0.0",
+            ReleaseArtifactKind.NugetPackage,
+            new(AuthenticodeCertificatePresent: false, ReleaseEcdsaKeyPresent: true));
         ReleaseSigningPolicy.AssertCanPublish("1.0.0", ReleaseArtifactKind.NugetPackage, Complete);
+    }
+
+    [Fact]
+    public void StableUpdateManifestStillRequiresAuthenticode()
+    {
+        InvalidOperationException authenticode = Assert.Throws<InvalidOperationException>(() =>
+            ReleaseSigningPolicy.AssertCanPublish(
+                "1.0.0",
+                ReleaseArtifactKind.UpdateManifest,
+                new(AuthenticodeCertificatePresent: false, ReleaseEcdsaKeyPresent: true)));
+
+        Assert.Equal("IMZAKIT.RELEASE.AUTHENTICODE_CERTIFICATE_MISSING", authenticode.Message);
     }
 
     [Fact]

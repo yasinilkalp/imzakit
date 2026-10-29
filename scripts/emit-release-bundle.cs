@@ -1,9 +1,7 @@
 #:project ../packaging/ImzaKit.Release/ImzaKit.Release.csproj
 
-using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using ImzaKit.Release.Installer;
 using ImzaKit.Release.Provenance;
 using ImzaKit.Release.Sbom;
@@ -86,12 +84,12 @@ try
         builderId,
         releaseKey);
     Directory.CreateDirectory(output);
-    File.WriteAllText(Path.Combine(output, "sbom.cdx.json"), bundle.SbomJson);
+    File.WriteAllBytes(Path.Combine(output, "sbom.cdx.json"), Encoding.UTF8.GetBytes(bundle.SbomJson));
     if (bundle.Provenance is not null)
     {
         File.WriteAllText(
             Path.Combine(output, "provenance.json"),
-            WriteProvenanceJson(bundle.Provenance));
+            ReleaseProvenanceJson.Write(bundle.Provenance));
     }
 
     Console.WriteLine("RELEASE_BUNDLE_OK " + Path.Combine(output, "sbom.cdx.json"));
@@ -106,25 +104,6 @@ static string? ReadOption(string[] arguments, string name)
 {
     int index = Array.FindIndex(arguments, argument => string.Equals(argument, name, StringComparison.Ordinal));
     return index >= 0 && index + 1 < arguments.Length ? arguments[index + 1] : null;
-}
-
-static string WriteProvenanceJson(ReleaseProvenance provenance)
-{
-    using MemoryStream stream = new();
-    using (Utf8JsonWriter writer = new(stream))
-    {
-        writer.WriteStartObject();
-        writer.WriteString("product", provenance.Product);
-        writer.WriteString("version", provenance.Version);
-        writer.WriteString("gitCommit", provenance.GitCommit);
-        writer.WriteString("artifactSha256", provenance.ArtifactSha256);
-        writer.WriteString("builderId", provenance.BuilderId);
-        writer.WriteString("issuedAtUtc", provenance.IssuedAtUtc.ToString("O", CultureInfo.InvariantCulture));
-        writer.WriteString("signature", provenance.Signature);
-        writer.WriteEndObject();
-    }
-
-    return Encoding.UTF8.GetString(stream.ToArray());
 }
 
 static SoftwareComponent[] RuntimeComponents(string version) =>

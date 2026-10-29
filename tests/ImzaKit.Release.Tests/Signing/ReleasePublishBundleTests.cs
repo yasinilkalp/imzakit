@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using ImzaKit.Release.Provenance;
 using ImzaKit.Release.Sbom;
 using ImzaKit.Release.Signing;
@@ -34,7 +35,8 @@ public sealed class ReleasePublishBundleTests
         Assert.True(ReleaseProvenanceFactory.Verify(
             bundle.Provenance,
             releaseKey,
-            SHA256.HashData(artifact)));
+            SHA256.HashData(artifact),
+            SHA256.HashData(Encoding.UTF8.GetBytes(bundle.SbomJson))));
     }
 
     [Fact]
