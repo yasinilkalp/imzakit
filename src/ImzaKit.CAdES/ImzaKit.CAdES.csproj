@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Independent CAdES baseline signatures for ImzaKit.</Description>
+    <Description>Independent CAdES baseline signatures with time-stamp and signing-certificate checks for ImzaKit.</Description>
     <PackageId>ImzaKit.CAdES</PackageId>
   </PropertyGroup>
   <ItemGroup>

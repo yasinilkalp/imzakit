@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>PAdES signing and validation integration for ImzaKit.</Description>
+    <Description>PAdES signing and validation integration with object-level DocMDP/FieldMDP change analysis for ImzaKit.</Description>
     <PackageId>ImzaKit.PAdES</PackageId>
   </PropertyGroup>
   <ItemGroup>

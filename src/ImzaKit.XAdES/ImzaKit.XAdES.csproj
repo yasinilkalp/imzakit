@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>XAdES baseline signatures with a secure XMLDSig allowlist for ImzaKit.</Description>
+    <Description>XAdES baseline signatures with a secure XMLDSig allowlist and ETSI EN 319 132-1 time-stamps for ImzaKit.</Description>
     <PackageId>ImzaKit.XAdES</PackageId>
   </PropertyGroup>
   <ItemGroup>

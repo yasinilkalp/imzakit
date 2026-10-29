@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>PAdES, CAdES, XAdES, and ASiC signature validation reports for ImzaKit.</Description>
+    <Description>PAdES, CAdES, XAdES, and ASiC signature validation reports with per-signature trust, algorithm and time-stamp checks for ImzaKit.</Description>
     <PackageId>ImzaKit.Verify</PackageId>
   </PropertyGroup>
   <ItemGroup>

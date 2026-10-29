@@ -1,5 +1,7 @@
 # ImzaKit
 
+[![CI](https://github.com/yasinilkalp/imzakit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yasinilkalp/imzakit/actions/workflows/ci.yml)
+
 ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek için hazırlanmış, sağlayıcıdan bağımsız ve Apache-2.0 lisanslı açık kaynak bir araç takımıdır. Tek NuGet paketi; CMS ve PAdES hazırlama/tamamlama, PKCS#11 soyutlamaları, imza doğrulama, yerel Agent güvenliği, API işlem modeli ve bağımlılık enjeksiyonu bileşenlerini birlikte sunar.
 
 > **Ön sürüm:** `1.0.0-alpha.14` kararlı sürüm değildir ve API değişiklikleri içerebilir. Üretim kullanımından önce hukuki gereksinimleri, sertifika politikalarını, güven zincirini, iptal kontrollerini, donanım uyumluluğunu ve PDF okuyucu birlikte çalışabilirliğini kendi ortamınızda doğrulayın.
@@ -11,14 +13,16 @@ ImzaKit, .NET uygulamalarında elektronik imza iş akışları geliştirmek içi
 - CMS detached imza verisi hazırlama ve tamamlama
 - PDF bütünlüğünü koruyan artımlı PAdES imzalama altyapısı
 - PKCS#11 sağlayıcı sözleşmeleri ve kart imzalama orkestrasyonu
-- PAdES `ByteRange` ve CMS kriptografik imza doğrulaması
+- PAdES `ByteRange` ve CMS kriptografik imza doğrulaması; çok imzalı belgelerde her imza için ayrı karar
+- İmzadan sonraki revizyonların nesne düzeyinde DocMDP/FieldMDP denetimi (nesne ve çapraz referans akışları dahil)
+- Zayıf algoritma politikası ve imzalayan sertifikanın `signing-certificate(-v2)` özniteliğiyle bağlanması
 - Sistem deposuna başvurmayan X.509 zincir, güven politikası ve OCSP/CRL değerlendirmesi
-- RFC 3161 TSA ve PAdES B-T/B-LT/B-LTA uzatma hattı
+- RFC 3161 TSA ve PAdES B-T/B-LT/B-LTA uzatma hattı; yalnız doğrulanan zaman damgaları seviyeye sayılır
 - Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo
-- XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA
+- XAdES enveloped/enveloping/detached ve EN 319 132-1 uyumlu zaman damgalarıyla B-B/B-T/B-LT/B-LTA
 - ASiC-S/E paketleme ve ZIP güvenlik kontrolleri
 - DI kayıtları ve süreç içi örnek orkestrasyon
-- Agent bileti, tekrar oynatma koruması, API durum makinesi ve idempotency bileşenleri
+- Agent bileti, tekrar oynatma koruması, tenant izolasyonu, imza değerini doğrulayan API durum makinesi ve idempotency bileşenleri
 
 ## Gereksinimler
 
@@ -48,7 +52,7 @@ Paket ayrıca [GitHub Packages](https://github.com/yasinilkalp/imzakit/pkgs/nuge
 | `ImzaKit.Cryptography` | Özet hesaplama ve algoritma modelleri |
 | `ImzaKit.Cms` | CMS signed-attributes hazırlama ve SignedData tamamlama |
 | `ImzaKit.CAdES` | Bağımsız CAdES B-B/B-T/B-LT/B-LTA ve çoklu SignerInfo |
-| `ImzaKit.XAdES` | XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA |
+| `ImzaKit.XAdES` | XAdES enveloped/enveloping/detached ve B-B/B-T/B-LT/B-LTA (EN 319 132-1 zaman damgası girdileri, `xades141:ArchiveTimeStamp`) |
 | `ImzaKit.ASiC` | ASiC-S/E paketleme, ASiCManifest ve ZIP güvenlik kontrolleri |
 | `ImzaKit.PAdES` | PDF/PAdES ön kontrol, hazırlama, tamamlama ve değişiklik politikaları |
 | `ImzaKit.Pkcs11` | PKCS#11 sağlayıcı sözleşmeleri ve imzalama orkestrasyonu |
@@ -115,7 +119,7 @@ AKİS quirk’leri `NativePkcs11ProviderOptions.ForAkis()`, eToken quirk’leri 
 
 MVP HTTP sözleşmesi `SignatureApiRequestHandler` ile uygulanır. Üretim Kestrel host (`ImzaKit.Hosts.Api`) paket dışındadır; HTTPS üzerinde `AllowCertificate` mTLS kullanır, özel cihaz CA’sini OS store ile doğrulamaz ve client sertifikasını `MutualTlsRequestMapper` ile işler. Redis benzeri `RedisMetadataStore` belge tutmaz; `FileSystemBlobStore` object-store bağları içindir. PIN yalnız `AddImzaKitWindowsAgent()` native penceresinde alınır.
 
-İşlem, doğrulama ve zarf kayıtları çağıranın tenant’ına bağlıdır; başka tenant’ın kaydı `404` döner ve idempotency anahtarları tenant başına ayrılır. Completion token yalnız üretildiği işlem için, süresi dolmadan ve bir kez geçerlidir. `/v1/signatures/extend` TSA’yı yalnız sunucu kaydından adla seçer (`IMZAKIT_TSA_AUTHORITIES="kamusm=http://tzd.kamusm.gov.tr;yedek=https://tsa.example/rfc3161"`); `IMZAKIT_TSA_{AD}_USER/_PASSWORD/_BEARER` kimlik bilgileri istemcinin verdiği adrese gönderilmez.
+İşlem, doğrulama ve zarf kayıtları çağıranın tenant’ına bağlıdır; başka tenant’ın kaydı `404` döner ve idempotency anahtarları tenant başına ayrılır. Completion token yalnız üretildiği işlem için, süresi dolmadan ve bir kez geçerlidir. `/complete` ve Agent geri çağrısı, imza değerinin prepare’de verilen veri üzerinde seçilen sertifikanın anahtarıyla atılmış RSA-SHA256 imzası olduğunu doğrular; doğrulanmayan değer `422` alır, işlem `Signed` olmaz ve token harcanmaz. `/v1/signatures/extend` TSA’yı yalnız sunucu kaydından adla seçer (`IMZAKIT_TSA_AUTHORITIES="kamusm=http://tzd.kamusm.gov.tr;yedek=https://tsa.example/rfc3161"`); `IMZAKIT_TSA_{AD}_USER/_PASSWORD/_BEARER` kimlik bilgileri istemcinin verdiği adrese gönderilmez.
 
 Saklama varsayılanları (ADR-007): Agent bileti 120 saniye, tamamlanmamış operasyon metadata’sı 24 saat, tamamlanan çıktı ve doğrulama raporu 7 gün. Redis benzeri `IMetadataStore` belge tutmaz ve TTL’siz kayıt kabul etmez. Belgeler `IDocumentStore` altında tenant izole, AES-GCM şifreli ve süreli URL ile okunur. Audit append-only hash-chain’dir; PIN, private key, ham belge ve credential yazılmaz.
 
@@ -139,7 +143,12 @@ foreach (ValidationFinding finding in report.Findings)
 
 Tek parametreli `PadesValidator.Validate` çağrısı geriye dönük uyumluluk için yalnız PDF/CMS bütünlüğünü denetler; bu nedenle `TrustStatus` değeri `Indeterminate` olabilir.
 
-Birden fazla imzalı belgelerde her imza ayrı değerlendirilir (`report.Signatures[i].Status`, `TrustStatus`, `RevocationStatus`); belge yalnız bütün imzalar geçerse `Passed` olur. İmzadan sonraki revizyonlar nesne düzeyinde karşılaştırılır: sayfa veya içerik değişikliği `ContentModifiedAfterSigning` (DocMDP sertifikalı belgede `DocMdpViolation`) ile `Failed`, okunamayan nesne akışları `ModificationAnalysisIncomplete` ile `Indeterminate` olur. Zaman damgaları seviyeye yalnız token imzası ve kapsadığı veri doğrulanırsa sayılır; aksi halde `SignatureTimeStampInvalid` veya `DocumentTimeStampInvalid` bulgusu eklenir. `ValidationContext` ile doğrulamada ayrıca TSA sertifika zinciri, token zamanında geçerli olmalı ve profile açık bir güven çapasına bağlanmalıdır; bağlanmayan damgalar `TimeStampAuthorityUntrusted` bulgusuyla seviyeye sayılmaz.
+Birden fazla imzalı belgelerde her imza ayrı değerlendirilir (`report.Signatures[i].Status`, `TrustStatus`, `RevocationStatus`); belge yalnız bütün imzalar geçerse `Passed` olur. Doğrulama ayrıca şunları denetler:
+
+- **İmzadan sonraki değişiklikler:** Sonraki revizyonlar nesne düzeyinde, nesne ve çapraz referans (xref) akışları dahil karşılaştırılır. Sayfa veya içerik değişikliği ve nesne silme `ContentModifiedAfterSigning` (DocMDP sertifikalı belgede `DocMdpViolation`), kilitli FieldMDP alanındaki değişiklik `FieldMdpViolation` ile `Failed` olur. Çözülemeyen nesne veya xref akışları `ModificationAnalysisIncomplete` ile `Indeterminate` sonuç verir.
+- **Algoritmalar:** MD5/SHA-1 ile imza, 2048 bitten kısa RSA/DSA ve 256 bitten kısa EC anahtarları `AlgorithmDisallowed` ile reddedilir (ETSI TS 119 312).
+- **İmzalayan sertifika:** İmzalı `signing-certificate(-v2)` özniteliği CMS’teki imzalayan sertifikayı göstermiyorsa imza `SigningCertificateMismatch` ile başarısız olur; öznitelik yoksa `SigningCertificateAttributeMissing` bulgusu eklenir.
+- **Zaman damgaları:** Seviyeye yalnız token imzası ve kapsadığı veri doğrulanırsa sayılır; aksi halde `SignatureTimeStampInvalid` veya `DocumentTimeStampInvalid` bulgusu eklenir. `ValidationContext` ile doğrulamada ayrıca TSA sertifika zinciri token zamanında geçerli olmalı ve profile açık bir güven çapasına bağlanmalıdır; bağlanmayan damgalar `TimeStampAuthorityUntrusted` bulgusuyla seviyeye sayılmaz.
 
 ### Çevrimdışı güven doğrulaması
 
@@ -190,13 +199,15 @@ Windows Agent installer yerleşimi (`AgentInstallerLayout`) yalnız `win-x64` ve
 
 - Sistem sertifika deposu, AIA, OCSP URL’si veya CRL URL’si otomatik kullanılmaz.
 - Güven deposu ve politika kataloğunun doğrulanmış, bütünlüğü korunmuş dağıtımı çağıran uygulamanın sorumluluğundadır.
-- Alpha.4 yalnız çağıranın sağladığı gömülü/yerel kanıtlarla deterministik çevrimdışı karar üretir; çevrimiçi toplama ve uzun dönem doğrulama kapsam dışıdır.
+- Güven doğrulaması yalnız çağıranın sağladığı gömülü/yerel kanıtlarla deterministik çevrimdışı karar üretir; çevrimiçi toplama ve uzun dönem doğrulama kapsam dışıdır.
+- TSA sertifikasının iptal durumu denetlenmez.
+- XAdES zaman damgaları yalnızca token ve kapsadığı girdi üzerinden doğrulanır; TSA güven zinciri değerlendirilmez. Doğrulanmayan damgalar `SignatureTimeStampInvalid`/`ArchiveTimeStampInvalid` ile seviyeye sayılmaz, 1.3.2 ad alanındaki `ArchiveTimeStamp` `ArchiveTimeStampUnsupported` olarak raporlanır. Detached imzaya B-LTA eklemek için detached içerik gerekir.
+- Varsayılan `InMemorySignatureWorkflow` örnek bir iş akışıdır: doğrulanan imza değerini belgeye işlemez ve kayıtları bellekte tutar. Üretimde kendi `ISignatureWorkflow` uygulamanızı kaydedin.
 
 ## Güvenlik notları
 
 - PIN, özel anahtar, ham Agent bileti veya maskelenmemiş token seri numarasını loglamayın.
 - Özel anahtar işlemlerini kart, HSM veya amaçlanan kriptografik sağlayıcı sınırında tutun.
-- API, `/complete` ve Agent geri çağrısındaki imza değerini, prepare'de verilen veri üzerinde seçilen sertifikanın anahtarıyla RSA-SHA256 olarak doğrular; doğrulanmayan değer 422 ile reddedilir ve işlem `Signed` olmaz.
 - Sertifika güveni, OCSP/CRL, zaman damgası ve kurumsal politika kararlarını uygulama katmanında açıkça yönetin.
 - Fiziksel kart, native kullanıcı onayı, mTLS ve kurulum/dağıtım senaryolarını hedef ortamınızda ayrıca test edin.
 
@@ -232,9 +243,17 @@ dotnet add package ImzaKit --version 1.0.0-alpha.14
 
 Create a versioned `TrustStoreSnapshot` and `CertificatePolicyCatalog`, then pass them through `ValidationContext` to `PadesValidator.Validate(pdf, context)`. Choose `GeneralX509` for general PKI rules, `TurkiyeNes` for the configured Turkish qualified-certificate policy, or `Eidas` for an Eidas-labeled anchor plus catalog policy OID and QcCompliance. `Eidas` is not an EU Trusted List import and does not claim QES. A `RevocationDataUnavailable` finding means suitable caller-supplied OCSP/CRL evidence was unavailable.
 
+### Validation
+
+Each PAdES signature gets its own decision, and a document passes only when all of them do. Revisions appended after a signature are compared object by object, including object and cross-reference streams: content changes and deletions fail with `ContentModifiedAfterSigning` (`DocMdpViolation` under DocMDP), locked FieldMDP fields with `FieldMdpViolation`, and unreadable revisions yield `ModificationAnalysisIncomplete`. MD5/SHA-1 signatures, RSA/DSA keys below 2048 bits and EC keys below 256 bits are rejected with `AlgorithmDisallowed`, and a signing-certificate(-v2) attribute that does not match the signer fails the signature. Time-stamps only count towards B-T/B-LTA when the token verifies over what it covers; with a `ValidationContext` the TSA chain must also reach a trust anchor enabled for the profile. XAdES time-stamps follow ETSI EN 319 132-1, with archive time-stamps in the XAdES 1.4.1 namespace.
+
+### API
+
+Operations, validations and envelopes belong to the calling tenant. Completion tokens are single-use, expire with their prepare and only complete their own operation; `/complete` and agent callbacks also verify that the signature value is the RSA-SHA256 signature of the prepared data by the selected certificate's key. `/v1/signatures/extend` selects TSAs by name from the server-side registry only.
+
 ### Limitations
 
-ImzaKit never consults the system trust store automatically. Signature verification stays offline unless the caller supplies evidence. RFC 3161 timestamping and PAdES B-T/B-LT/B-LTA extension fetch TSA/OCSP/CRL only through `IExternalResourceFetcher`.
+ImzaKit never consults the system trust store automatically. Signature verification stays offline unless the caller supplies evidence. RFC 3161 timestamping and PAdES B-T/B-LT/B-LTA extension fetch TSA/OCSP/CRL only through `IExternalResourceFetcher`. TSA certificate revocation is not checked, XAdES validation does not evaluate TSA trust, and the default `InMemorySignatureWorkflow` is a sample that keeps records in memory and does not embed the verified signature value.
 
 ### Prerelease and security notice
 

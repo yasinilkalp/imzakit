@@ -19,7 +19,7 @@
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>electronic-signature;digital-signature;pades;cades;xades;asic;cms;pkcs11;pdf;rfc3161</PackageTags>
+    <PackageTags>electronic-signature;digital-signature;e-imza;pades;cades;xades;asic;cms;pkcs11;pdf;rfc3161;timestamp;etsi;signature-validation</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>

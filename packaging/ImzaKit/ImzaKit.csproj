@@ -2,7 +2,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageId>ImzaKit</PackageId>
-    <Description>Provider-independent electronic signature toolkit for .NET.</Description>
+    <Description>Provider-independent electronic signature toolkit for .NET: PAdES, CAdES, XAdES and ASiC signing, PKCS#11 card signing, RFC 3161 time-stamps and B-T/B-LT/B-LTA extension, and offline validation that checks each signature, certificate trust and revocation, weak algorithms, time-stamp authorities and changes made after signing.</Description>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeProjectAssemblies</TargetsForTfmSpecificBuildOutput>
     <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);IncludeProjectSymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
   </PropertyGroup>
